@@ -51,7 +51,7 @@ for column_name, column_data in df.items():
 #     anonymized_dict= pickle.load(file)
 # print(anonymized_dict)
 df.to_csv(index=False, path_or_buf='asd.csv', sep="_", header=False)
-file_path = 'E.csv'
+file_path = 'asd.csv'
 df_without_na = pd.read_csv(file_path, delimiter='_', header=None)
 db = connect_db()
 for index, row in df_without_na.iterrows():
