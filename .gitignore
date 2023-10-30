@@ -1,2 +1,6 @@
 *.xls
 *.csv
+*.pkl
+/scripts/*.csv
+/scripts/*.xls
+/scripts/*.pkl

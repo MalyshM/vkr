@@ -36,3 +36,18 @@ class StudyMeeting(Base):
 
     student = relationship('Student', primaryjoin='StudyMeeting.student_id == Student.id')
     student1 = relationship('Student', primaryjoin='StudyMeeting.student_id == Student.id')
+
+class TableForAll(Base):
+    __tablename__ = 'table_for_all'
+
+    id = Column(BigInteger, primary_key=True, server_default=text("nextval('table_for_all_id_seq'::regclass)"))
+    name_of_subject = Column(String, nullable=False)
+    link_of_subject = Column(String, nullable=False)
+    name_of_student = Column(String, nullable=False)
+    team = Column(String, nullable=False)
+    name_of_meeting = Column(String, nullable=False)
+    subject_of_control = Column(String, nullable=False)
+    mark_of_subject_of_control = Column(String, nullable=False)
+    result_points = Column(Float)
+    result_mark = Column(String)
+    date_of_add = Column(DateTime, nullable=False)
