@@ -6,7 +6,7 @@ import time
 from fastapi import APIRouter, Query, Depends
 from sqlalchemy.dialects.postgresql import JSONB
 from starlette import status
-from models import connect_db, TableForAll
+from models import connect_db
 from sqlalchemy import func
 
 router = APIRouter()

@@ -4,3 +4,4 @@
 /scripts/*.csv
 /scripts/*.xls
 /scripts/*.pkl
+/__pycache__
