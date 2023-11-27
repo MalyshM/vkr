@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+  db:
+    image: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+    ports:
+      - '8099:3306'
+
+  backend:
+    build: .
+    container_name: backend
+    ports:
+      - '8090:80'
+    command: bash -c "cd backend; python start_db.py; uvicorn main:app --host 0.0.0.0 --port 80"
+    env_file:
+      - .env
+    environment:
+      - PYTHONPATH=/backend/backend
+    depends_on:
+      - db
+  frontend:
+    build: .
+    container_name: frontend
+    ports:
+      - '3000:3000'
+    command: bash -c "cd frontend; cd my-app; npm run start"
+volumes:
+  app_data:
+
+
