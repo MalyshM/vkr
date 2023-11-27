@@ -11,121 +11,121 @@ import sqlalchemy
 
 from app.models import *
 
-# file_path = 'dataframe.csv'
-# df = pd.read_csv(file_path, delimiter=';')
-# df_teachers = pd.read_csv('teachers.csv', delimiter=';', names=['1', '2', 'Команда', '3', 'лектор', 'практик'])
-# # df = df.fillna(0)
-# # pd.set_option('display.max_columns', None)
-# print(df.head())
-# print(df.dtypes)
-# previous = ''
-# anonymized_dict = {}
-# list_of_rmup = []
-# list_of_rmup_link = []
-# list_of_stud_fio = []
-# list_of_team = []
-# list_of_name_of_lesson = []
-# list_of_subject_of_control = []
-# list_of_mark_of_subject_of_control = []
-# list_of_result_points = []
-# list_of_result_mark = []
-# list_of_arrival = []
-# list_of_test = []
-# list_of_teachers = []
-#
-# temp_list_of_subj = []
-# temp_list_of_mark = []
-#
-# df["ФИО студента"] = df["ФИО студента"].apply(
-#     lambda x: anonymized_dict.setdefault(x, hashlib.sha256(x.encode()).hexdigest()))
-# with open("anonymized_dict.pkl", "wb") as file:
-#     pickle.dump(anonymized_dict, file)
-#
-#
-# def find_teacher(row):
-#     if 'Л' in row['Команда']:
-#         teacher_type = 'лектор'
-#     else:
-#         teacher_type = 'практик'
-#
-#     teacher_row = df_teachers[df_teachers['Команда'] == row['Команда']]
-#     for index, row in teacher_row.iterrows():
-#         if 'лектор' == teacher_type:
-#             # print(row[-1])
-#             return row[-1]
-#         else:
-#             # print(row[-2])
-#             return row[-2]
-#
-#
-# df['Преподаватель'] = df.apply(find_teacher, axis=1)
-# print(df['Преподаватель'])
-# print(df.columns)
-# for index, row in df.iterrows():
-#     if len(temp_list_of_subj) > 1 and 'Посещение' in temp_list_of_subj \
-#             and 'Работа на учебной встрече' in temp_list_of_subj:
-#         # print(temp_list_of_subj)
-#         # print(temp_list_of_mark)
-#         if 'Контрольная работа' in row[5]:
-#             temp_list_of_subj.append(row[5])
-#             temp_list_of_mark.append(row[6])
-#
-#             list_of_rmup.append(row[0])
-#             list_of_rmup_link.append(row[1])
-#             list_of_stud_fio.append(row[2])
-#             list_of_team.append(row[3])
-#             list_of_name_of_lesson.append(row[4])
-#
-#             list_of_mark_of_subject_of_control.append(
-#                 temp_list_of_mark[temp_list_of_subj.index('Работа на учебной встрече')])
-#             list_of_arrival.append(temp_list_of_mark[temp_list_of_subj.index('Посещение')])
-#             list_of_test.append(temp_list_of_mark[temp_list_of_subj.index('Контрольная работа')])
-#
-#             list_of_result_points.append(row[7])
-#             list_of_result_mark.append(row[8])
-#             list_of_teachers.append(row[9])
-#
-#             temp_list_of_subj.clear()
-#             temp_list_of_mark.clear()
-#             last_row = row
-#         else:
-#             list_of_rmup.append(last_row[0])
-#             list_of_rmup_link.append(last_row[1])
-#             list_of_stud_fio.append(last_row[2])
-#             list_of_team.append(last_row[3])
-#             list_of_name_of_lesson.append(last_row[4])
-#
-#             list_of_mark_of_subject_of_control.append(
-#                 temp_list_of_mark[temp_list_of_subj.index('Работа на учебной встрече')])
-#             list_of_arrival.append(temp_list_of_mark[temp_list_of_subj.index('Посещение')])
-#             try:
-#                 list_of_test.append(temp_list_of_mark[temp_list_of_subj.index('Контрольная работа')])
-#             except:
-#                 list_of_test.append(math.nan)
-#
-#             list_of_result_points.append(last_row[7])
-#             list_of_result_mark.append(last_row[8])
-#             list_of_teachers.append(last_row[9])
-#
-#             temp_list_of_subj.clear()
-#             temp_list_of_mark.clear()
-#
-#             temp_list_of_subj.append(row[5])
-#             temp_list_of_mark.append(row[6])
-#             last_row = row
-#     else:
-#         temp_list_of_subj.append(row[5])
-#         temp_list_of_mark.append(row[6])
-#         last_row = row
-#
-# df_list = [list_of_rmup, list_of_rmup_link, list_of_stud_fio, list_of_team, list_of_name_of_lesson,
-#            list_of_mark_of_subject_of_control, list_of_arrival, list_of_test, list_of_result_points,
-#            list_of_result_mark, list_of_teachers]
-#
-# df_true = pd.DataFrame(df_list)
-# df_true = df_true.T
-#
-# df_true.to_csv(index=False, path_or_buf='df_true.csv', sep="_", header=False)
+file_path = 'dataframe.csv'
+df = pd.read_csv(file_path, delimiter=';')
+df_teachers = pd.read_csv('teachers.csv', delimiter=';', names=['1', '2', 'Команда', '3', 'лектор', 'практик'])
+# df = df.fillna(0)
+# pd.set_option('display.max_columns', None)
+print(df.head())
+print(df.dtypes)
+previous = ''
+anonymized_dict = {}
+list_of_rmup = []
+list_of_rmup_link = []
+list_of_stud_fio = []
+list_of_team = []
+list_of_name_of_lesson = []
+list_of_subject_of_control = []
+list_of_mark_of_subject_of_control = []
+list_of_result_points = []
+list_of_result_mark = []
+list_of_arrival = []
+list_of_test = []
+list_of_teachers = []
+
+temp_list_of_subj = []
+temp_list_of_mark = []
+
+df["ФИО студента"] = df["ФИО студента"].apply(
+    lambda x: anonymized_dict.setdefault(x, hashlib.sha256(x.encode()).hexdigest()))
+with open("anonymized_dict.pkl", "wb") as file:
+    pickle.dump(anonymized_dict, file)
+
+
+def find_teacher(row):
+    if 'Л' in row['Команда']:
+        teacher_type = 'лектор'
+    else:
+        teacher_type = 'практик'
+
+    teacher_row = df_teachers[df_teachers['Команда'] == row['Команда']]
+    for index, row in teacher_row.iterrows():
+        if 'лектор' == teacher_type:
+            # print(row[-1])
+            return row[-1]
+        else:
+            # print(row[-2])
+            return row[-2]
+
+
+df['Преподаватель'] = df.apply(find_teacher, axis=1)
+print(df['Преподаватель'])
+print(df.columns)
+for index, row in df.iterrows():
+    if len(temp_list_of_subj) > 1 and 'Посещение' in temp_list_of_subj \
+            and 'Работа на учебной встрече' in temp_list_of_subj:
+        # print(temp_list_of_subj)
+        # print(temp_list_of_mark)
+        if 'Контрольная работа' in row[5]:
+            temp_list_of_subj.append(row[5])
+            temp_list_of_mark.append(row[6])
+
+            list_of_rmup.append(row[0])
+            list_of_rmup_link.append(row[1])
+            list_of_stud_fio.append(row[2])
+            list_of_team.append(row[3])
+            list_of_name_of_lesson.append(row[4])
+
+            list_of_mark_of_subject_of_control.append(
+                temp_list_of_mark[temp_list_of_subj.index('Работа на учебной встрече')])
+            list_of_arrival.append(temp_list_of_mark[temp_list_of_subj.index('Посещение')])
+            list_of_test.append(temp_list_of_mark[temp_list_of_subj.index('Контрольная работа')])
+
+            list_of_result_points.append(row[7])
+            list_of_result_mark.append(row[8])
+            list_of_teachers.append(row[9])
+
+            temp_list_of_subj.clear()
+            temp_list_of_mark.clear()
+            last_row = row
+        else:
+            list_of_rmup.append(last_row[0])
+            list_of_rmup_link.append(last_row[1])
+            list_of_stud_fio.append(last_row[2])
+            list_of_team.append(last_row[3])
+            list_of_name_of_lesson.append(last_row[4])
+
+            list_of_mark_of_subject_of_control.append(
+                temp_list_of_mark[temp_list_of_subj.index('Работа на учебной встрече')])
+            list_of_arrival.append(temp_list_of_mark[temp_list_of_subj.index('Посещение')])
+            try:
+                list_of_test.append(temp_list_of_mark[temp_list_of_subj.index('Контрольная работа')])
+            except:
+                list_of_test.append(math.nan)
+
+            list_of_result_points.append(last_row[7])
+            list_of_result_mark.append(last_row[8])
+            list_of_teachers.append(last_row[9])
+
+            temp_list_of_subj.clear()
+            temp_list_of_mark.clear()
+
+            temp_list_of_subj.append(row[5])
+            temp_list_of_mark.append(row[6])
+            last_row = row
+    else:
+        temp_list_of_subj.append(row[5])
+        temp_list_of_mark.append(row[6])
+        last_row = row
+
+df_list = [list_of_rmup, list_of_rmup_link, list_of_stud_fio, list_of_team, list_of_name_of_lesson,
+           list_of_mark_of_subject_of_control, list_of_arrival, list_of_test, list_of_result_points,
+           list_of_result_mark, list_of_teachers]
+
+df_true = pd.DataFrame(df_list)
+df_true = df_true.T
+
+df_true.to_csv(index=False, path_or_buf='df_true.csv', sep="_", header=False)
 
 df_real = pd.read_csv('df_true.csv', delimiter='_', header=None)
 
@@ -183,7 +183,7 @@ for rmup_name, rmup_link, stud_name, team, name_of_lesson, mark, arrival1, test1
                   result_mark=result_mark, stud_id=stud_id, team_id=team_id, teacher_id=teacher_id,
                   date_of_add=datetime.datetime.now().date()))
 db.commit()
-
+db.close()
 # for index, row in df_real.iterrows():
 
 # for column_name, column_data in df.items():
