@@ -5,14 +5,25 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 metadata = Base.metadata
 
-# DATABASE_URL = "postgresql+asyncpg://postgres:admin@localhost/vkr_db"
-DATABASE_URL = "postgresql://postgres:admin@localhost/vkr_db"
 
-def connect_db():
+# DATABASE_URL = "postgresql+asyncpg://postgres:admin@localhost/vkr_db"
+
+
+def connect_db_data():
+    DATABASE_URL = "postgresql://postgres:admin@db/vkr_db"
     engine = create_engine(DATABASE_URL)
     Session = sessionmaker(bind=engine)
     session = Session()
     return session
+
+
+def connect_db_users():
+    DATABASE_URL = "postgresql://postgres:admin@db/vkr_db_users"
+    engine = create_engine(DATABASE_URL)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    return session
+
 
 class Rmup(Base):
     __tablename__ = 'rmup'
@@ -71,4 +82,18 @@ class Lesson(Base):
     stud = relationship('Stud', primaryjoin='Lesson.stud_id == Stud.id')
     teacher = relationship('Teacher', primaryjoin='Lesson.teacher_id == Teacher.id')
     team = relationship('Team', primaryjoin='Lesson.team_id == Team.id')
+
+
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(Integer, primary_key=True, server_default=text("nextval('users_id_seq'::regclass)"))
+    fio = Column(String, nullable=False)
+    username = Column(String(255), nullable=False)
+    password = Column(String, nullable=False)
+    email = Column(String(255), nullable=False)
+    isadmin = Column(Boolean, nullable=False)
+    isteacher = Column(Boolean, nullable=False)
+    iscurator = Column(Boolean, nullable=False)
+    date_of_add = Column(DateTime, nullable=False)
 

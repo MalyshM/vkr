@@ -3,16 +3,16 @@ FROM python:3.10 as backend
 
 ENV PYTHONUNBUFFERED 1
 
-WORKDIR /app
-COPY . /app
+WORKDIR /backend
+COPY . /backend
 RUN pip install cryptography
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Frontend
 FROM node:14 as frontend
 
-WORKDIR /react_app
-COPY react_app/for_vlad/package*.json ./
+WORKDIR /frontend
+COPY frontend/for_vlad/package*.json ./
 RUN npm install
 COPY frontend/for_vlad/ ./
 RUN npm run build
@@ -31,8 +31,8 @@ RUN apt-get update && apt-get upgrade -y && \
 
 EXPOSE 8000
 WORKDIR /backend
-COPY --from=backend /app /app
-COPY --from=frontend /react_app/build /app/react_app
+COPY --from=backend /backend /backend
+COPY --from=frontend /frontend/build /backend/frontend
 
 RUN pip install cryptography
 RUN pip install --no-cache-dir -r requirements.txt

@@ -9,11 +9,11 @@ import os
 # Specify the path to the Excel file
 import sqlalchemy
 
-from app.models import *
+from models import *
 
-file_path = 'dataframe.csv'
+file_path = '/backend/backend/scripts/dataframe.csv'
 df = pd.read_csv(file_path, delimiter=';')
-df_teachers = pd.read_csv('teachers.csv', delimiter=';', names=['1', '2', 'Команда', '3', 'лектор', 'практик'])
+df_teachers = pd.read_csv('/backend/backend/scripts/teachers.csv', delimiter=';', names=['1', '2', 'Команда', '3', 'лектор', 'практик'])
 # df = df.fillna(0)
 # pd.set_option('display.max_columns', None)
 print(df.head())
@@ -38,7 +38,7 @@ temp_list_of_mark = []
 
 df["ФИО студента"] = df["ФИО студента"].apply(
     lambda x: anonymized_dict.setdefault(x, hashlib.sha256(x.encode()).hexdigest()))
-with open("anonymized_dict.pkl", "wb") as file:
+with open("/backend/backend/scripts/anonymized_dict.pkl", "wb") as file:
     pickle.dump(anonymized_dict, file)
 
 
@@ -125,14 +125,14 @@ df_list = [list_of_rmup, list_of_rmup_link, list_of_stud_fio, list_of_team, list
 df_true = pd.DataFrame(df_list)
 df_true = df_true.T
 
-df_true.to_csv(index=False, path_or_buf='df_true.csv', sep="_", header=False)
+df_true.to_csv(index=False, path_or_buf='/backend/backend/scripts/df_true.csv', sep="_", header=False)
 
-df_real = pd.read_csv('df_true.csv', delimiter='_', header=None)
+df_real = pd.read_csv('/backend/backend/scripts/df_true.csv', delimiter='_', header=None)
 
 print(df_real.columns)
 df_real.columns = df_real.columns.astype(str)
 
-db = connect_db()
+db = connect_db_data()
 
 unique_values_rmup_table = df_real[['0', '1']].drop_duplicates().values.tolist()
 names = [row[0] for row in unique_values_rmup_table]
@@ -170,9 +170,19 @@ for rmup_name, rmup_link, stud_name, team, name_of_lesson, mark, arrival1, test1
         df_real['0'], df_real['1'], df_real['2'], df_real['3'], df_real['4'], df_real['5'], df_real['6'], df_real['7'],
         df_real['8'], df_real['9'], df_real['10']):
     name = name_of_lesson
-    mark_for_work = mark
-    arrival = arrival1
-    test = test1
+    if math.isnan(mark):
+        mark_for_work = 0
+    else:
+        mark_for_work = mark
+    if arrival1 is None:
+        arrival = "Н"
+    else:
+        arrival = arrival1
+    if math.isnan(test1):
+        test = 0
+    else:
+        test = test1
+
     result_points = result_points1
     result_mark = result_mark1
     stud_id = db.query(Stud.id).filter(Stud.name == stud_name).first()[0]

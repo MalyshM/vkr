@@ -2,21 +2,23 @@ version: '3'
 
 services:
   db:
-    image: mysql
+    image: postgres
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: admin
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: mydatabase
     volumes:
-      - ./mysql_data:/var/lib/mysql
+      - ./pgdata:/var/lib/postgresql/data
     ports:
-      - '8099:3306'
+      - '5432:5432'
 
   backend:
     build: .
-    container_name: backend
+    container_name: backend_michael
     ports:
       - '8090:80'
-    command: bash -c "cd backend; python start_db.py; uvicorn main:app --host 0.0.0.0 --port 80"
+    command: bash -c "cd backend; python start_db.py; python /backend/backend/scripts/ETL.py; uvicorn main:app --host 0.0.0.0 --port 80;"
     env_file:
       - .env
     environment:
@@ -25,10 +27,10 @@ services:
       - db
   frontend:
     build: .
-    container_name: frontend
+    container_name: frontend_BLOODY_VLADI
     ports:
       - '3000:3000'
-    command: bash -c "cd frontend; cd my-app; npm run start"
+    command: bash -c "cd frontend; cd for_vlad; npm run start"
 volumes:
   app_data:
 
