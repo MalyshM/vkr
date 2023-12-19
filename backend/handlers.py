@@ -221,6 +221,50 @@ async def attendance_per_stud_for_team(id_team: int, db=Depends(connect_db_data)
     return result_query
 
 
+@router.get('/api/total_points_attendance_per_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
+            tags=["Plot"], description=
+            """
+                    Получает продавца по id
+
+                    Args:
+                        from_ (int): С какой записи начать.
+                        to    (int): Какой записью закончить.
+                        limit (int): Сколько записей брать.
+                    Raises:
+                        HTTPException: Raises, если хоть одно условие выполняется db.query(Seller).filter(Seller.id == id).all() is None or (
+            type(id) != type(0)).
+
+                    Returns:
+                        List[Seller]: список продавцов.
+            """)
+async def total_points_per_stud_for_team(id_team: int, db=Depends(connect_db_data)):
+    # Create your plot using Plotly
+    await asyncio.sleep(0)
+    start_time = time.time()
+
+    result_query = (
+        db.query(
+            Stud.name,
+            Stud.id,
+            (func.sum(Lesson.mark_for_work) + func.sum(Lesson.test)).label("Успеваемость"),
+            ((cast(func.count(case([(Lesson.arrival == 'П', 1)], else_=None)), Float) / func.count(
+                Lesson.arrival)) * 100).label("Посещаемость"),
+        )
+            .filter(Lesson.team_id == id_team).join(Stud, Stud.id == Lesson.stud_id)
+            .group_by(Stud.name, Stud.id)
+            .all()
+    )
+    db.close()
+    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+    # print(result_query)
+    # response_list = []
+    # for row in result_query:
+    #     response_list.append({
+    #         "Итоговые баллы": row[0],
+    #         "ФИО студента": row[1]})
+    return result_query
+
+
 @router.get('/api/total_points_per_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
             tags=["Plot"], description=
             """
@@ -263,7 +307,7 @@ async def total_points_per_stud_for_team(id_team: int, db=Depends(connect_db_dat
     return result_query
 
 
-@router.get('/api/attendance_for_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
+@router.get('/api/cum_sum_points_for_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
             tags=["Plot"], description=
             """
                     Получает продавца по id
@@ -279,7 +323,7 @@ async def total_points_per_stud_for_team(id_team: int, db=Depends(connect_db_dat
                     Returns:
                         List[Seller]: список продавцов.
             """)
-async def attendance_for_stud_for_team(id_team: int, id_stud: int, db=Depends(connect_db_data)):
+async def cum_sum_points_for_stud_for_team(id_team: int, id_stud: int, db=Depends(connect_db_data)):
     await asyncio.sleep(0)
     start_time = time.time()
 
@@ -294,8 +338,11 @@ async def attendance_for_stud_for_team(id_team: int, id_stud: int, db=Depends(co
             .all()
     )
     df_list = []
+    counter = 1
     for row in result_query:
-        df_list.append({'name': row[0], 'test': row[1], 'mark_for_work': row[2], 'date_of_add': row[3]})
+        df_list.append(
+            {'name': row[0], 'test': row[1], 'mark_for_work': row[2], 'date_of_add': row[3], 'counter': counter})
+        counter += 1
     df = pd.DataFrame(df_list)
     print(df.head())
     cum_sum = []
@@ -303,7 +350,9 @@ async def attendance_for_stud_for_team(id_team: int, id_stud: int, db=Depends(co
     response_list = []
     for index, row in df.iterrows():
         cum_sum.append(float(cum_sum[-1]) + float(row['mark_for_work']) + float(row['test']))
-        response_list.append({'name': row['name'], 'cum_sum': cum_sum[-1]})
+        temp = True if row['test'] > 0.0 else False
+        response_list.append(
+            {'name': row['name'], 'cum_sum': cum_sum[-1], 'counter': row['counter'], 'isTest': temp})
     db.close()
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
     return response_list
@@ -352,11 +401,73 @@ async def attendance_dynamical_for_stud_for_team(id_team: int, id_stud: int, db=
             counter_arrived += 1
         counter_all += 1
         dynamical_arrival.append(float(counter_arrived / counter_all))
-        response_list.append({'name': row['name'], 'dynamical_arrival': dynamical_arrival[-1]})
+        response_list.append({'name': row['name'], 'dynamical_arrival': dynamical_arrival[-1] * 100})
 
     db.close()
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
     return response_list
+
+
+@router.get('/api/attendance_num_for_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
+            tags=["Plot"], description=
+            """
+                    Получает продавца по id
+
+                    Args:
+                        from_ (int): С какой записи начать.
+                        to    (int): Какой записью закончить.
+                        limit (int): Сколько записей брать.
+                    Raises:
+                        HTTPException: Raises, если хоть одно условие выполняется db.query(Seller).filter(Seller.id == id).all() is None or (
+            type(id) != type(0)).
+
+                    Returns:
+                        List[Seller]: список продавцов.
+            """)
+async def attendance_num_for_stud_for_team(id_team: int, db=Depends(connect_db_data)):
+    # Create your plot using Plotly
+    await asyncio.sleep(0)
+    start_time = time.time()
+
+    sub_query = (
+        db.query(
+            Lesson.stud_id,
+        )
+            .filter(and_(Lesson.team_id == id_team))
+            .distinct()
+            .all()
+    )
+    stud_id_list = [row[0] for row in sub_query]
+    sub_query = (
+        db.query(
+            Lesson.name,
+            (cast(func.count(case([(Lesson.arrival == 'П', 1)], else_=None)), Float)).label("arrival"),
+        )
+            .filter(and_(Lesson.team_id == id_team, Lesson.stud_id.in_(stud_id_list)))
+            .group_by(Lesson.name)
+            .all()
+    )
+    df_list = []
+    fix_sort = (
+        db.query(
+            Lesson.name
+        )
+            .filter(and_(Lesson.team_id == id_team, Lesson.stud_id == stud_id_list[0]))
+            .all()
+    )
+
+    for row in sub_query:
+        df_list.append({'name': row[0], 'arrival': row[1]})
+    df_true = []
+    for fixed_row in fix_sort:
+        for i in range(len(df_list)):
+            if fixed_row[0] in df_list[i]['name']:
+                df_true.append(df_list[i])
+                break
+
+    db.close()
+    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+    return df_true
 
 
 @router.get('/api/attendance_static_for_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -401,7 +512,7 @@ async def attendance_static_for_stud_for_team(id_team: int, id_stud: int, db=Dep
         if row['arrival'] == "П":
             counter_arrived += 1
         static_arrival.append(float(counter_arrived / counter_all))
-        response_list.append({'name': row['name'], 'static_arrival': static_arrival[-1]})
+        response_list.append({'name': row['name'], 'static_arrival': static_arrival[-1] * 100})
 
     db.close()
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
@@ -490,9 +601,10 @@ async def total_points_stud_for_teams(id_team1: int, id_team2: int, db=Depends(c
             Team.name.label("team_name"),
             (func.sum(Lesson.mark_for_work) + func.sum(Lesson.test)).label("total_points")
         )
-            .filter(or_(Lesson.team_id == id_team1, Lesson.team_id == id_team2)).join(Stud, Stud.id == Lesson.stud_id).join(
+            .filter(or_(Lesson.team_id == id_team1, Lesson.team_id == id_team2)).join(Stud,
+                                                                                      Stud.id == Lesson.stud_id).join(
             Team, Team.id == Lesson.team_id)
-            .group_by(Stud.name, Stud.id,Team.name)
+            .group_by(Stud.name, Stud.id, Team.name)
             .subquery()
     )
     result_query = (

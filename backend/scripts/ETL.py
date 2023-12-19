@@ -13,7 +13,8 @@ from models import *
 
 file_path = '/backend/backend/scripts/dataframe.csv'
 df = pd.read_csv(file_path, delimiter=';')
-df_teachers = pd.read_csv('/backend/backend/scripts/teachers.csv', delimiter=';', names=['1', '2', 'Команда', '3', 'лектор', 'практик'])
+df_teachers = pd.read_csv('/backend/backend/scripts/teachers.csv', delimiter=';',
+                          names=['1', '2', 'Команда', '3', 'лектор', 'практик'])
 # df = df.fillna(0)
 # pd.set_option('display.max_columns', None)
 print(df.head())
@@ -165,11 +166,18 @@ print(unique_values_teacher_table)
 for name in unique_values_teacher_table:
     db.add(Teacher(name=name, lect_or_pract='', date_of_add=datetime.datetime.now().date()))
 db.commit()
+previous_name = ''
+counter = 1
 # todo сделать кучу секций под каждую команду
 for rmup_name, rmup_link, stud_name, team, name_of_lesson, mark, arrival1, test1, result_points1, result_mark1, teacher_name in zip(
         df_real['0'], df_real['1'], df_real['2'], df_real['3'], df_real['4'], df_real['5'], df_real['6'], df_real['7'],
         df_real['8'], df_real['9'], df_real['10']):
     name = name_of_lesson
+    if name in previous_name:
+        name += str(counter)
+        counter += 1
+    else:
+        counter = 1
     if math.isnan(mark):
         mark_for_work = 0
     else:
@@ -192,6 +200,7 @@ for rmup_name, rmup_link, stud_name, team, name_of_lesson, mark, arrival1, test1
     db.add(Lesson(name=name, mark_for_work=mark_for_work, arrival=arrival, test=test, result_points=result_points,
                   result_mark=result_mark, stud_id=stud_id, team_id=team_id, teacher_id=teacher_id,
                   date_of_add=datetime.datetime.now().date()))
+    previous_name = name
 db.commit()
 db.close()
 # for index, row in df_real.iterrows():
