@@ -92,14 +92,14 @@ return(
   <Box p={6} w={[1200]} m="auto" mt={1}  borderWidth="3px" borderRadius="lg" boxShadow="xl" display="flex" alignItems="center">
 
   <Heading as="h2" size="lg" >
-        Сравнение подгрупп</Heading>
-      <Text fontSize='xl' >Выберите подгруппы для сравнения:</Text>
+        Сравнение групп</Heading>
+      <Text fontSize='xl' >Выберите группы для сравнения:</Text>
       
     <Flex justifyContent="space-between" width="100%">
       
     <Box  borderRadius="lg" boxShadow="lg">
       <Select colorScheme='twitter'
-        placeholder="Выберите подругппу"
+        placeholder="Выберите групп"
         onChange={(e) => handleTeamChange1(e.target.value)}
         value={selectedTeam1}>
 
@@ -120,7 +120,7 @@ return(
 
     <Box  borderRadius="lg" boxShadow="lg">
     <Select colorScheme='twitter'
-      placeholder="Выберите подругппу"
+      placeholder="Выберите группу"
       onChange={(e) => handleTeamChange2(e.target.value)}
       value={selectedTeam2}>
 

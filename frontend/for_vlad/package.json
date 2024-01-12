@@ -16,6 +16,7 @@
     "axios": "^1.6.2",
     "chart.js": "^4.4.1",
     "chartjs-plugin-datalabels": "^2.2.0",
+    "chartjs-plugin-trendline": "^2.0.5",
     "framer-motion": "^10.16.16",
     "react": "^18.2.0",
     "react-chartjs-2": "^5.2.0",

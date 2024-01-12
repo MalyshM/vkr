@@ -13,11 +13,13 @@ const GeneralStudPage = () => {
   const [attendanceData, setAttendanceData] = useState(null);
   const [attendanceDynamicData, setAttendanceDynamicData] = useState(null);
   const [attendanceStaticData, setAttendanceStaticData] = useState(null);
+  const [isTest, setIsTest] = useState(false);
+
 
 
   useEffect(() => {
-    fetch(`http://localhost:8090/api/cum_sum_points_for_stud_for_team?id_team=${teamId}&id_stud=${studentId}`)
-      .then(response => response.json())
+    fetch(`http://localhost:8090/api/cum_sum_points_for_stud_for_team?id_team=${teamId}&id_stud=${studentId}&isTest=${isTest}`)
+    .then(response => response.json())
       .then(data => setAttendanceData(data))
       .catch(error => console.error('Error fetching attendance data:', error));
 
@@ -30,7 +32,7 @@ const GeneralStudPage = () => {
       .then(response => response.json())
       .then(data => setAttendanceStaticData(data))
       .catch(error => console.error('Error fetching static attendance data:', error));
-  }, [teamId, studentId]);
+  }, [teamId, studentId,isTest]);
 
 
     const chartAttendanceData = {
@@ -39,25 +41,28 @@ const GeneralStudPage = () => {
         {
           label: 'cum_sum',
           data: attendanceData ? attendanceData.map(item => item.cum_sum): [],
-          fill: false,
-          
+          fill: true,
           borderColor: 'rgb(0,174,239)',
+          pointBackgroundColor: attendanceData ? attendanceData.map(item => item.isTest ? 'red' : 'rgb(0,174,239)') : [],
+
         },
       ],
     };
 
     const charDynamictData = {
-      labels: attendanceDynamicData ? attendanceDynamicData.map(item => item.name): [],
+      labels: attendanceDynamicData ? attendanceDynamicData.map(item => item.name) : [],
       datasets: [
         {
           label: 'dynamical_arrival',
-          data: attendanceDynamicData ? attendanceDynamicData.map(item => item.dynamical_arrival): [],
-          fill: false,
-          
-          borderColor: 'rgb(0,174,239)',
+          data: attendanceDynamicData ? attendanceDynamicData.map(item => item.dynamical_arrival) : [],
+          fill: true,
+          borderColor: 'rgb(95,122,208)',
+          // pointBackgroundColor: attendanceDynamicData ? attendanceDynamicData.map(item => item.isTest ? 'red' : 'rgb(0,174,239)') : [],
         },
       ],
     };
+    
+
 
     const chartStaticData = {
       labels: attendanceStaticData ? attendanceStaticData.map(item => item.name): [],
@@ -65,9 +70,11 @@ const GeneralStudPage = () => {
         {
           label: 'static_arrival',
           data: attendanceStaticData ? attendanceStaticData.map(item => item.static_arrival): [],
-          fill: false,
+          fill: true,
           
-          borderColor: 'rgb(0,174,239)',
+          // backgroundColor: 'rgb(251,157,47)',
+          borderColor: 'rgb(251,157,47)',
+          // pointBackgroundColor: attendanceStaticData ? attendanceStaticData.map(item => item.isTest ? 'red' : 'rgb(0,174,239)') : [],
         },
       ],
     };
@@ -173,12 +180,18 @@ const GeneralStudPage = () => {
               family: 'Trebuchet MS'
             },
           },
+          ticks: {
+            callback: function (value) {
+              return value + '%';
+            },
+          },
+    
         },
       },
       plugins: {
         title: {
           display: true,
-          text: 'посещения студента - если падает, то пропускает, если растет то посещает',
+          text: 'Динамическое посещение студента',
           font: {
             size: 20,
             fontColor: 'black',
@@ -243,12 +256,18 @@ const GeneralStudPage = () => {
               family: 'Trebuchet MS'
             },
           },
+          ticks: {
+            callback: function (value) {
+              return value + '%';
+            },
+          },
+    
         },
       },
       plugins: {
         title: {
           display: true,
-          text: 'посещения студента - если не ходит, то не растёт',
+          text: 'Статическое посещение студента',
           font: {
             size: 20,
             fontColor: 'black',

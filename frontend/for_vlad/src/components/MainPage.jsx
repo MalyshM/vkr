@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from './useAuth';
 
-import { Box, Button, Heading, Select, Menu, MenuButton, MenuList, MenuItem, Text } from '@chakra-ui/react';
+import { Flex, Box, Button, Heading, Select, Menu, MenuButton, MenuList, MenuItem, Text, Center } from '@chakra-ui/react';
 import { HamburgerIcon ,LockIcon ,CloseIcon,StarIcon,InfoOutlineIcon, ArrowUpDownIcon} from '@chakra-ui/icons';
 import { Modal,ModalOverlay,ModalContent,ModalHeader,ModalFooter,ModalBody,ModalCloseButton,} from '@chakra-ui/react'
 import { useDisclosure } from '@chakra-ui/react'
@@ -10,24 +10,27 @@ import { Tabs, TabList, TabPanels, Tab, TabPanel } from '@chakra-ui/react'
 
 import MyChart from './chart/MyChart';
 import TotalPointsChart from './chart/TotalPointsChart';
+import AtendenceTotalPoints from './chart/AtendenceTotalPoints';
+import NumCountStudInLern from './chart/NumCountStudInLern';
 // import GeneralStudPage from './InfoAboutStudients/GeneralStudPage'
 
 const MainPage = () => {
   const { userToken } = useAuth(); // Извлекаем userToken из контекста с помощью useAuth
   const [userData, setUserData] = useState(null); // Стейт для хранения данных пользователя
+  const [atendanceTotalPoint, setAtendanceTotalPointData] = useState(null);
   const [userTeams, setUserTeams] = useState(null); // Новый стейт для данных о командах
   const { isOpen, onOpen, onClose } = useDisclosure();
   
   const [selectedTeam, setSelectedTeam] = useState(null); //Данные о посещаемости
   // const [attendanceData, setAttendanceData] = useState([]);
-  const [selectedTab, setSelectedTab] = useState(null);
+  // const [selectedTab, setSelectedTab] = useState(null);
   
 
-  const handleTabChange = (tab) => {
-    setSelectedTab(tab);
-  }
+  // const handleTabChange = (tab) => {
+  //   setSelectedTab(tab);
+  // }
 
-  
+
     const fetchUserData = async () => {
       // Функция для отправки запроса на сервер
       if (!userToken) {
@@ -111,66 +114,100 @@ const MainPage = () => {
   };
   
   console.log("userTeams -", userTeams ) 
+  console.log('selectedTeam -',selectedTeam)
   
 return (
   <>
-  
-  <div className="container">
-    <Menu >
-      <MenuButton m={2} as={Button} rightIcon={<HamburgerIcon />}>
-        Меню
-      </MenuButton>
-      <MenuList>
-        <MenuItem icon={<CloseIcon />} as={Link} to="/">Выход</MenuItem> 
-        <MenuItem icon={<StarIcon />} as={Link} to="/main">Основная страница</MenuItem>
-        <MenuItem icon={<InfoOutlineIcon />} onClick={onOpen}>Мой токен</MenuItem>
-        <MenuItem icon={<ArrowUpDownIcon />} as={Link} to={{ pathname: '/match2team', state: { teamForMatch: userTeams } }}>
-          Сравнение</MenuItem>
-        <MenuItem icon={<LockIcon />} >В Разработке</MenuItem>
-      </MenuList>
-    </Menu>
-
-  </div>
-  <Box p={6} w={[1000]} m="auto" mt={1}  borderWidth="3px" borderRadius="lg" boxShadow="xl">
-      
-      <Heading as="h2" size="lg" mb={4}>
-        Главная страница
-      </Heading>
-      {userData && (
-        <Box mb={4}>
-          <Text fontSize='xl'>Добро пожаловать, {userData.fio}!</Text>
-        </Box>
-      )}
-
-      <Box mb={4} borderRadius="lg" boxShadow="lg">
-        <Select colorScheme='twitter' 
-          placeholder="Выберите вашу подгруппу"
-          onChange={(e) => handleTeamChange(e.target.value)}
-          value={selectedTeam}>
-
-          {Array.isArray(userTeams) ? (
-            userTeams.map((team) => (
-              <option key={team.id} value={team.id}>
-                {team.name}
-              </option>
-            ))
-          ) : (
-            <option disabled>No teams available</option>
-          )}
-        </Select>
-      </Box>
-        
-      <Text mb={4} fontSize='2xl' textAlign="center"> Выберите вариант отображения:</Text>
-
-      <Box mt={3}>
-        <Tabs isFitted variant='enclosed' colorScheme='twitter'>
+  <Center>
+    <Box p={2} w={[700]} borderWidth="2px" borderRadius="lg" boxShadow="xl" borderColor='#00aeef'>
+      <Center>
+      <div className="container">
+      <Menu >
+        <MenuButton m={2} as={Button} rightIcon={<HamburgerIcon />}>
+          Меню
+        </MenuButton>
+        <MenuList>
           
-          <TabList>
+          <MenuItem icon={<StarIcon />} as={Link} to="/main">Основная страница</MenuItem>
+          {/* <MenuItem icon={<InfoOutlineIcon />} onClick={onOpen}>Мой токен</MenuItem> */}
+          <MenuItem icon={<ArrowUpDownIcon />} as={Link} to={{ pathname: '/match2team', state: { teamForMatch: userTeams } }}>
+            Сравнение</MenuItem>
+            <MenuItem icon={<CloseIcon />} as={Link} to="/">Выход</MenuItem> 
+          <MenuItem icon={<LockIcon />} >В Разработке</MenuItem>
+        </MenuList>
+      </Menu>
+    </div>
+      </Center>
+
+      <Center>
+        <Heading as="h2" size="lg" mb={4}>
+          Главная страница
+        </Heading>
+      </Center>
+      
+      <Center>
+        {userData && (
+          
+          <Box mb={4}>
+            <Text fontSize='2xl'>Добро пожаловать, {userData.fio}!</Text>
+          </Box>
+        )}
+        </Center>
+
+          <Center>
+        <Box mb={3} borderRadius="lg" boxShadow="lg" >
+          <Select colorScheme='twitter' 
+            placeholder="Выберите вашу группу"
+            borderColor='#00aeef'
+            onChange={(e) => handleTeamChange(e.target.value)}
+            value={selectedTeam}>
+              
+
+            {Array.isArray(userTeams) ? (
+              userTeams.map((team) => (
+                <option key={team.id} value={team.id}>
+                  {team.name}
+                </option>
+              ))
+            ) : (
+              <option disabled>No teams available</option>
+            )}
+          </Select>
+        </Box>
+        </Center>
+
+    </Box>
+  </Center>
+    
+
+    
+
+      <Box display="flex" mt={4}>
+
+        <Box flex="1" h={[600]}>
+          {selectedTeam && <AtendenceTotalPoints teamId={selectedTeam} />}
+        </Box>
+
+        <Box flex="1" h={[600]}>
+          {selectedTeam && <NumCountStudInLern teamId={selectedTeam} />}
+        </Box>
+
+      </Box>
+
+    
+          
+    
+      
+    
+      
+        {/* <Tabs isFitted variant='enclosed' colorScheme='twitter'> */}
+          
+          {/* <TabList>
             <Tab onClick={() => handleTabChange('mychart')} >Посещаемость</Tab>
             <Tab onClick={() => handleTabChange('totalPoints')} >Успеваемость</Tab> 
-          </TabList>
+          </TabList>  */}
 
-          <TabPanels>
+          {/* <TabPanels>
             <TabPanel>
               {selectedTab === 'mychart' && <MyChart teamId={selectedTeam} />} 
             </TabPanel>
@@ -179,29 +216,29 @@ return (
               {selectedTab === 'totalPoints' && <TotalPointsChart teamId={selectedTeam} />}
             </TabPanel>
           </TabPanels>
-        </Tabs>
-      </Box>
- 
-    </Box>
+        </Tabs> */}
+      
+      
+   
 
-    <Modal onClose={onClose} isOpen={isOpen} isCentered>
-    <ModalOverlay />
-    <ModalContent>
-      <ModalHeader>Мой токен</ModalHeader>
-      <ModalCloseButton />
-      <ModalBody>
-      {userToken ? (
-          <p>User Token: {userToken}</p>
-        ) : (
-          <p>No user token available</p>
-        )}
-      </ModalBody>
-      <ModalFooter>
-        <Button onClick={onClose}>Close</Button>
-      </ModalFooter>
-    </ModalContent>
-  </Modal>
-  </>);};
+      <Modal onClose={onClose} isOpen={isOpen} isCentered>
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>Мой токен</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+        {userToken ? (
+            <p>User Token: {userToken}</p>
+          ) : (
+            <p>No user token available</p>
+          )}
+        </ModalBody>
+        <ModalFooter>
+          <Button onClick={onClose}>Close</Button>
+        </ModalFooter>
+      </ModalContent>
+      </Modal>
+      </> );};
 
 
 export default MainPage;
