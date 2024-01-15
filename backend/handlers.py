@@ -363,7 +363,7 @@ async def get_teams_for_user_private_without_lect(token: str, db):
                         "name": "ПиОА П-07.03"
                       },
             """)
-async def get_teams_for_user_without_lect(token: str, db):
+async def get_teams_for_user_without_lect(token: str, db=Depends(connect_db_data)):
     # Create your plot using Plotly
     await asyncio.sleep(0)
     start_time = time.time()
