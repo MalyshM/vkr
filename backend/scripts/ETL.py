@@ -10,11 +10,11 @@ import pandas as pd
 # todo сделать как было '/backend/backend/scripts/dataframe.csv' и ниже так же /backend/backend/scripts/ вот это добавить нужно
 from models import *
 
-file_path = '/backend/backend/scripts/dataframe.csv'
+file_path = '/backend/scripts/dataframe.csv'
 df = pd.read_csv(file_path, delimiter=';')
-df_teachers = pd.read_csv('/backend/backend/scripts/teachers.csv', delimiter=';',
+df_teachers = pd.read_csv('/backend/scripts/teachers.csv', delimiter=';',
                           names=['1', '2', 'Команда', '3', 'лектор', 'практик'])
-df_students = pd.read_csv('/backend/backend/scripts/df_students.csv', delimiter=';',
+df_students = pd.read_csv('/backend/scripts/df_students.csv', delimiter=';',
                           names=['name', 'email', 'Направление'])
 # df = df.fillna(0)
 # pd.set_option('display.max_columns', None)
@@ -52,7 +52,7 @@ df[['Email', 'Направление']] = df.apply(find_stud, axis=1, result_typ
 print(df[['Email', 'Направление']].head)
 df["ФИО студента"] = df["ФИО студента"].apply(
     lambda x: anonymized_dict.setdefault(x, hashlib.sha256(x.encode()).hexdigest()))
-with open("/backend/backend/scripts/anonymized_dict.pkl", "wb") as file:
+with open("/backend/scripts/anonymized_dict.pkl", "wb") as file:
     pickle.dump(anonymized_dict, file)
 
 
@@ -178,9 +178,9 @@ df_list = [list_of_rmup, list_of_rmup_link, list_of_stud_fio, list_of_team, list
 
 df_true = pd.DataFrame(df_list)
 df_true = df_true.T
-df_true.to_csv(index=False, path_or_buf='/backend/backend/scripts/df_true.csv', sep="_", header=False)
+df_true.to_csv(index=False, path_or_buf='/backend/scripts/df_true.csv', sep="_", header=False)
 
-df_real = pd.read_csv('/backend/backend/scripts/df_true.csv', delimiter='_', header=None)
+df_real = pd.read_csv('/backend/scripts/df_true.csv', delimiter='_', header=None)
 
 print(df_real.columns)
 df_real.columns = df_real.columns.astype(str)
