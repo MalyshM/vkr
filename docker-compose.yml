@@ -21,8 +21,6 @@ services:
     ports:
       - '8090:80'
     command: bash -c "cd /backend; python start_db.py; python /backend/scripts/ETL.py; uvicorn main:app --host 0.0.0.0 --port 80;"
-    stdin_open: true # -i
-    tty: true # -t
     env_file:
       - .env
     volumes:
@@ -40,8 +38,3 @@ services:
     entrypoint: ["bash", "-c", "cd /frontend; npm install ; npm run build ; npm run start"]
     volumes:
       - ./frontend/for_vlad:/frontend
-
-volumes:
-  pgdata:
-  backend:
-  frontend:
