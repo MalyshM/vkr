@@ -14,24 +14,34 @@ services:
       - '5432:5432'
 
   backend:
-    build: .
+    build:
+      context: backend
+      dockerfile: ./backend.Dockerfile
     container_name: backend_michael
     ports:
       - '8090:80'
-    command: bash -c "cd backend; python start_db.py; python /backend/backend/scripts/ETL.py; uvicorn main:app --host 0.0.0.0 --port 80;"
+    command: bash -c "cd /backend; python start_db.py; python /backend/scripts/ETL.py; uvicorn main:app --host 0.0.0.0 --port 80;"
+    stdin_open: true # -i
+    tty: true # -t
     env_file:
       - .env
+    volumes:
+      - ./backend:/backend
     environment:
-      - PYTHONPATH=/backend/backend
+      - PYTHONPATH=/backend
     depends_on:
       - db
+
   frontend:
-    build: .
+    image: node:20
     container_name: frontend_BLOODY_VLADI
     ports:
       - '3000:3000'
-    command: bash -c "cd frontend; cd for_vlad; npm run start"
+    entrypoint: ["bash", "-c", "cd /frontend; npm install ; npm run build ; npm run start"]
+    volumes:
+      - ./frontend/for_vlad:/frontend
+
 volumes:
-  app_data:
-
-
+  pgdata:
+  backend:
+  frontend:
