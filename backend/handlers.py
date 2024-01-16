@@ -363,7 +363,7 @@ async def get_teams_for_user_private_without_lect(token: str, db):
                         "name": "ПиОА П-07.03"
                       },
             """)
-async def get_teams_for_user_without_lect(token: str, db):
+async def get_teams_for_user_without_lect(token: str, db=Depends(connect_db_data)):
     # Create your plot using Plotly
     await asyncio.sleep(0)
     start_time = time.time()
@@ -623,7 +623,7 @@ async def total_points_attendance_per_stud_for_team(id_team: int, db=Depends(con
     total_points_sum = 0.0
     arrival_sum = 0.0
     for row in result_query:
-        df_list.append({'Stud_name': row[0], 'Stud_id': row[1], 'Успеваемость': row[2], 'Посещаемость': row[3]})
+        df_list.append({'Stud_name': row[0], 'Stud_id': row[1], 'Успеваемость': row[2] if row[2]>=0 else 0, 'Посещаемость': row[3]})
         total_points_sum += row[2]
         arrival_sum += row[3]
     df_list.append({'total_points_avg': total_points_sum / len(df_list), 'arrival_avg': arrival_sum / len(df_list)})
@@ -738,11 +738,13 @@ async def total_marks_for_team(id_team: int, db=Depends(connect_db_data)):
             df_5.append({'Stud_name': row[0], 'Stud_id': row[1], 'Успеваемость': row[2], 'mark': "отл."})
 
     df_list = [df_2, df_3, df_4, df_5]
+    print(df_list)
     response = []
     for list_of_mark in df_list:
         marks = [item["Успеваемость"] for item in list_of_mark]
-        response.append({'avg_total_points': sum(marks) / len(marks), 'mark': list_of_mark[0]['mark'],
-                         'percent': len(list_of_mark) / len(result_query)})
+        if len(marks) > 0:
+            response.append({'avg_total_points': sum(marks) / len(marks), 'mark': list_of_mark[0]['mark'],
+                             'percent': len(list_of_mark) / len(result_query)})
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
     return response
 
@@ -856,24 +858,44 @@ async def attendance_num_for_stud_for_team_stat_table(id_team: int, name_of_less
             .filter(Lesson.team_id == id_team, Lesson.name == name_of_lesson, Lesson.arrival != 'П')
             .join(Stud, Stud.id == Lesson.stud_id)
             .group_by(Stud.name, Stud.id, Lesson.name, Lesson.id)
-            .subquery()
-    )
-    result_query = (
-        db.query(
-            Stud.id,
-            (func.sum(Lesson.mark_for_work) + func.sum(Lesson.test)).label("Успеваемость"),
-            ((cast(func.count(case([(Lesson.arrival == 'П', 1)], else_=None)), Float) / func.count(
-                Lesson.arrival)) * 100).label("Посещаемость"),
-        )
-            .filter(Lesson.team_id == id_team, Lesson.id < find_missing_studs.c.Lesson_id)
-            .join(Stud, Stud.id == Lesson.stud_id)
-            .join(find_missing_studs, find_missing_studs.c.id == Stud.id)
-            .group_by(Stud.id)
             .all()
     )
+    stud_id_list = [item[2] for item in find_missing_studs]
+    result_query = (
+        db.query(
+            Stud.name.label('stud_name'),
+            Stud.id,
+            Lesson.name,
+            Lesson.test,
+            Lesson.mark_for_work,
+            Lesson.arrival,
+            Lesson.date_of_add,
+        )
+            .filter(and_(Lesson.team_id == id_team, Lesson.stud_id.in_(stud_id_list)))
+            .join(Stud, Stud.id == Lesson.stud_id)
+            .all()
+    )
+    dict_stud = {}
+    for row in result_query:
+        if row[1] not in dict_stud:
+            dict_stud[row[1]] = []
+        if not any(d['name'] == name_of_lesson for d in dict_stud[row[1]]):
+            dict_stud[row[1]].append(
+                {'stud_name': row[0], 'id': row[1], 'name': row[2], 'test': row[3], 'mark_for_work': row[4],
+                 'arrival': row[5], 'date_of_add': row[6]})
+    response_list = []
+    for key in dict_stud.keys():
+        total_points_temp = (sum(d['test'] for d in dict_stud[key]) + sum(
+            d['mark_for_work'] for d in dict_stud[key])) / len(dict_stud[key])
+        response_list.append({
+            'stud_name': dict_stud[key][0]['stud_name'],
+            'id': dict_stud[key][0]['id'],
+            'Успеваемость': total_points_temp if total_points_temp >= 0 else 0,
+            'Посещаемость': sum(1 for d in dict_stud[key] if d['arrival'] == 'П') / len(dict_stud[key]),
+        })
     db.close()
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_query
+    return response_list
 
 
 # endregion
@@ -931,7 +953,8 @@ async def cum_sum_points_for_stud_for_team(id_team: int, id_stud: int, db=Depend
         cum_sum.append(float(cum_sum[-1]) + float(row['mark_for_work']) + float(row['test']))
         temp = True if row['test'] > 0.0 else False
         response_list.append(
-            {'name': row['name'], 'cum_sum': cum_sum[-1], 'counter': row['counter'], 'isTest': temp})
+            {'name': row['name'], 'cum_sum': cum_sum[-1] if cum_sum[-1] >= 0 else 0, 'counter': row['counter'],
+             'isTest': temp})
     db.close()
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
     return response_list
@@ -1787,3 +1810,28 @@ async def kr_analyse_with_filters(token: str, kr: str, type_select: int, teacher
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
     return dict_of_teams
 # endregion
+
+# @router.get('/api/tolko_chto_dobavil', name='Plot:plot', status_code=status.HTTP_200_OK,
+#             tags=["kr page"], description=
+#             """
+#                     Получает token: str, kr: str, type:int, teacher: Optional[str] = None, speciality: Optional[str] = None,
+#                                   team: Optional[str] = None,
+#                     Returns:
+#                         Словарь с ключами(преподаватели/аправления/команды) и любые их сочетания(проверь чтоб понять)
+#                     \n
+#                     {
+#                       "Трефилин Иван Андреевич": [
+#                         12,
+#                         0,
+#                         14.43,
+#                         3,
+#                         6.83,
+#                         12.3,
+#                         2,
+#             """)
+# async def tolko_chto_dobavil(token: str,
+#                                   db=Depends(connect_db_data)):
+#     # Create your plot using Plotly
+#     await asyncio.sleep(0)
+#     print(token)
+#     return token
