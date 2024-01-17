@@ -31,10 +31,11 @@ services:
       - db
 
   frontend:
-    image: node:20
+    image: node:20.10.0
     container_name: frontend_BLOODY_VLADI
     ports:
       - '3000:3000'
-    entrypoint: ["bash", "-c", "cd /frontend; npm install ; npm run build ; npm run start"]
+    command: bash -c "cd /frontend/for_vlad; npm install ; npm run build ; npm run start"
+#    entrypoint: ["bash", "-c", "cd /frontend/for_vlad; npm install ; npm run build ; npm run start"]
     volumes:
-      - ./frontend/for_vlad:/frontend
+      - ./frontend/for_vlad:/frontend/for_vlad
