@@ -2,11 +2,13 @@
 import { extendTheme } from '@chakra-ui/react';
 
 const theme = extendTheme({
+  colorScheme: {
+    customPurple: "#B1B9FD", // Замените "B1B9FD" на ваш цвет
+  },
   styles: {
     global: {
       body: {
-        // bg: ' linear-gradient(to right, #00d2ff, #3a7bd5) ',
-        bg: "#c2cbd6",
+        bg: "#FFFFFF",
         color: 'black',
       },
     },
@@ -21,6 +23,7 @@ const theme = extendTheme({
     },
   },
 
+  
   
 });
 

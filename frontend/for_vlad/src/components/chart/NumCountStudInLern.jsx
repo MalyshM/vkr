@@ -1,70 +1,27 @@
 
-
-  //   useEffect(() => {
-//     if (chartRef.current) {
-//       // Уничтожаем чарт при размонтировании компонента
-//       return () => {
-//         if (chartRef.current) {
-//           const chartInstance = Chart.getChart(chartRef.current); // Получаем экземпляр чарта
-//           if (chartInstance) {
-//             chartInstance.destroy(); // Уничтожаем чарт
-//           }
-//         }
-//       };
-//     }
-//   }, []);
-
 import React, { useEffect, useRef ,useState} from 'react';
 import { Bar } from 'react-chartjs-2';
-// import { Chart } from 'chart.js/auto';
+import TableOfGroup from './TableOfGroup';
+// import { TableOfGroup } from './TableOfGroup';
 import { useNavigate  } from 'react-router-dom';
-import { Box,Switch,Text, NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, Center  } from '@chakra-ui/react';
-// import 'chartjs-plugin-trendline';
+import { Flex } from "@chakra-ui/react";
 
-import Chart from 'chart.js/auto';
-import 'chartjs-plugin-trendline';
 
-const chartjsPluginTrendline = require('chartjs-plugin-trendline');
-
-Chart.register(chartjsPluginTrendline);
-  
-
-const NumCountStudInLern = ({ teamId}) => {
-  const navigate = useNavigate ();
+const NumCountStudInLern = ({ teamId,onLessonSelect }) => {
   const [AtendanceNumCountStudInLernData, setAtendanceNumCountStudInLernData] = useState(null);
+  const [selectedLesson, setSelectedLesson] = useState(null);
   const chartRef = useRef(null);
-  const [sortBy, setSortBy] = useState('Посещаемость'); // По умолчанию сортировка по посещаемости
-  const [threshold, setThreshold] = useState(61);  
 
-// useEffect(() => {
-//     if (chartRef.current) {
-//       const chartInstance = chartRef.current.chartInstance;
-//       chartInstance.update();
-//     }
-//   }, [teamId, sortBy]);
-
-
-// const toggleSort = () => {
-//     setSortBy((prevSortBy) => (prevSortBy === 'Посещаемость' ? 'Успеваемость' : 'Посещаемость'));
-//   };
-
-//   const handleThresholdChange = (value) => {
-//     const clampedValue = Math.min(Math.max(value, 0), 100);
-//     setThreshold(clampedValue);};
-
- 
-//   const handleChartClick = (_, elements) => {
-//     if (elements && elements.length > 0) {
-//       const clickedElement = elements[0];
-//       const dataIndex = clickedElement.index;
-//       const studentId = attendanceTotalPointsData[dataIndex]?.id;
-//       navigate (`/student/${studentId}/${teamId}`);
-//     }
-//   };
-
-  // console.log('selectedTeam changed:', selectedTeam);
-  console.log('team ID in NumCountStudInLern:', teamId);
-
+  const handleBarClick = (_, elements) => {
+    if (elements && elements.length > 0) {
+      const clickedElement = elements[0];
+      const dataIndex = clickedElement.index;
+      const selectedLessonName = AtendanceNumCountStudInLernData[dataIndex].name;
+      setSelectedLesson(selectedLessonName);
+      
+      onLessonSelect(selectedLessonName);
+    }
+  };
 
   useEffect(() => {
     const fetchAtendanceNumCountStudInLernData = async () => {
@@ -82,11 +39,11 @@ const NumCountStudInLern = ({ teamId}) => {
       }
     };
     fetchAtendanceNumCountStudInLernData();
-  },[teamId,sortBy]);
+  },[teamId]);
 
 
   
-
+  
 
   if (!AtendanceNumCountStudInLernData) {
     return <div>Loading...</div>;
@@ -101,19 +58,17 @@ const NumCountStudInLern = ({ teamId}) => {
         {
             label: 'Кол-во студентов',
             data: AtendanceNumCountStudInLernData.map((item) => item.arrival),
-            backgroundColor: 'rgb(51,201,139)',
+            backgroundColor: 'rgb(255,77,65, 0.5)',
             borderColor: 'rgb(0,0,0)',
-            borderWidth: 2,  
-    
-            
-    
+            borderWidth: 0,  
           },
-
     ],
   };
-console.log('Data for NumCountStudInLern:', data);
+// console.log('Data for NumCountStudInLern:', data);
 
 const options = {
+
+  onClick: handleBarClick,
   scales: {
     x: {
         ticks: {
@@ -136,7 +91,7 @@ const options = {
       position: 'left',
       title: {
         display: true,
-        text: 'Количество студентов на паре',
+        text: 'Количество студентов',
         font: {
           size: 20,
           fontColor: 'black',
@@ -160,27 +115,21 @@ const options = {
       display: false,
       position: 'top',
     },
-    // trendline: {
-    //   trendlineLinear: {
-    //     style: 'rgba(43, 66, 255, 0.3)',
-    //     lineStyle: 'solid',
-    //     width: 2,
-    //   },
-    // },
+
   },
   maintainAspectRatio: false, 
   layout: {
     padding: {
-      left: 50,
-      right: 50,
-      top: 0,
+      left: 0,
+      right: 0,
+      top: 50,
       bottom: 0,
     },
   },
   elements: {
     bar: {
       barThickness: 400,
-      borderRadius: 10,
+      borderRadius: 6,
     },
   },
   animation: {
@@ -191,14 +140,13 @@ const options = {
 
 
 
-return (
-   
-     
-        <Bar ref={chartRef} data={data} options={options} />
+return (<>
+
+  <Bar ref={chartRef} data={data} options={options} />
   
-      
-    
-  );
+  {/* {selectedLesson && <TableOfGroup teamId={teamId} selectedLesson={selectedLesson} />} */}
+
+</>);
 };
 
 

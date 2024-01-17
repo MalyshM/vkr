@@ -20,8 +20,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { useAuth } from './useAuth';
-import { Box, Heading, FormControl, FormLabel, Input, Button, Radio, RadioGroup } from '@chakra-ui/react';
+import { Flex, Spacer, Center,Box, Heading, FormControl, FormLabel, Input, Button, Radio, RadioGroup } from '@chakra-ui/react';
 import { useToast } from '@chakra-ui/react';
+import { CloseIcon} from '@chakra-ui/icons'
 
 
 const RegistrationPage = () => {
@@ -112,78 +113,98 @@ const register = async () => {
   };
 
 return (
-  <Box
-    maxW="md"
-    borderWidth="2px"
-    borderRadius="lg"
-    p={6}
-    m="auto"
-    mt={10}
-    boxShadow="base"
-    borderColor='#00aeef'
-  >
-    <Heading as="h2" size="lg" mb={6}>
-      Регистрация
-    </Heading>
-    
-    <FormControl isRequired id="role" mb={4}>
+  <Center bg="#B1B9FD" h="100vh">
+    <Box
+      // maxW="md"
+      width='500px'
+      borderWidth="2px"
+      borderRadius="lg"
+      p={6}
+      // m="auto"
+      // mt={10}
+      boxShadow="base"
+      borderColor='#1A1A1A'
+      bg='white'
+    >
+      <Flex justify="space-between" >
+        <Center>
+          <Heading as="h2" size="lg" mb={6}>Регистрация</Heading>
+        </Center>
+        <Spacer/>
+        <Button ml={5} colorScheme="gray" as={Link} to="/"> <CloseIcon/> </Button>
+      </Flex>
+      
+      <FormControl isRequired id="role" mb={4}>
 
-        <FormLabel>Роль:</FormLabel>
+          <FormLabel>Роль:</FormLabel>
 
-        <RadioGroup onChange={(value) => handleRoleChange(value)} value={role} checked={'red'} >
+          <RadioGroup onChange={(value) => handleRoleChange(value)} value={role} checked={'red'} >
 
-          <Radio colorScheme='red'  mr={5} value="admin">Админ</Radio>
-          <Radio colorScheme='red'  mr={5} value="teacher">Преподаватель</Radio>
-          <Radio colorScheme='red' value="curator">Куратор</Radio>
+            <Radio colorScheme='red'  mr={5} value="admin">Админ</Radio>
+            <Radio colorScheme='red'  mr={5} value="teacher">Преподаватель</Radio>
+            <Radio colorScheme='red' value="curator">Куратор</Radio>
 
-        </RadioGroup>
+          </RadioGroup>
 
-    </FormControl>
+      </FormControl>
 
-    <FormControl isRequired id="FIO" mb={4}>
-      <FormLabel >ФИО:</FormLabel>
-      <Input
-        type="text"
-        value={FIO}
-        onChange={(e) => setFIO(e.target.value)}
-        required
-      />
-    </FormControl>    
-    <FormControl isRequired id="username" mb={4}>
-      <FormLabel>Логин:</FormLabel>
-      <Input
-        type="text"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        required
-      />
-    </FormControl >
-    <FormControl isRequired id="password" mb={4}>
-      <FormLabel>Пароль:</FormLabel>
-      <Input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
-    </FormControl>
-    <FormControl isRequired id="email" mb={4}>
-      <FormLabel>Адрес электронной почты:</FormLabel>
-      <Input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-    </FormControl>
-    <Button  colorScheme="twitter" onClick={register}>
-      Подтвердить
-    </Button>
-    <Button ml={5} colorScheme="gray" as={Link} to="/">
-      Вернуться назад
-    </Button>
-    <p id="responseMessage">{responseMessage}</p>
-  </Box>
+      <FormControl isRequired id="FIO" mb={4}>
+        <FormLabel >ФИО:</FormLabel>
+        <Input
+          type="text"
+          value={FIO}
+          onChange={(e) => setFIO(e.target.value)}
+          required
+          placeholder='Введите ФИО'
+        />
+      </FormControl>  
+
+      <form autoComplete="off">  
+      <FormControl isRequired id="username" mb={4}>
+        <FormLabel>Логин:</FormLabel>
+        <Input
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+          placeholder='Введите логин'
+        />
+      </FormControl >
+      </form>
+
+      <form autoComplete="off">
+      <FormControl isRequired id="password" mb={4}>
+        <FormLabel>Пароль:</FormLabel>
+        <Input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          autoComplete="off"
+          placeholder='Введите пароль'
+        />
+      </FormControl>
+      </form>
+
+      <form autoComplete="off">
+      <FormControl isRequired id="email" mb={4}>
+        <FormLabel>Адрес электронной почты:</FormLabel>
+        <Input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          placeholder='Введите электронную почту'
+        />
+      </FormControl>
+      </form>
+
+      <Button width='450px' colorScheme="yellow" onClick={register}>
+        Подтвердить
+      </Button>
+      
+    </Box>
+    </Center>
 );
 };
 

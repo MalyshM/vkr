@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Form, Link } from 'react-router-dom';
 import { useAuth } from './useAuth';
 
-import { Flex, Box, Button, Heading, Select, Menu, MenuButton, MenuList, MenuItem, Text, Center } from '@chakra-ui/react';
+import { Flex, Box, Button, Heading, Select, Menu, MenuButton, MenuList, MenuItem, Text, Center, Container } from '@chakra-ui/react';
 import { HamburgerIcon ,LockIcon ,CloseIcon,StarIcon,InfoOutlineIcon, ArrowUpDownIcon} from '@chakra-ui/icons';
 import { Modal,ModalOverlay,ModalContent,ModalHeader,ModalFooter,ModalBody,ModalCloseButton,} from '@chakra-ui/react'
 import { useDisclosure } from '@chakra-ui/react'
@@ -12,7 +12,10 @@ import MyChart from './chart/MyChart';
 import TotalPointsChart from './chart/TotalPointsChart';
 import AtendenceTotalPoints from './chart/AtendenceTotalPoints';
 import NumCountStudInLern from './chart/NumCountStudInLern';
-// import GeneralStudPage from './InfoAboutStudients/GeneralStudPage'
+import StataOfGroup from './chart/StataOfGroup';
+import TableOfGroup from './chart/TableOfGroup';
+
+import { Grid, GridItem } from '@chakra-ui/react'
 
 const MainPage = () => {
   const { userToken } = useAuth(); // Извлекаем userToken из контекста с помощью useAuth
@@ -22,13 +25,12 @@ const MainPage = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   
   const [selectedTeam, setSelectedTeam] = useState(null); //Данные о посещаемости
+  const [selectedTeamName, setSelectedTeamName] = useState(null);
+
+  const [selectedLessonMainPage, setSelectedLessonMainPage] = useState(null);
+
   // const [attendanceData, setAttendanceData] = useState([]);
   // const [selectedTab, setSelectedTab] = useState(null);
-  
-
-  // const handleTabChange = (tab) => {
-  //   setSelectedTab(tab);
-  // }
 
 
     const fetchUserData = async () => {
@@ -72,7 +74,7 @@ const MainPage = () => {
       // 2 ЗАПРОС - ПОЛУЧАЕМ ИНФУ О КОМАНДАХ ЮЗЕРА
       try {
         // Отправляем GET-запрос для получения данных о командах пользователя
-        const response = await fetch(`http://localhost:8090/api/get_teams_for_user?token=${userToken}`, {
+        const response = await fetch(`http://localhost:8090/api/get_teams_for_user_without_lect?token=${userToken}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -107,116 +109,75 @@ const MainPage = () => {
     }
   }, [userToken]);
 
-  const handleTeamChange = (teamId) => {
+  const handleTeamChange = (teamId,teamName) => {
     setSelectedTeam(teamId);
-    // fetchAttendanceData();
-    // fetchTotalPointsData();
+    setSelectedTeamName(teamName);
+   
+  };
+
+  const handleLessonSelect = (lesson) => {
+    setSelectedLessonMainPage(lesson);
   };
   
-  console.log("userTeams -", userTeams ) 
-  console.log('selectedTeam -',selectedTeam)
+
   
 return (
   <>
-  <Center>
-    <Box p={2} w={[700]} borderWidth="2px" borderRadius="lg" boxShadow="xl" borderColor='#00aeef'>
-      <Center>
-      <div className="container">
-      <Menu >
-        <MenuButton m={2} as={Button} rightIcon={<HamburgerIcon />}>
-          Меню
-        </MenuButton>
-        <MenuList>
-          
-          <MenuItem icon={<StarIcon />} as={Link} to="/main">Основная страница</MenuItem>
-          {/* <MenuItem icon={<InfoOutlineIcon />} onClick={onOpen}>Мой токен</MenuItem> */}
-          <MenuItem icon={<ArrowUpDownIcon />} as={Link} to={{ pathname: '/match2team', state: { teamForMatch: userTeams } }}>
-            Сравнение</MenuItem>
-            <MenuItem icon={<CloseIcon />} as={Link} to="/">Выход</MenuItem> 
-          <MenuItem icon={<LockIcon />} >В Разработке</MenuItem>
-        </MenuList>
-      </Menu>
-    </div>
-      </Center>
+           {/* </Box> */}
+           <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end' }}>
+            <Select width='270px' colorScheme='twitter' p={2}
+              placeholder="Выберите вашу группу"
+              borderColor='#00aeef'
+              onChange={(e) => handleTeamChange(e.target.value, e.target.selectedOptions[0].label)}
+              value={selectedTeam}>
+                
 
-      <Center>
-        <Heading as="h2" size="lg" mb={4}>
-          Главная страница
-        </Heading>
-      </Center>
-      
-      <Center>
-        {userData && (
-          
-          <Box mb={4}>
-            <Text fontSize='2xl'>Добро пожаловать, {userData.fio}!</Text>
+              {Array.isArray(userTeams) ? (
+                userTeams.map((team) => (
+                  <option key={team.id} value={team.id}>
+                    {team.name}
+                  </option>
+                ))
+              ) : (
+                <option disabled>No teams available</option>
+              )}
+            </Select>
+            </div>
+
+            
+
+      <Flex direction="column" height="80vh">
+        <Flex flex="1">
+
+          <Box flex="2" h={[425]}>
+            {selectedTeam && <AtendenceTotalPoints teamId={selectedTeam} teamName={selectedTeamName}  />}
           </Box>
-        )}
-        </Center>
 
-          <Center>
-        <Box mb={3} borderRadius="lg" boxShadow="lg" >
-          <Select colorScheme='twitter' 
-            placeholder="Выберите вашу группу"
-            borderColor='#00aeef'
-            onChange={(e) => handleTeamChange(e.target.value)}
-            value={selectedTeam}>
-              
-
-            {Array.isArray(userTeams) ? (
-              userTeams.map((team) => (
-                <option key={team.id} value={team.id}>
-                  {team.name}
-                </option>
-              ))
-            ) : (
-              <option disabled>No teams available</option>
-            )}
-          </Select>
-        </Box>
-        </Center>
-
-    </Box>
-  </Center>
-    
-
-    
-
-      <Box display="flex" mt={4}>
-
-        <Box flex="1" h={[600]}>
-          {selectedTeam && <AtendenceTotalPoints teamId={selectedTeam} />}
-        </Box>
-
-        <Box flex="1" h={[600]}>
-          {selectedTeam && <NumCountStudInLern teamId={selectedTeam} />}
-        </Box>
-
-      </Box>
-
-    
           
-    
-      
-    
-      
-        {/* <Tabs isFitted variant='enclosed' colorScheme='twitter'> */}
+          <Box flex="1" h={[300]}>
+            {selectedTeam && <StataOfGroup teamId={selectedTeam} teamName={selectedTeamName} />}
+          </Box>
           
-          {/* <TabList>
-            <Tab onClick={() => handleTabChange('mychart')} >Посещаемость</Tab>
-            <Tab onClick={() => handleTabChange('totalPoints')} >Успеваемость</Tab> 
-          </TabList>  */}
 
-          {/* <TabPanels>
-            <TabPanel>
-              {selectedTab === 'mychart' && <MyChart teamId={selectedTeam} />} 
-            </TabPanel>
 
-            <TabPanel>
-              {selectedTab === 'totalPoints' && <TotalPointsChart teamId={selectedTeam} />}
-            </TabPanel>
-          </TabPanels>
-        </Tabs> */}
+
+        </Flex>
+
+        <Flex flex="1">
+
+          <Box mr={6} flex="2" h={[400]}>
+            {selectedTeam && <NumCountStudInLern teamId={selectedTeam} teamName={selectedTeamName} onLessonSelect={handleLessonSelect} />}
+          </Box>
+
+          <Box mr={6} flex="1" h={[400]}>
+            {selectedTeam && <TableOfGroup teamName={selectedTeamName} teamId={selectedTeam} selectedLesson={selectedLessonMainPage}/>}
+          </Box>
+
+        </Flex>
+     </Flex>
+        
+      
+        
       
       
    
@@ -238,7 +199,10 @@ return (
         </ModalFooter>
       </ModalContent>
       </Modal>
-      </> );};
+
+      </> 
+      
+      );};
 
 
 export default MainPage;
