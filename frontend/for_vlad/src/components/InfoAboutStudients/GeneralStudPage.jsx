@@ -7,8 +7,10 @@ import { HamburgerIcon ,LockIcon ,CloseIcon,StarIcon, ArrowUpDownIcon,ArrowBackI
 
 import { Flex, Center, Spacer} from '@chakra-ui/react'
 
+import StudentInfo from './StudentInfo'
+
 const GeneralStudPage = () => {
-  const { studentId, teamId, userTeams } = useParams();
+  const { studentId, teamId, userTeams,teamName } = useParams();
 
   const [attendanceData, setAttendanceData] = useState(null);
   const [attendanceDynamicData, setAttendanceDynamicData] = useState(null);
@@ -130,8 +132,8 @@ const GeneralStudPage = () => {
       },
       layout: {
         padding: {
-          left: 50,
-          right: 50,
+          left: 0,
+          right: 0,
           top: 0,
           bottom: 0,
         },
@@ -206,8 +208,8 @@ const GeneralStudPage = () => {
       },
       layout: {
         padding: {
-          left: 50,
-          right: 50,
+          left: 0,
+          right: 0,
           top: 0,
           bottom: 0,
         },
@@ -282,8 +284,8 @@ const GeneralStudPage = () => {
       },
       layout: {
         padding: {
-          left: 50,
-          right: 50,
+          left: 0,
+          right: 0,
           top: 0,
           bottom: 0,
         },
@@ -300,60 +302,50 @@ const GeneralStudPage = () => {
     }; 
 
 
-  return (
+  return (<>
 
-    <> 
-    <div className="container">
-    <Menu >
-      <MenuButton m={2} as={Button} rightIcon={<HamburgerIcon />}>
-        Меню
-      </MenuButton>
-      <MenuList>
-        <MenuItem icon={<CloseIcon />} as={Link} to="/">Выход</MenuItem> 
-        <MenuItem icon={<StarIcon />} as={Link} to="/main">Основная страница</MenuItem>
-        <MenuItem icon={<ArrowUpDownIcon />} as={Link} to={{ pathname: '/match2team', state: { teamForMatch: userTeams } }}>
-          Сравнение</MenuItem>
-        <MenuItem icon={<LockIcon />} >В Разработке</MenuItem>
-      </MenuList>
-    </Menu>
+<Flex direction="column" height="100vh">
 
-  </div>
-    
-    <Box p={6} w={[1450]} h={[800]} m="auto" borderWidth="3px" borderRadius="lg" boxShadow="xl">
+        <Flex  flex="1">
 
-        <span>
-          <Heading as="h1" size="xl" style={{ display: 'flex', alignItems: 'center' }} mb={4}>
-
-            <Avatar src='https://bit.ly/broken-link' mr={3} />
-
-            Студент - {studentId}, Подгруппа - {teamId}
-
-            <Button as={Link} to="/main" leftIcon={<ArrowBackIcon />} colorScheme="twitter" ml={3}>
+          <Box  flex="1">
+            <Button as={Link} to="/main" leftIcon={<ArrowBackIcon />} colorScheme="purple" m={3} >
               Вернуться назад
             </Button>
+         
+          <Flex direction="column" alignItems={'center'}>
 
-          </Heading>
-        </span>
+          <Avatar size={'2xl'} src='https://bit.ly/broken-link' mr={5} />
+          {studentId && <StudentInfo studentId={studentId} teamName={teamName} />}
+          </Flex>
 
-        <Center>
-          <Box mb={5} w={[1500]} maxW='2xl' borderWidth="3px" borderRadius="lg" boxShadow="xl">
-            <Line data={chartAttendanceData} options={OptionsChartAttendance} />
+
           </Box>
-        </Center>
 
-        <Flex color='red'>
+          
+          <Box flex="1" h={[400]}>
+              <Line data={chartAttendanceData} options={OptionsChartAttendance} />
+          </Box>
+          
+        </Flex>
 
-          <Box w={[1500]} maxW='2xl' borderWidth="3px" borderRadius="lg" boxShadow="xl">
+
+        <Flex flex="1">
+
+          <Box flex="1" h={[400]}>
             <Line data={chartStaticData} options={OptionsStaticChart} />
           </Box>
-          <Spacer />
-          <Box w={[1500]} maxW='2xl' borderWidth="3px" borderRadius="lg" boxShadow="xl">
-            <Line data={charDynamictData} options={OptionsDynamicChart} />
+
+          <Box flex="1" h={[400]}>
+            <Line data={charDynamictData} options={OptionsDynamicChart} />  
           </Box>
 
         </Flex>
-      </Box></>
-  );
+
+     </Flex>
+    
+     
+     </>);
 };
 
 export default GeneralStudPage;

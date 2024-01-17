@@ -3,8 +3,8 @@ import { Bar } from 'react-chartjs-2';
 import { Chart } from 'chart.js/auto';
 
 
-const MatchAttendanceTeams = ({ teamId1, teamId2}) => {
-  const [attendanceData, setAttendanceData] = useState(null);
+const AllUsersTotalPoint = ({tokenUsers}) => {
+  const [AllUsersTotalPointData, setAllUsersTotalPointData] = useState(null);
   const chartRef = useRef(null);
 
   useEffect(() => {
@@ -22,35 +22,35 @@ const MatchAttendanceTeams = ({ teamId1, teamId2}) => {
   }, []);
 
  
-  console.log('team ID 1 in MatchAttendanceTeams:', teamId1, 'team ID 2 in MatchAttendanceTeams:', teamId2);
+  console.log('AllUsersTotalPoint-token:', tokenUsers,);
   
   useEffect(() => {
-  const fetchMetchAttendanceData = async () => {
+  const fetchAllUsersTotalPointData = async () => {
     try {
-        if (teamId1 !== null && teamId2 !== null) {
-        const response = await fetch(`http://localhost:8090/api/attendance_static_stud_for_teams?id_team1=${teamId1}&id_team2=${teamId2}`);
+        if (tokenUsers!== null) {
+        const response = await fetch(`http://localhost:8090/api/total_points_studs_for_all_teams?token=${tokenUsers}`);
         const result = await response.json();
-        setAttendanceData(result);
+        setAllUsersTotalPointData(result);
       }
     } catch (error) {
-      console.error('MatchAttendanceTeams - Error fetching attendance data:', error);
+      console.error('AllUsersTotalPoint - Error fetching attendance data:', error);
     }
   };
-  fetchMetchAttendanceData();
-},[teamId1,teamId2]);
+  fetchAllUsersTotalPointData();
+},[tokenUsers]);
 
 
-if (!attendanceData) {
+if (!AllUsersTotalPointData) {
     return <div>Loading...</div>;
   }
   
     const data = {
-      labels: attendanceData.map(item => item.team_name),
+      labels: AllUsersTotalPointData.map(item => item.team_name),
       datasets: [
         {
           label: 'Среднее посещение',
-          data: attendanceData.map(item => item.arrival),
-          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          data: AllUsersTotalPointData.map(item => item.avg_total_points),
+          backgroundColor: 'rgb(177,185,253, 0.9)',
           borderColor: 'rgb(0,174,239)',
           borderWidth: 0,
           
@@ -58,20 +58,17 @@ if (!attendanceData) {
         },
       ],
     };
-  console.log('fetchMetchAttendanceData:', attendanceData);
+  console.log('fetchAllUsersTotalPointData:', AllUsersTotalPointData);
   
   const options = {
     
     scales: {
       x: {
-        ticks: {
-          display: false,
-        },
         type: 'category',
         position: 'bottom',
         title: {
-          display: true,
-          text: 'Все группы',
+          display: false,
+          text: 'Идентификатор студента',
           font: {
             size: 20, // Размер шрифта названия оси X
             fontColor: 'black',
@@ -84,7 +81,7 @@ if (!attendanceData) {
         position: 'left',
         title: {
           display: true,
-          text: 'Посещаемость',
+          text: 'Баллы',
           font: {
             size: 20, // Размер шрифта названия оси X
             fontColor: 'black',
@@ -96,7 +93,7 @@ if (!attendanceData) {
     plugins: {
       title: {
         display: true,
-        text: 'Средняя поcещаемость дисциплины ПиОА студентами выбранных подгрупп',
+        text: 'Успеваемость ваших групп',
         font: {
           size: 22,
           fontColor: 'black',
@@ -119,7 +116,6 @@ if (!attendanceData) {
       },
     },
     elements: {
-      
       bar: {
         barThickness: 400,
         borderRadius: 10, 
@@ -134,4 +130,4 @@ if (!attendanceData) {
     return <Bar ref={chartRef} data={data} options={options} />;
   };
   
-export default MatchAttendanceTeams;
+export default AllUsersTotalPoint;

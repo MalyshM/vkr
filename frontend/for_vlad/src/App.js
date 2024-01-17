@@ -12,12 +12,17 @@ import theme from './thems/theme';
 import GeneralStudPage from './components/InfoAboutStudients/GeneralStudPage';
 import MatchToTeamPage from './components/Match/MatchToTeamPage';
 
+import Header from "./components/Header";
+import MatchTwoTeamVectorStudy from "./components/Match/MatchTwoTeamVectorStudy"
+// import TableOfGroup from './components/TableFolder/TableOfGroup'; 
+
 function App() {
 
 
   return (
     <ChakraProvider theme={theme}>
       <Router>
+      <Header />
     <AuthProvider>
       <Routes>
         <Route path="/" element={<HomePage />} />
@@ -25,7 +30,8 @@ function App() {
         <Route path="/register" element={<RegistrationPage />} />
         <Route path="/main" element={<MainPage />} />
         <Route path="/match2team" element={<MatchToTeamPage />} />
-        <Route path={"/student/:studentId/:teamId"} element={<GeneralStudPage />} />
+        <Route path={"/student/:studentId/:teamId/:teamName"} element={<GeneralStudPage />} />
+        <Route path="/match2team_vectorstudy" element={<MatchTwoTeamVectorStudy/>} />
 
       </Routes>
     </AuthProvider>

@@ -51,7 +51,7 @@ const data = {
     datasets: [
       {
         label: 'Средний балл',
-        data: totalPointData.map(item => item.total_points_avg),
+        data: totalPointData.map(item => item.total_points),
         backgroundColor: 'rgba(75, 192, 192, 0.2)',
         borderColor: 'rgb(0,174,239)',
         borderWidth: 3,
@@ -65,11 +65,14 @@ const options = {
   
   scales: {
     x: {
+      ticks: {
+        display: false,
+      },
       type: 'category',
       position: 'bottom',
       title: {
-        display: false,
-        text: 'Идентификатор студента',
+        display: true,
+        text: 'Все группы',
         font: {
           size: 20, // Размер шрифта названия оси X
           fontColor: 'black',
@@ -107,6 +110,7 @@ const options = {
       position: 'top',
     },
   },
+  maintainAspectRatio: false,
   layout: {
     padding: {
       left: 50,

@@ -14,67 +14,78 @@
 
 import React, { useEffect, useRef ,useState} from 'react';
 import { Bar } from 'react-chartjs-2';
-// import { Chart } from 'chart.js/auto';
 import { useNavigate  } from 'react-router-dom';
-import { Box,Switch,Text, NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, Center  } from '@chakra-ui/react';
-// import 'chartjs-plugin-trendline';
+import { Flex, Text, NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, Center, Spacer, theme  } from '@chakra-ui/react';
+import { ChakraProvider, Button, CSSReset } from '@chakra-ui/react';
 
-import Chart from 'chart.js/auto';
 import 'chartjs-plugin-trendline';
-
-const chartjsPluginTrendline = require('chartjs-plugin-trendline');
-
-Chart.register(chartjsPluginTrendline);
   
 
-const AtendenceTotalPoints = ({ teamId}) => {
+
+
+const AtendenceTotalPoints = ({teamId,teamName}) => {
   const navigate = useNavigate ();
   const [attendanceTotalPointsData, setAttendanceTotalPointsData] = useState(null);
   const chartRef = useRef(null);
-  const [sortBy, setSortBy] = useState('Посещаемость'); // По умолчанию сортировка по посещаемости
+  const [sortBy, setSortBy] = useState('Успеваемость'); // По умолчанию сортировка по посещаемости
   const [threshold, setThreshold] = useState(61);  
+  
+  const [totalPointsAvg, setTotalPointsAvg] = useState(null);
+  const [arrivalAvg, setArrivalAvg] = useState(null);
+
+  const [successColor, setSuccessColor] = useState('rgb(177,185,253, 0.9)');
+  const [attendanceColor, setAttendanceColor] = useState('rgb(255,227,94, 0.9)');
 
 
+const handleButtonClick = (sortType) => {
+  setSortBy(sortType);
 
-// useEffect(() => {
-//     if (chartRef.current) {
-//       const chartInstance = chartRef.current.chartInstance;
-//       chartInstance.update();
-//     }
-//   }, [teamId, sortBy]);
-
+  // Обновляем цвет графика в зависимости от выбранной кнопки
+  if (sortType === 'Успеваемость') {
+    setSuccessColor('rgb(177,185,253, 0.9)');
+    setAttendanceColor('rgb(255,227,94, 0.9)');
+  } else {
+    setSuccessColor('rgb(255,227,94, 0.9)');
+    setAttendanceColor('rgb(177,185,253, 0.9)')
+};
+};
 
 const toggleSort = () => {
     setSortBy((prevSortBy) => (prevSortBy === 'Посещаемость' ? 'Успеваемость' : 'Посещаемость'));
   };
 
-  const handleThresholdChange = (value) => {
-    const clampedValue = Math.min(Math.max(value, 0), 100);
-    setThreshold(clampedValue);};
-
- 
-
   
-
   const handleChartClick = (_, elements) => {
     if (elements && elements.length > 0) {
       const clickedElement = elements[0];
       const dataIndex = clickedElement.index;
-      const studentId = attendanceTotalPointsData[dataIndex]?.id;
-      navigate (`/student/${studentId}/${teamId}`);
+      const studentId = attendanceTotalPointsData[dataIndex]?.Stud_id;
+      navigate (`/student/${studentId}/${teamId}/${teamName}`);
     }
   };
 
   // console.log('selectedTeam changed:', selectedTeam);
-  console.log('team ID in attendanceTotalPointsData:', teamId);
+  // console.log('team ID in attendanceTotalPointsData:', teamId);
 
 
   useEffect(() => {
     const fetchAtendanceTotalPointsData = async () => {
       try {
-        if (teamId !== null) {
+        if (teamId !== null) { 
           const response = await fetch(`http://localhost:8090/api/total_points_attendance_per_stud_for_team?id_team=${teamId}`);
           const result = await response.json();
+
+          const lastItem = result[result.length - 1];
+
+          console.log('Last item from API:', lastItem);
+
+          if ('total_points_avg' in lastItem && 'arrival_avg' in lastItem) {
+            // Обновляем состояния для новых данных
+            setTotalPointsAvg(lastItem.total_points_avg);
+            setArrivalAvg(lastItem.arrival_avg);
+          }
+
+
           const dataArray = Object.values(result);
           const sortedDataArray = dataArray.sort((a, b) =>
               sortBy === 'Посещаемость' ? b.Посещаемость - a.Посещаемость : b.Успеваемость - a.Успеваемость
@@ -83,6 +94,13 @@ const toggleSort = () => {
   
           // Обновляем состояние с полученными данными
           setAttendanceTotalPointsData(sortedDataArray);
+
+          // Новые данные для линий
+          
+  
+          
+          
+  
         }
       } catch (error) {
         console.error('Error fetching attendanceTotalPoints data:', error);
@@ -92,44 +110,58 @@ const toggleSort = () => {
   },[teamId,sortBy]);
 
 
-  
-
-
   if (!attendanceTotalPointsData) {
     return <div>Loading...</div>;
   }
-
+  console.log('setTotalPointsAvg:', setTotalPointsAvg);
+  console.log('setArrivalAvg:', setArrivalAvg);
   const data = {
-    labels: attendanceTotalPointsData.map((item => item.id)),
+    labels: attendanceTotalPointsData.map((item => item.Stud_id)),
+    
 
     datasets: [
         {
-            label: 'Линия уровня',
-            data: Array(attendanceTotalPointsData.length).fill(threshold), // Постоянное значение y
-            borderColor: 'rgba(0, 0, 0, 0.8)', // Цвет линии уровня
-            borderWidth: 2,
-            fill: false,
-            borderDash: [5, 5], // Пунктирный стиль (по желанию)
-            type: 'line',
-            radius: 0,
-            
-    
-          },
+        label: 'Линия уровня',
+        data: Array(attendanceTotalPointsData.length).fill(threshold), // Постоянное значение y
+        borderColor: 'rgba(0, 0, 0, 0.8)', // Цвет линии уровня
+        borderWidth: 2,
+        fill: false,
+        borderDash: [5, 5], // Пунктирный стиль (по желанию)
+        type: 'line',
+        radius: 0,
+      },
       {
         label: 'Успеваемость',
         data: attendanceTotalPointsData.map((item) => item.Успеваемость),
-        backgroundColor: 'rgb(95,122,208)',
-        borderColor: 'rgb(0,0,0)',
-        borderWidth: 1,  
+        backgroundColor: successColor,
+        radius: 0,
 
       },
       {
         label: 'Посещаемость',
         data: attendanceTotalPointsData.map((item) => item.Посещаемость),
-        backgroundColor: 'rgb(251,157,47)',
-        borderColor: 'rgb(0,0,0)',
-        borderWidth: 1,
+        backgroundColor: attendanceColor,
+        borderWidth: 0,
       },
+      {
+      label: 'Total Points Avg',
+      data: Array(attendanceTotalPointsData.length).fill(totalPointsAvg),
+      borderColor: 'rgb(255,0,0)',
+      borderWidth: 2,
+      fill: false,
+      type: 'line',
+      radius: 0,
+    },
+    {
+      label: 'Arrival Avg',
+      data: Array(attendanceTotalPointsData.length).fill(arrivalAvg),
+      borderColor: 'rgb(0,255,0)',
+      borderWidth: 2,
+      fill: false,
+      type: 'line',
+      radius: 0,
+      
+    },
 
      
 
@@ -138,6 +170,7 @@ const toggleSort = () => {
 console.log('Data for chart:', data);
 
 const options = {
+ 
 onClick: handleChartClick,
   scales: {
     x: {
@@ -171,30 +204,24 @@ onClick: handleChartClick,
   plugins: {
     title: {
       display: true,
-      text: 'Посещаемость и успеваемость студентов по дисциплине выбранной группы',
+      text: `Посещаемость и успеваемость студентов группы ${teamName}`,
       font: {
         size: 22,
         fontColor: 'black',
         family: 'Trebuchet MS',
       },
     },
+
     legend: {
       display: false,
       position: 'top',
     },
-    // trendline: {
-    //   trendlineLinear: {
-    //     style: 'rgba(43, 66, 255, 0.3)',
-    //     lineStyle: 'solid',
-    //     width: 2,
-    //   },
-    // },
   },
   maintainAspectRatio: false, 
   layout: {
     padding: {
-      left: 50,
-      right: 50,
+      left: 0,
+      right: 40,
       top: 0,
       bottom: 0,
     },
@@ -202,7 +229,7 @@ onClick: handleChartClick,
   elements: {
     bar: {
       barThickness: 400,
-      borderRadius: 10,
+      borderRadius: 6,
     },
   },
   animation: {
@@ -211,42 +238,97 @@ onClick: handleChartClick,
 
 };
 
+const buttonStyle = {
+  fontFamily: 'Trebuchet MS',
+  padding: '10px',
+  margin: '0 5px',
+  cursor: 'pointer',
+  borderRadius: '16px',
+  border: '1px solid #ccc',
+  color: 'white',
+  fontSize: '20px'
+};
+
+const successButtonStyle = {
+  ...buttonStyle,
+  background: sortBy === 'Успеваемость' ? '#B1B9FD' : '#ffeb8e',
+};
+
+const attendanceButtonStyle = {
+  ...buttonStyle,
+  background: sortBy === 'Посещаемость' ? '#B1B9FD' : '#ffeb8e',
+};
+
 
 
 return (
-   
-        <>
-        
-        <Bar ref={chartRef} data={data} options={options} />
-        
-        <NumberInput    
-        ml={4}
-        mt={2}
-        min={0}
-        max={100}
-        value={threshold}
-        onChange={(valueAsString, valueAsNumber) => setThreshold(valueAsNumber)}>
-        <NumberInputField />
-        <NumberInputStepper>
-            <NumberIncrementStepper />
-            <NumberDecrementStepper />
-        </NumberInputStepper>
-    </NumberInput>
-    <Center>
-            <Text ml={2}>Выберите режим:</Text>
-            <Switch onChange={toggleSort} isChecked={sortBy === 'Успеваемость'} size="md" colorScheme="twitter" />
-            <Text ml={2}>{`Сортировка по: ${sortBy}`}</Text>
-    </Center>
-    
+<>
 
+<Flex align="center" justifyContent='space-around'>
+  <Flex align="center">
+  <Text borderColor={'rgb(0,255,0)'} mr={2} p={2} borderWidth={2} borderRadius={6}>Среднее посещение: {arrivalAvg.toFixed(2)}</Text>
+
+  <Text borderColor={'rgb(255,0,0)'} mr={2} p={2} borderWidth={2} borderRadius={6}>Средний балл: {totalPointsAvg.toFixed(2)}</Text>
+    <Text ml={10}>Выберите уровень:</Text>
+          <NumberInput
+            // ml={4}
+            ml={2}
+            min={0}
+            max={100}
+            maxW={24} 
+            value={threshold}
+            onChange={(valueAsString, valueAsNumber) => setThreshold(valueAsNumber)}
+          >
+            <NumberInputField />
+            <NumberInputStepper>
+              <NumberIncrementStepper />
+              <NumberDecrementStepper />
+            </NumberInputStepper>
+          </NumberInput>
+  </Flex>
+
+  <ChakraProvider theme={theme}>
+      <CSSReset />
+  <Flex align="center">
+        <Text mr={2}>Выберите режим:</Text>
+        <div>
+          <button
+            style={successButtonStyle}
+            onClick={() => handleButtonClick('Успеваемость')}
+          >
+            Успеваемость
+          </button>
+          <button
+            style={attendanceButtonStyle}
+            onClick={() => handleButtonClick('Посещаемость')}
+          >
+            Посещаемость
+          </button>
+        </div>
+        {/* <Button
+          colorScheme={sortBy === 'Успеваемость' ? 'purple' : 'gray'}
+          onClick={() => handleButtonClick('Успеваемость')}
+          size="md"
+        >
+          Успеваемость
+        </Button>
+        <Button ml={5}
+          colorScheme={sortBy === 'Посещаемость' ? 'purple' : 'gray'}
+          onClick={() => handleButtonClick('Посещаемость')}
+          size="md"
+        >
+          Посещаемость
+        </Button> */}
+      </Flex>
+      </ChakraProvider>
+  </Flex>
     
-     </>
-  
-    
-    
+    <Bar ref={chartRef} data={data} options={options} />
+
+</> 
+   
   );
 };
-
 
 export default AtendenceTotalPoints;
 

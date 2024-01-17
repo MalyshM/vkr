@@ -1,41 +1,42 @@
 // src/components/MainPage.jsx
 import React from 'react';
 import {  Link } from 'react-router-dom';
-import { Box, Button, Heading ,Center } from '@chakra-ui/react';
-
+import { Box, Button, Heading ,Center,} from '@chakra-ui/react';
 
 const HomePage = () => {
 
     return (
-    <Center h="100vh"position="relative" >
-      {/* <Image
-        maxW="100%" // Ширина изображения, можете настроить по вашему усмотрению
-        position="absolute"
-        top="20%"
-        left="50%"
-        transform="translate(-50%, -50%)"
-        zIndex="-1"
-
-      /> */}
+    <Center bg='#B1B9FD' h="100vh"position="relative" >
+      
 
         <Box
           p={8}
           borderWidth="2px"
-          borderRadius="md"
+          borderRadius="2xl"
           boxShadow="lg"
           textAlign="center"
-          borderColor='#00aeef'
+          borderColor='#1A1A1A'
+          height="300px"
+          width="500px"
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          justifyContent="center"
+          bg='white'
+
         >
+
           <Heading as="h1" size="xl" mb={6}  fontFamily="Trebuchet MS">
             Добро пожаловать!
           </Heading>
-          <Button colorScheme="twitter" variant="solid" size="lg" m="2" as={Link} to="/login">
-            Вход
+          <Button w='200px' colorScheme="yellow" variant="solid" size="lg" m="2" as={Link} to="/login">
+            Войти
           </Button>
-          <Button colorScheme="gray" variant="solid" size="lg" m="2" as={Link} to="/register">
-          Регистрация
+          <Button  colorScheme="purple" variant='solid' size="lg" m="2" as={Link} to="/register">
+          Создать аккаунт
           </Button>
         </Box>
+        
     </Center>
       );
     };
