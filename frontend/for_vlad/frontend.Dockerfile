@@ -1,10 +1,11 @@
-FROM node:20 as frontend
+FROM node:node:20.10.0 as frontend
 
 RUN apt-get update && apt-get upgrade -y
-
+WORKDIR /
+COPY . /frontend
 # WORKDIR /
 # COPY ./package*.json ./
-# RUN npm install
+RUN npm install
 # COPY ./ ./
 
 
