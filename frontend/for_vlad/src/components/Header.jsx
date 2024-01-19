@@ -20,16 +20,14 @@ const Header = () => {
     <Flex p={4} bg="#B1B9FD" color="white" justify="space-between" align="center">
       <Text fontSize="xl">Логотип</Text>
       <Box borderRadius='lg'>
-        
-
         <Menu>
-
             <Button variant='ghost' as={Link} to="/main" color="white" _hover={{ color: "black" }} _active={{ bg: "transparent" }}>Главная</Button>
-
-
-            <MenuButton variant='ghost' as={Button} color="white" _hover={{ color: "black" }} _active={{ bg: "transparent" }}>Сравнение</MenuButton>
+            <Button variant='ghost' as={Link} to="/analys_kr" color="white" _hover={{ color: "black" }} _active={{ bg: "transparent" }}>Анализ КР</Button>
+            <MenuButton variant='ghost' as={Button} color="white" _hover={{ color: "black" }} _active={{ bg: "transparent" }}>Группы</MenuButton>
                 <MenuList>
+                    <MenuItem color="black" as={Link} to="/your_group" >Ваши группы</MenuItem>
                     <MenuItem color="black" as={Link} to="/match2team" >Сравнение по группам</MenuItem>
+                    <MenuItem color="black" as={Link} to="/your_vectorstudy" >Ваши направления</MenuItem>
                     <MenuItem color="black" as={Link} to="/match2team_vectorstudy" >Сравнение по направлениям</MenuItem>
                 </MenuList>
 

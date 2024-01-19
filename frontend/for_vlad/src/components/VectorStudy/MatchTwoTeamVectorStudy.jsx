@@ -5,15 +5,13 @@ import { HamburgerIcon ,LockIcon ,CloseIcon,StarIcon,ArrowBackIcon, ArrowUpDownI
 import { Link } from 'react-router-dom';
 import { Tabs, TabList, TabPanels, Tab, TabPanel } from '@chakra-ui/react'
 
-import MatchAttendanceTeams from './MatchAttendanceTeams';
-import MatchTotalPointsTeams from './MatchTotalPointsTeams';
-
+import VecStudyMatchAtTeams from './VecStudyMatchAtTeams';
+import VecStudyMatchTPTeams from './VecStudyMatchTPTeams';
 
 // просто пишем делаем запрос - по токену, блять его тоже передавать, крч пробуем токен передать, а потом запрос пишем и получаем data и засовываем в 2 селекта с проверкой на !одинаковые команды
 
-const MatchToTeamPage = () => {
+const MatchTwoTeamVectorStudy = () => {
     const { userToken } = useAuth();
-    
     const [userTeams, setUserTeams] = useState(null); // Новый стейт для данных о командах
 
     const [selectedTeam1, setSelectedTeam1] = useState(null);
@@ -28,7 +26,7 @@ const MatchToTeamPage = () => {
     }
       try {
         // Отправляем GET-запрос для получения данных о командах пользователя
-        const response = await fetch(`http://localhost:8090/api/get_teams_for_user_without_lect?token=${userToken}`, {
+        const response = await fetch(`http://localhost:8090/api/get_all_specialities?token=${userToken}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -38,13 +36,13 @@ const MatchToTeamPage = () => {
 
         if (response.ok) {
           const userTeamsData = await response.json();
-          console.log('User Teams Data:', userTeamsData);
+          console.log('Vector study  Data:', userTeamsData);
           setUserTeams(userTeamsData);
         } else {
-          console.error('MATCH2TEAM - Failed to fetch user teams data');
+          console.error('MatchTwoTeamVectorStudy - Failed to fetch user teams data');
         }
       } catch (error) {
-        console.error('MATCH2TEAM- Error during fetch user teams data:', error);
+        console.error('MatchTwoTeamVectorStudy- Error during fetch user teams data:', error);
       }
   }
 
@@ -58,7 +56,6 @@ const MatchToTeamPage = () => {
       fetchData();
     }
   }, [userToken]);
-
 
 
   const handleTeamChange1 = (value) => {
@@ -79,22 +76,22 @@ return(
 
     {/* <Button as={Link} to="/main" leftIcon={<ArrowBackIcon />} colorScheme="twitter" ml={3}>Вернуться назад</Button> */}
 
-    <Heading as="h2" size="lg">Сравнение групп</Heading>
+    <Heading as="h2" size="lg">Сравнение направлений</Heading>
 
     <Flex direction={'column'} alignItems="center">
-      <Text fontSize='xl'>Выберите группы для сравнения:</Text>
+      <Text fontSize='xl'>Выберите направления для сравнений:</Text>
 
       <Flex p={2}>
         <Box mr={4} w="220px" borderRadius="lg" boxShadow="lg">
           <Select borderColor='red'
-            placeholder="Выберите 1-ю группу"
+            placeholder="Выберите 1-е направление"
             onChange={(e) => handleTeamChange1(e.target.value)}
             value={selectedTeam1}>
 
             {Array.isArray(userTeams) ? (
               userTeams.map((team) => (
-                <option key={team.id} value={team.id}>
-                  {team.name}
+                <option key={team.speciality} value={team.speciality}>
+                  {team.speciality}
                 </option>
               ))
             ) : (
@@ -105,14 +102,14 @@ return(
 
         <Box w="220px" borderRadius="lg" boxShadow="lg">
           <Select borderColor='blue'
-            placeholder="Выберите 2-ю группу"
+            placeholder="Выберите 2-е направление"
             onChange={(e) => handleTeamChange2(e.target.value)}
             value={selectedTeam2}>
 
             {Array.isArray(userTeams) ? (
               userTeams.map((team) => (
-                <option key={team.id} value={team.id}>
-                  {team.name}
+                <option key={team.speciality} value={team.speciality}>
+                  {team.speciality}
                 </option>
               ))
             ) : (
@@ -131,16 +128,16 @@ return(
   <Flex direction={'column'} >
 
       <Box h={[380]}>
-      {/* {<AllUsersAtenadance tokenUsers={userToken}/>} */}
+
         {selectedTeam1 && selectedTeam2 && (
-          <MatchAttendanceTeams teamId1={selectedTeam1} teamId2={selectedTeam2} />
+          <VecStudyMatchAtTeams speciality1={selectedTeam1} speciality2={selectedTeam2} token={userToken}/>
         )}
       </Box>
 
     <Box h={[380]}>
-    {/* {<AllUsersAtenadance tokenUsers={userToken}/>} */}
+
       {selectedTeam1 && selectedTeam2 && (
-        <MatchTotalPointsTeams teamId1={selectedTeam1} teamId2={selectedTeam2} />
+        <VecStudyMatchTPTeams speciality1={selectedTeam1} speciality2={selectedTeam2} token={userToken}/>
       )}
     </Box>
   </Flex>
@@ -151,6 +148,6 @@ return(
 
 };
  
-export default MatchToTeamPage;
+export default MatchTwoTeamVectorStudy;
   
   

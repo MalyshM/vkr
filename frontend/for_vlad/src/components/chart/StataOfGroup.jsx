@@ -43,6 +43,21 @@ const StataOfGroup = ({teamId,teamName}) => {
       const options = {
         responsive: true,
         plugins: {
+          datalabels: {
+            display: true,
+              anchor: 'center',
+              align: 'center',
+              color: 'black',
+              font: {
+                size: 19, 
+              },
+        
+              formatter: (value, context) => {
+                const roundedValue = (value * 100).toFixed(2);
+                return `${roundedValue}%`;
+        
+              },
+            },
             title: {
                 display: true,
                 text: `Оценки группы ${teamName}`,
