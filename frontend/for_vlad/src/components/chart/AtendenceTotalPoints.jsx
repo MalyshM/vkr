@@ -1,29 +1,15 @@
-//   useEffect(() => {
-//     if (chartRef.current) {
-//       // Уничтожаем чарт при размонтировании компонента
-//       return () => {
-//         if (chartRef.current) {
-//           const chartInstance = Chart.getChart(chartRef.current); // Получаем экземпляр чарта
-//           if (chartInstance) {
-//             chartInstance.destroy(); // Уничтожаем чарт
-//           }
-//         }
-//       };
-//     }
-//   }, []);
 
-import React, { useEffect, useRef ,useState} from 'react';
+import React, { useEffect, useRef ,useState,createContext } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { useNavigate  } from 'react-router-dom';
 import { Flex, Text, NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, Center, Spacer, theme  } from '@chakra-ui/react';
 import { ChakraProvider, Button, CSSReset } from '@chakra-ui/react';
+import { useNumberItems } from './NumberItemsContext';
 
 import 'chartjs-plugin-trendline';
-  
-
-
 
 const AtendenceTotalPoints = ({teamId,teamName}) => {
+
   const navigate = useNavigate ();
   const [attendanceTotalPointsData, setAttendanceTotalPointsData] = useState(null);
   const chartRef = useRef(null);
@@ -34,26 +20,22 @@ const AtendenceTotalPoints = ({teamId,teamName}) => {
   const [arrivalAvg, setArrivalAvg] = useState(null);
 
   const [successColor, setSuccessColor] = useState('rgb(177,185,253, 0.9)');
-  const [attendanceColor, setAttendanceColor] = useState('rgb(255,227,94, 0.9)');
+  const [attendanceColor, setAttendanceColor] = useState('rgb(255,216,32, 0.9)');
 
-
+  const [numberOfItems ,setNumberOfItems] = useState(null)
+  
 const handleButtonClick = (sortType) => {
   setSortBy(sortType);
 
   // Обновляем цвет графика в зависимости от выбранной кнопки
   if (sortType === 'Успеваемость') {
     setSuccessColor('rgb(177,185,253, 0.9)');
-    setAttendanceColor('rgb(255,227,94, 0.9)');
+    setAttendanceColor('rgb(255,216,32, 0.9)');
   } else {
-    setSuccessColor('rgb(255,227,94, 0.9)');
+    setSuccessColor('rgb(255,216,32, 0.9)');
     setAttendanceColor('rgb(177,185,253, 0.9)')
 };
 };
-
-const toggleSort = () => {
-    setSortBy((prevSortBy) => (prevSortBy === 'Посещаемость' ? 'Успеваемость' : 'Посещаемость'));
-  };
-
   
   const handleChartClick = (_, elements) => {
     if (elements && elements.length > 0) {
@@ -63,10 +45,6 @@ const toggleSort = () => {
       navigate (`/student/${studentId}/${teamId}/${teamName}`);
     }
   };
-
-  // console.log('selectedTeam changed:', selectedTeam);
-  // console.log('team ID in attendanceTotalPointsData:', teamId);
-
 
   useEffect(() => {
     const fetchAtendanceTotalPointsData = async () => {
@@ -84,23 +62,14 @@ const toggleSort = () => {
             setTotalPointsAvg(lastItem.total_points_avg);
             setArrivalAvg(lastItem.arrival_avg);
           }
-
-
           const dataArray = Object.values(result);
           const sortedDataArray = dataArray.sort((a, b) =>
               sortBy === 'Посещаемость' ? b.Посещаемость - a.Посещаемость : b.Успеваемость - a.Успеваемость
             );
-  
-  
           // Обновляем состояние с полученными данными
           setAttendanceTotalPointsData(sortedDataArray);
 
-          // Новые данные для линий
-          
-  
-          
-          
-  
+          setNumberOfItems(sortedDataArray.length - 1);
         }
       } catch (error) {
         console.error('Error fetching attendanceTotalPoints data:', error);
@@ -113,8 +82,7 @@ const toggleSort = () => {
   if (!attendanceTotalPointsData) {
     return <div>Loading...</div>;
   }
-  console.log('setTotalPointsAvg:', setTotalPointsAvg);
-  console.log('setArrivalAvg:', setArrivalAvg);
+
   const data = {
     labels: attendanceTotalPointsData.map((item => item.Stud_id)),
     
@@ -162,12 +130,8 @@ const toggleSort = () => {
       radius: 0,
       
     },
-
-     
-
     ],
   };
-console.log('Data for chart:', data);
 
 const options = {
  
@@ -202,9 +166,18 @@ onClick: handleChartClick,
     },
   },
   plugins: {
+    datalabels: {
+      display: false,
+        anchor: 'end',
+        align: 'end',
+        color: 'black',
+        formatter: (value, context) => {
+          return `${value}%`; // Замените на тот формат, который вам нужен
+        },
+      },
     title: {
       display: true,
-      text: `Посещаемость и успеваемость студентов группы ${teamName}`,
+      text: `Посещаемость и успеваемость студентов группы ${teamName}, кол-во студентов:${numberOfItems}`,
       font: {
         size: 22,
         fontColor: 'black',
@@ -243,23 +216,23 @@ const buttonStyle = {
   padding: '10px',
   margin: '0 5px',
   cursor: 'pointer',
-  borderRadius: '16px',
+  borderRadius: '40px',
   border: '1px solid #ccc',
   color: 'white',
-  fontSize: '20px'
+  fontSize: '20px',
+  borderWidth: "1px",
+  borderColor: 'black'
 };
 
 const successButtonStyle = {
   ...buttonStyle,
-  background: sortBy === 'Успеваемость' ? '#B1B9FD' : '#ffeb8e',
+  background: sortBy === 'Успеваемость' ? '#B1B9FD' : '#ffd200',
 };
 
 const attendanceButtonStyle = {
   ...buttonStyle,
-  background: sortBy === 'Посещаемость' ? '#B1B9FD' : '#ffeb8e',
+  background: sortBy === 'Посещаемость' ? '#B1B9FD' : '#ffd200',
 };
-
-
 
 return (
 <>
@@ -269,7 +242,7 @@ return (
   <Text borderColor={'rgb(0,255,0)'} mr={2} p={2} borderWidth={2} borderRadius={6}>Среднее посещение: {arrivalAvg.toFixed(2)}</Text>
 
   <Text borderColor={'rgb(255,0,0)'} mr={2} p={2} borderWidth={2} borderRadius={6}>Средний балл: {totalPointsAvg.toFixed(2)}</Text>
-    <Text ml={10}>Выберите уровень:</Text>
+    <Text ml={10}>Установите порог:</Text>
           <NumberInput
             // ml={4}
             ml={2}
@@ -324,6 +297,8 @@ return (
   </Flex>
     
     <Bar ref={chartRef} data={data} options={options} />
+    {/* {NumCountStudInLernMemoized} */}
+
 
 </> 
    

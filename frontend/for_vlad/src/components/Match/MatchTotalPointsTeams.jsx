@@ -1,7 +1,9 @@
 import React, { useEffect, useRef ,useState} from 'react';
 import { Bar } from 'react-chartjs-2';
 import { Chart } from 'chart.js/auto';
-
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+Chart.register(ChartDataLabels);
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js" integrity="sha512-JPcRR8yFa8mmCsfrw4TNte1ZvF1e3+1SdGMslZvmrzDYxS69J7J49vkFL8u6u8PlPJK+H3voElBtUCzaXj+6ig==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 const MatchTotalPointsTeams = ({ teamId1,teamId2}) => {
   const [totalPointData, setTotalPointData] = useState(null);
@@ -46,15 +48,20 @@ if (!totalPointData) {
   return <div>Loading...</div>;
 }
 
+const colors = {
+  [teamId2]: 'rgba(217,68,58, 0.5)', // Цвет для teamId1
+  [teamId1]: 'rgba(177,185,253, 0.7)', // Цвет для teamId2
+};
+
 const data = {
-    labels: totalPointData.map(item => item.team_name),
+    labels: totalPointData.map(item => `${item.id} (${item.team_name})`),
     datasets: [
       {
         label: 'Средний балл',
         data: totalPointData.map(item => item.total_points),
-        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        backgroundColor: totalPointData.map(item => colors[item.team_id]),
         borderColor: 'rgb(0,174,239)',
-        borderWidth: 3,
+        borderWidth: 0,
         
 
       },
@@ -72,7 +79,7 @@ const options = {
       position: 'bottom',
       title: {
         display: true,
-        text: 'Все группы',
+        text: `Студенты групп ${totalPointData[0]?.team_name || ''} и ${totalPointData[1]?.team_name || ''}`,
         font: {
           size: 20, // Размер шрифта названия оси X
           fontColor: 'black',
@@ -85,7 +92,7 @@ const options = {
       position: 'left',
       title: {
         display: true,
-        text: 'Успеваемость',
+        text: 'Баллы',
         font: {
           size: 20, // Размер шрифта названия оси X
           fontColor: 'black',
@@ -95,9 +102,21 @@ const options = {
     },
   },
   plugins: {
+    
+    datalabels: {
+      display: true,
+        anchor: 'end',
+        align: 'end',
+        color: 'black',
+        formatter: (value, context) => {
+          const roundedValue = (value).toFixed(0);
+          return `${roundedValue} Б`;
+        },
+      },
+
     title: {
       display: true,
-      text: 'Средняя успеваемость студентов выбранных подгрупп дисциплины ПиОА',
+      text: `Успеваемость групп ${totalPointData[0]?.team_name || ''} и ${totalPointData[1]?.team_name || ''}`,
       font: {
         size: 22,
         fontColor: 'black',
@@ -122,12 +141,15 @@ const options = {
   elements: {
     bar: {
       barThickness: 400,
-      borderRadius: 10, 
+      borderRadius: 5, 
     },
   },
+  
+
   animation: {
     duration: 2000,
   },
+
 };
 
 

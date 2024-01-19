@@ -5,12 +5,17 @@ import TableOfGroup from './TableOfGroup';
 // import { TableOfGroup } from './TableOfGroup';
 import { useNavigate  } from 'react-router-dom';
 import { Flex } from "@chakra-ui/react";
+import { useNumberItems } from './NumberItemsContext';
 
 
-const NumCountStudInLern = ({ teamId,onLessonSelect }) => {
+const NumCountStudInLern = ({ teamId,onLessonSelect, numberOfItems}) => {
+  const numberOfItemsRef = useNumberItems();
+
   const [AtendanceNumCountStudInLernData, setAtendanceNumCountStudInLernData] = useState(null);
   const [selectedLesson, setSelectedLesson] = useState(null);
   const chartRef = useRef(null);
+  const [numberOfday ,setNumberOfday] = useState(null)
+
 
   const handleBarClick = (_, elements) => {
     if (elements && elements.length > 0) {
@@ -33,6 +38,9 @@ const NumCountStudInLern = ({ teamId,onLessonSelect }) => {
    
           // Обновляем состояние с полученными данными
           setAtendanceNumCountStudInLernData(dataArray);
+
+          setNumberOfday(dataArray.length)
+
         }
       } catch (error) {
         console.error('Error fetching attendanceTotalPoints data:', error);
@@ -52,11 +60,11 @@ const NumCountStudInLern = ({ teamId,onLessonSelect }) => {
 //   const labelsWithIndex = AtendanceNumCountStudInLernData.map((item, index) => ({ name: item.name, index: index + 1 }));
 
   const data = {
-    labels: AtendanceNumCountStudInLernData.map((item => item.name)),
+    labels: AtendanceNumCountStudInLernData.map((item, index) => `${index + 1}. ${item.name}`),
 
     datasets: [
         {
-            label: 'Кол-во студентов',
+            label: `Кол-во студентов`,
             data: AtendanceNumCountStudInLernData.map((item) => item.arrival),
             backgroundColor: 'rgb(255,77,65, 0.5)',
             borderColor: 'rgb(0,0,0)',
@@ -64,7 +72,6 @@ const NumCountStudInLern = ({ teamId,onLessonSelect }) => {
           },
     ],
   };
-// console.log('Data for NumCountStudInLern:', data);
 
 const options = {
 
@@ -72,13 +79,13 @@ const options = {
   scales: {
     x: {
         ticks: {
-            display: false,
+          callback: (value, index) => (index + 1).toString(), 
         },
       type: 'category',
       position: 'bottom',
       title: {
         display: true,
-        text: 'Встреча/пара',
+        text: 'Номер занятия',
         font: {
           size: 20,
           fontColor: 'black',
@@ -99,12 +106,16 @@ const options = {
         },
       },
       id: 'y-axis-0',
+      ticks: {
+        callback: (value) => value.toString(), // Установка значения для оси Y
+      },
+      
     },
   },
   plugins: {
     title: {
       display: true,
-      text: 'Количество студентов на паре',
+      text: `Количество студентов на занятии, кол-во занятий:${numberOfday}`,
       font: {
         size: 22,
         fontColor: 'black',

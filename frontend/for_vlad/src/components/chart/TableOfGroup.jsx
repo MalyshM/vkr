@@ -26,11 +26,11 @@ const TableOfGroup = ({ teamId, selectedLesson }) => {
     fetchTableOfGroup();
   },[teamId,selectedLesson]);
 
+console.log("dataArray - ", TableOfGroupData)
 
   const handleSort = (key) => {
     setSortColumn({ key, ascending: !sortColumn.ascending });
   };
-  const modifiedLesson = selectedLesson ? selectedLesson.slice(0, -2) : '';
   
   const sortedData = [...(TableOfGroupData || [])].sort((a, b)  => {
     const aValue = a[sortColumn.key];
@@ -46,9 +46,8 @@ const TableOfGroup = ({ teamId, selectedLesson }) => {
 
   return (<>
 
-    {/* <Text fontSize='xl'>Встреча: {modifiedLesson}</Text> */}
     <Box borderWidth={2} mt={10} p={2} borderRadius={16} borderColor='lavender'>
-    <Text  fontSize='xl'>{modifiedLesson ? `Встреча: ${modifiedLesson}` : 'Выберите встречу'}</Text>
+    <Text  fontSize='xl'>{selectedLesson ? `Встреча: ${selectedLesson}` : 'Выберите встречу'}</Text>
 
     <TableContainer overflowY="scroll" maxH="300px" > 
     <Table variant="simple">
