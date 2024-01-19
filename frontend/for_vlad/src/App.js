@@ -13,8 +13,11 @@ import GeneralStudPage from './components/InfoAboutStudients/GeneralStudPage';
 import MatchToTeamPage from './components/Match/MatchToTeamPage';
 
 import Header from "./components/Header";
-import MatchTwoTeamVectorStudy from "./components/Match/MatchTwoTeamVectorStudy"
-// import TableOfGroup from './components/TableFolder/TableOfGroup'; 
+import MatchTwoTeamVectorStudy from "./components/VectorStudy/MatchTwoTeamVectorStudy"
+import YourGroup from './components/Match/YourGroup';
+import YourVectorStudy from './components/VectorStudy/YourVectorStudy';
+
+import AnalysKr from './components/AnalysKrFolder/AnalysKr';
 
 function App() {
 
@@ -32,6 +35,10 @@ function App() {
         <Route path="/match2team" element={<MatchToTeamPage />} />
         <Route path={"/student/:studentId/:teamId/:teamName"} element={<GeneralStudPage />} />
         <Route path="/match2team_vectorstudy" element={<MatchTwoTeamVectorStudy/>} />
+        <Route path="/your_group" element={<YourGroup/>} />
+        <Route path="/your_vectorstudy" element={<YourVectorStudy/>} />
+        <Route path="/analys_kr" element={<AnalysKr/>} />
+
 
       </Routes>
     </AuthProvider>

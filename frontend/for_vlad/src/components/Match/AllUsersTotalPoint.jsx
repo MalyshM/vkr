@@ -43,32 +43,50 @@ const AllUsersTotalPoint = ({tokenUsers}) => {
 if (!AllUsersTotalPointData) {
     return <div>Loading...</div>;
   }
+
+  const uniqueTeachersColors = {
+    'Самойлов Михаил Юрьевич': 'rgb(255, 0, 0, 0.5)',        // Красный
+    'Павлова Елена Александровна': 'rgb(0, 255, 0, 0.5)',        // Зеленый
+    'Плотоненко Юрий Анатольевич': 'rgb(0, 0, 255, 0.5)',        // Синий
+    'Плотоненко Юрий Анатольевич, Подзолков Павел Николаевич': 'rgb(255, 255, 0, 0.5)',      // Желтый
+    'Семихин Дмитрий Витальевич': 'rgb(255, 0, 255, 0.5)',      // Фиолетовый
+    'Семихина Иветта Григорьевна, Черняев Александр Андреевич': 'rgb(0, 255, 255, 0.5)',      // Бирюзовый
+    'Аврискин Михаил Владимирович': 'rgb(255, 128, 0, 0.5)',     // Оранжевый
+    'Сальников Никита Владиславович': 'rgb(128, 0, 128, 0.5)',     // Пурпурный
+    'Мельникова Антонина Владимировна': 'rgb(128, 128, 128, 0.5)',   // Серый
+    'Трефилин Иван Андреевич': 'rgb(0, 128, 0, 0.5)',      // Темно-зеленый
+    'Березовский Артем Константинович': 'rgb(0, 0, 128, 0.5)',      // Темно-синий
+    'Дубровин Михаил Григорьевич': 'rgb(128, 0, 0, 0.5)',      // Темно-красный
+    'Аврискин Михаил Владимирович, Подзолков Павел Николаевич': 'rgb(0, 128, 128, 0.5)',    // Темно-бирюзовый
+  };
   
     const data = {
-      labels: AllUsersTotalPointData.map(item => item.team_name),
+      labels: AllUsersTotalPointData.map(item => `${item.team_name} (${item.teacher_name})`),
       datasets: [
         {
-          label: 'Среднее посещение',
+          label: 'Средняя усепваемость',
           data: AllUsersTotalPointData.map(item => item.avg_total_points),
-          backgroundColor: 'rgb(177,185,253, 0.9)',
+          backgroundColor: AllUsersTotalPointData.map(item => uniqueTeachersColors[item.teacher_name]),
           borderColor: 'rgb(0,174,239)',
           borderWidth: 0,
-          
-  
-        },
+          },
       ],
     };
+
   console.log('fetchAllUsersTotalPointData:', AllUsersTotalPointData);
   
   const options = {
     
     scales: {
       x: {
+        ticks: {
+          display: false,
+      },
         type: 'category',
         position: 'bottom',
         title: {
-          display: false,
-          text: 'Идентификатор студента',
+          display: true,
+          text: 'Все группы',
           font: {
             size: 20, // Размер шрифта названия оси X
             fontColor: 'black',
@@ -91,6 +109,17 @@ if (!AllUsersTotalPointData) {
       },
     },
     plugins: {
+      datalabels: {
+        display: false,
+        anchor: 'end',
+        align: 'end',
+        color: 'black', // Цвет текста
+        formatter: (value, context) => {
+          const teacherName = data.labels[context.dataIndex].split(' ')[1].slice(1, -1); // Получаем teacher_name
+          return teacherName;
+
+        },
+      },
       title: {
         display: true,
         text: 'Успеваемость ваших групп',
@@ -103,7 +132,7 @@ if (!AllUsersTotalPointData) {
   
       legend: {
         display: false,
-        position: 'top',
+        position: 'right',
       },
     },
     maintainAspectRatio: false,
