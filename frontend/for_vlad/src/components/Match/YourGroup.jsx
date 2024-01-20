@@ -5,15 +5,13 @@ import { HamburgerIcon ,LockIcon ,CloseIcon,StarIcon,ArrowBackIcon, ArrowUpDownI
 import { Link } from 'react-router-dom';
 import { Tabs, TabList, TabPanels, Tab, TabPanel } from '@chakra-ui/react'
 
-import MatchAttendanceTeams from './MatchAttendanceTeams';
-import MatchTotalPointsTeams from './MatchTotalPointsTeams';
-
+import AllUsersAtenadance from './AllUsersAtenadance';
+import AllUsersTotalPoint from './AllUsersTotalPoint';
 
 // просто пишем делаем запрос - по токену, блять его тоже передавать, крч пробуем токен передать, а потом запрос пишем и получаем data и засовываем в 2 селекта с проверкой на !одинаковые команды
 
-const MatchToTeamPage = () => {
+const YourGroup = () => {
     const { userToken } = useAuth();
-    
     const [userTeams, setUserTeams] = useState(null); // Новый стейт для данных о командах
 
     const [selectedTeam1, setSelectedTeam1] = useState(null);
@@ -59,7 +57,13 @@ const MatchToTeamPage = () => {
     }
   }, [userToken]);
 
+  // const handleTeamChange1 = (teamId) => {
+  //   setSelectedTeam1(teamId);
+  // };
 
+  // const handleTeamChange2 = (teamId) => {
+  //   setSelectedTeam2(teamId);
+  // };
 
   const handleTeamChange1 = (value) => {
     setSelectedTeam1(value);
@@ -73,84 +77,30 @@ const MatchToTeamPage = () => {
 
  
 return( 
-
-  <>
+<>
   <Box p={6} display="flex" justifyContent={'space-between'}>
-
-    {/* <Button as={Link} to="/main" leftIcon={<ArrowBackIcon />} colorScheme="twitter" ml={3}>Вернуться назад</Button> */}
-
-    <Heading as="h2" size="lg">Сравнение групп</Heading>
-
-    <Flex direction={'column'} alignItems="center">
-      <Text fontSize='xl'>Выберите группы для сравнения:</Text>
-
-      <Flex p={2}>
-        <Box mr={4} w="220px" borderRadius="lg" boxShadow="lg">
-          <Select borderColor='red'
-            placeholder="Выберите 1-ю группу"
-            onChange={(e) => handleTeamChange1(e.target.value)}
-            value={selectedTeam1}>
-
-            {Array.isArray(userTeams) ? (
-              userTeams.map((team) => (
-                <option key={team.id} value={team.id}>
-                  {team.name}
-                </option>
-              ))
-            ) : (
-              <option disabled>No teams available</option>
-            )}
-          </Select>
-        </Box>
-
-        <Box w="220px" borderRadius="lg" boxShadow="lg">
-          <Select borderColor='blue'
-            placeholder="Выберите 2-ю группу"
-            onChange={(e) => handleTeamChange2(e.target.value)}
-            value={selectedTeam2}>
-
-            {Array.isArray(userTeams) ? (
-              userTeams.map((team) => (
-                <option key={team.id} value={team.id}>
-                  {team.name}
-                </option>
-              ))
-            ) : (
-              <option disabled>No teams available</option>
-            )}
-          </Select>
-        </Box>
-      </Flex>
-    </Flex>
-
-  </Box>
-           {/*  */}
-
-      
-
-  <Flex direction={'column'} >
-
-      <Box h={[380]}>
-      {/* {<AllUsersAtenadance tokenUsers={userToken}/>} */}
-        {selectedTeam1 && selectedTeam2 && (
-          <MatchAttendanceTeams teamId1={selectedTeam1} teamId2={selectedTeam2} />
-        )}
-      </Box>
-
-    <Box h={[380]}>
-    {/* {<AllUsersAtenadance tokenUsers={userToken}/>} */}
-      {selectedTeam1 && selectedTeam2 && (
-        <MatchTotalPointsTeams teamId1={selectedTeam1} teamId2={selectedTeam2} />
-      )}
+    <Heading as="h2" size="lg">Ваши группы</Heading>
+    
+    
     </Box>
-  </Flex>
 
+  
+
+    <Flex direction={'column'} >
+
+        <Box h={[380]}>
+            {<AllUsersAtenadance tokenUsers={userToken}/>}
+        </Box>
+
+        <Box h={[380]}>
+            {<AllUsersTotalPoint tokenUsers={userToken}/>}
+        </Box>
+        
+    </Flex>
     
 
     </>)
 
 };
  
-export default MatchToTeamPage;
-  
-  
+export default YourGroup;

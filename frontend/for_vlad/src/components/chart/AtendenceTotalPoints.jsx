@@ -84,23 +84,13 @@ const toggleSort = () => {
             setTotalPointsAvg(lastItem.total_points_avg);
             setArrivalAvg(lastItem.arrival_avg);
           }
-
-
           const dataArray = Object.values(result);
           const sortedDataArray = dataArray.sort((a, b) =>
               sortBy === 'Посещаемость' ? b.Посещаемость - a.Посещаемость : b.Успеваемость - a.Успеваемость
             );
-  
-  
           // Обновляем состояние с полученными данными
           setAttendanceTotalPointsData(sortedDataArray);
 
-          // Новые данные для линий
-          
-  
-          
-          
-  
         }
       } catch (error) {
         console.error('Error fetching attendanceTotalPoints data:', error);
@@ -202,6 +192,15 @@ onClick: handleChartClick,
     },
   },
   plugins: {
+    datalabels: {
+      display: false,
+        anchor: 'end',
+        align: 'end',
+        color: 'black',
+        formatter: (value, context) => {
+          return `${value}%`; // Замените на тот формат, который вам нужен
+        },
+      },
     title: {
       display: true,
       text: `Посещаемость и успеваемость студентов группы ${teamName}`,

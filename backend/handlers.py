@@ -482,6 +482,49 @@ async def get_all_kr(db=Depends(connect_db_data)):
     return all_users
 
 
+@router.get('/api/get_all_teachers_unique', name='Stud:get_all_teachers', status_code=status.HTTP_200_OK,
+            tags=["Util"], description=
+            """
+                    Получает token: str
+                    Returns:
+                        Преподаватели
+                    \n
+                    [
+                      {
+                        "id": 8,
+                        "name": "Березовский Артем Константинович"
+                      },
+                      {
+                        "id": 2,
+                        "name": "Трефилин Иван Андреевич"
+                      },
+                      {
+                        "id": 4,
+                        "name": "Павлова Елена Александровна"
+                      },
+            """)
+async def get_all_teachers_unique(token: str, db=Depends(connect_db_data)):
+    # Create your plot using Plotly
+    await asyncio.sleep(0)
+    start_time = time.time()
+    user = await get_current_user_dev(token)
+    user_fio = user.fio
+    if user.iscurator or user.isadmin:
+        response = db.query(Teacher.id, Teacher.name).distinct().all()
+        true_response = [item for item in response if ',' not in item[1]]
+        db.close()
+        return true_response
+    elif user.isteacher:
+        # todo вот эту строчку поменять шо она будет искать подстроку user_fio в Teacher.name
+        teacher_id_query = db.query(Teacher.id, Teacher.name).filter(and_(Teacher.name.like(f"%{user_fio}%"))).all()
+        true_response = [item for item in teacher_id_query if ',' not in item[1]]
+        db.close()
+        return true_response
+    else:
+        db.close()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                            detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
+
 @router.get('/api/get_all_teachers', name='Stud:get_all_teachers', status_code=status.HTTP_200_OK,
             tags=["Util"], description=
             """
@@ -511,21 +554,17 @@ async def get_all_teachers(token: str, db=Depends(connect_db_data)):
     user_fio = user.fio
     if user.iscurator or user.isadmin:
         response = db.query(Teacher.id, Teacher.name).distinct().all()
-        true_response = [item for item in response if ',' not in item[1]]
         db.close()
-        return true_response
+        return response
     elif user.isteacher:
         # todo вот эту строчку поменять шо она будет искать подстроку user_fio в Teacher.name
         teacher_id_query = db.query(Teacher.id, Teacher.name).filter(and_(Teacher.name.like(f"%{user_fio}%"))).all()
-        true_response = [item for item in teacher_id_query if ',' not in item[1]]
         db.close()
-        return true_response
+        return teacher_id_query
     else:
         db.close()
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
-
-
 # Main page
 # region
 @router.get('/api/attendance_per_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
