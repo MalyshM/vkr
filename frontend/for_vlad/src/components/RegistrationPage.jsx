@@ -113,7 +113,7 @@ const register = async () => {
   };
 
 return (
-  <Center bg="#B1B9FD" h="100vh">
+  <Center bg="#72b5bb" h="100vh">
     <Box
       // maxW="md"
       width='500px'
@@ -134,21 +134,21 @@ return (
         <Button ml={5} colorScheme="gray" as={Link} to="/"> <CloseIcon/> </Button>
       </Flex>
       
-      <FormControl isRequired id="role" mb={4}>
+      <FormControl  id="role" mb={4}>
 
           <FormLabel>Роль:</FormLabel>
 
-          <RadioGroup onChange={(value) => handleRoleChange(value)} value={role} checked={'red'} >
+          <RadioGroup onChange={(value) => handleRoleChange(value)} value={role} checked={'teal'} >
 
-            <Radio colorScheme='red'  mr={5} value="admin">Админ</Radio>
-            <Radio colorScheme='red'  mr={5} value="teacher">Преподаватель</Radio>
-            <Radio colorScheme='red' value="curator">Куратор</Radio>
+            <Radio colorScheme='teal'  mr={5} value="admin">Админ</Radio>
+            <Radio colorScheme='teal'  mr={5} value="teacher">Преподаватель</Radio>
+            <Radio colorScheme='teal' value="curator">Куратор</Radio>
 
           </RadioGroup>
 
       </FormControl>
 
-      <FormControl isRequired id="FIO" mb={4}>
+      <FormControl  id="FIO" mb={4}>
         <FormLabel >ФИО:</FormLabel>
         <Input
           type="text"
@@ -160,7 +160,7 @@ return (
       </FormControl>  
 
       <form autoComplete="off">  
-      <FormControl isRequired id="username" mb={4}>
+      <FormControl  id="username" mb={4}>
         <FormLabel>Логин:</FormLabel>
         <Input
           type="text"
@@ -173,7 +173,7 @@ return (
       </form>
 
       <form autoComplete="off">
-      <FormControl isRequired id="password" mb={4}>
+      <FormControl  id="password" mb={4}>
         <FormLabel>Пароль:</FormLabel>
         <Input
           type="password"
@@ -187,7 +187,7 @@ return (
       </form>
 
       <form autoComplete="off">
-      <FormControl isRequired id="email" mb={4}>
+      <FormControl  id="email" mb={4}>
         <FormLabel>Адрес электронной почты:</FormLabel>
         <Input
           type="email"
@@ -199,7 +199,7 @@ return (
       </FormControl>
       </form>
 
-      <Button width='450px' colorScheme="yellow" onClick={register}>
+      <Button width='450px' colorScheme="teal" onClick={register}>
         Подтвердить
       </Button>
       

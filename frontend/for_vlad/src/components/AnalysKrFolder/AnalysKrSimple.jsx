@@ -41,9 +41,9 @@ const AnalysKrSimple = ({ tokenUsers, type, kr }) => {
           {
             label: 'Boxplot',
             data: data,
-            backgroundColor: '#B1B9FD',
-            borderColor: 'purple',
-            borderWidth: 1,
+            backgroundColor: 'rgba(86, 173, 192, 0.8)',
+            borderColor: 'rgba(223, 88, 87, 1)',
+            borderWidth: 2,
           },
         ],
       };

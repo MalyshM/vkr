@@ -35,13 +35,15 @@ const Header = () => {
   }
 
   return (
-    <Flex p={4} bg="#B1B9FD" color="white" justify="space-between" align="center">
-      <Text ml={5} mr={'auto'} >Данные актуальны на {formatDate(currentDate)} </Text>
+    <Flex h={90} p={4}
+    // backgroundImage="linear-gradient(to right, #6260DB, #4CAF50)" 
+    bg="#56adc0" color="white" justify="space-between" align="center">
+      <Text fontSize='sm' as='b' ml={5} mr={'auto'} >Данные актуальны на {formatDate(currentDate)} </Text>
       <Box borderRadius='lg'>
         <Menu>
             <Button variant='ghost' as={Link} to="/main" color="white" _hover={{ color: "black" }} _active={{ bg: "transparent" }}>Главная</Button>
             <Button variant='ghost' as={Link} to="/analys_kr" color="white" _hover={{ color: "black" }} _active={{ bg: "transparent" }}>Анализ КР</Button>
-            <MenuButton variant='ghost' as={Button} color="white" _hover={{ color: "black" }} _active={{ bg: "transparent" }}>Группы</MenuButton>
+            <MenuButton variant='ghost' as={Button} color="white" _hover={{ color: "black" }} _active={{ bg: "transparent" }}>Группы/Направления</MenuButton>
                 <MenuList>
                     <MenuItem color="black" as={Link} to="/your_group" >Ваши группы</MenuItem>
                     <MenuItem color="black" as={Link} to="/match2team" >Сравнение по группам</MenuItem>

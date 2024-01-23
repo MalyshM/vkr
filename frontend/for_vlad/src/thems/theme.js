@@ -3,12 +3,12 @@ import { extendTheme } from '@chakra-ui/react';
 
 const theme = extendTheme({
   colorScheme: {
-    customPurple: "#B1B9FD", // Замените "B1B9FD" на ваш цвет
+    customPurple: "#98d4e1", // Замените "B1B9FD" на ваш цвет
   },
   styles: {
     global: {
       body: {
-        bg: "#FFFFFF",
+        bg: "#F6F6F6",
         color: 'black',
       },
     },

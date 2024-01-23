@@ -133,9 +133,10 @@ const LoginPage = () => {
 
 
 return (
-  <Center bg="#B1B9FD" h="100vh">
+  <Center bg="#72b5bb" h="100vh">
     <Box
       // maxW="md"
+      // height='500px'
       width='500px'
       borderWidth="2px"
       borderRadius="lg"
@@ -158,7 +159,7 @@ return (
       
       
       
-    <FormControl isRequired id="FIO" mb={4}>
+    <FormControl  id="FIO" mb={4}>
       <FormLabel>ФИО:</FormLabel>
       <Input
         type="text"
@@ -179,7 +180,7 @@ return (
     </FormControl>
 
       <form autoComplete="off">
-      <FormControl isRequired id="username" mb={4}>
+      <FormControl  id="username" mb={4}>
         <FormLabel>Логин:</FormLabel>
         <Input
           type="text"
@@ -200,7 +201,7 @@ return (
       </form>
 
       <form autoComplete="off">
-      <FormControl isRequired id="email" mb={4}>
+      <FormControl  id="email" mb={4}>
         <FormLabel>Адрес электронной почты:</FormLabel>
         <Input
           type="text"
@@ -221,7 +222,7 @@ return (
       </form>
 
       <form autoComplete="off">
-      <FormControl isRequired id="password" mb={4}>
+      <FormControl  id="password" mb={4}>
         <FormLabel>Пароль:</FormLabel>
         <Input
           type="password"
@@ -242,7 +243,7 @@ return (
       </FormControl>
       </form>
 
-      <Button mt='30px' w='450px' colorScheme="yellow" onClick={login}>
+      <Button mt='30px' w='450px' colorScheme="teal" onClick={login}>
         Войти
       </Button>
       

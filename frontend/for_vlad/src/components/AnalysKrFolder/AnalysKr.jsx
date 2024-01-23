@@ -168,8 +168,8 @@ return(
   <Box p={6} display="flex" justifyContent={'space-between'}>
     <Heading as="h1" size="lg">Анализ Контрольных работ</Heading>
 
-    <Box mr={4} w="250px" borderRadius="lg" boxShadow="lg">
-          <Select borderColor='purple'
+    <Box ml={'auto'} mr={4} w="250px" borderRadius="lg" boxShadow="lg">
+          <Select borderColor='teal'
             placeholder="Выберите контрольную работу"
             onChange={(e) => handleKRChangeSimple(e.target.value)}
             value={selectedKRSimple}>
@@ -190,7 +190,7 @@ return(
 
         <Box mr={4} w="330px" borderRadius="lg" boxShadow="lg">
         <Select
-            borderColor='purple'
+            borderColor='teal'
             id="modeSelectSimple"
             value={selectedModeSimple}
             onChange={handleModeChangeSimple}
@@ -215,7 +215,7 @@ return(
       <Flex ml="auto" >
 
         <Box mr={4} w="290px" borderRadius="lg" boxShadow="lg">
-          <Select borderColor='purple'
+          <Select borderColor='teal'
             placeholder="Выберите контрольную работу"
             onChange={(e) => handleKRChangeFiltr(e.target.value)}
             value={selectedKRFiltr}>
@@ -236,7 +236,7 @@ return(
 
         <Box mr={4} w="200px" borderRadius="lg" boxShadow="lg">
         <Select
-            borderColor='purple'
+            borderColor='teal'
             id="modeSelectFiltr"
             value={selectedModeFiltr}
             onChange={handleModeChangeFiltr}
@@ -252,7 +252,7 @@ return(
 
 
         <Box w="360px" borderRadius="lg" boxShadow="lg" mr={3}>
-          <Select borderColor='purple'
+          <Select borderColor='teal'
             placeholder="Дополнительно выберите преподавателя"
             onChange={(e) => handleNameTeachersChange(e.target.value)}
             value={selectedNameTeacher}>
@@ -270,7 +270,7 @@ return(
         </Box>
 
         <Box  w="330px" borderRadius="lg" boxShadow="lg" mr={3}>
-          <Select borderColor='purple'
+          <Select borderColor='teal'
             placeholder="Дополнительно выберите направление"
             onChange={(e) => handleSpecialityChange(e.target.value)}
             value={selectedSpeciality}>
@@ -288,7 +288,7 @@ return(
         </Box>
 
         <Box  w="330px" borderRadius="lg" boxShadow="lg" mr={3}>
-          <Select borderColor='purple'
+          <Select borderColor='teal'
             placeholder="Дополнительно выберите группу"
             onChange={(e) => handleTeamChange(e.target.value)}
             value={selectedTeam}>

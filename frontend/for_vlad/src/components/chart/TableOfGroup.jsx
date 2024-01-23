@@ -44,15 +44,20 @@ console.log("dataArray - ", TableOfGroupData)
   
   );
 
+  const count = TableOfGroupData ? sortedData.length : 0;
+
   return (<>
 
-    <Box borderWidth={2} mt={10} p={2} borderRadius={16} borderColor='lavender'>
-    <Text  fontSize='xl'>{selectedLesson ? `Встреча: ${selectedLesson}` : 'Выберите встречу'}</Text>
+    <Box borderWidth={0} mt={14} p={2}  borderColor='lavender' h={'330'} bg={'white'} borderRadius={20} >
+    <Text ml={5} as={'b'} color='#808080' fontFamily={'Trebuchet MS'} fontSize='xl'>{selectedLesson ? `Встреча: ${selectedLesson}` : 'Выберите встречу'}</Text>
 
-    <TableContainer overflowY="scroll" maxH="300px" > 
+    {/* <Text as={'b'} color='#808080' fontFamily={'Trebuchet MS'} fontSize='2xl'>Оценки группы {teamName}</Text> */}
+
+    <TableContainer overflowY="scroll" maxH="220px" > 
     <Table variant="simple">
       <Thead>
         <Tr>
+          <Th>№</Th>
           <Th>ID</Th>
           <Th>
             Успеваемость
@@ -73,8 +78,9 @@ console.log("dataArray - ", TableOfGroupData)
         </Tr>
       </Thead>
       <Tbody>
-        {TableOfGroupData && sortedData.map((item) => (
+        {TableOfGroupData && sortedData.map((item, index) => (
           <Tr key={item.id}>
+            <Td>{index + 1}</Td>
             <Td>{item.id}</Td>
             <Td>{item.Успеваемость}</Td>
             <Td>{item.Посещаемость}</Td>
@@ -83,6 +89,8 @@ console.log("dataArray - ", TableOfGroupData)
       </Tbody>
     </Table>
   </TableContainer>
+
+  <Text mt={2} ml={4} color={'red'} >{`Количество студентов пропустивших занятие: ${count}`}</Text>
   </Box>
       
   </>);

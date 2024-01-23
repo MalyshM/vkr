@@ -4,7 +4,7 @@ import { Bar } from 'react-chartjs-2';
 import TableOfGroup from './TableOfGroup';
 // import { TableOfGroup } from './TableOfGroup';
 import { useNavigate  } from 'react-router-dom';
-import { Flex } from "@chakra-ui/react";
+import { Box } from "@chakra-ui/react";
 import { useNumberItems } from './NumberItemsContext';
 
 
@@ -66,7 +66,7 @@ const NumCountStudInLern = ({ teamId,onLessonSelect, numberOfItems}) => {
         {
             label: `Кол-во студентов`,
             data: AtendanceNumCountStudInLernData.map((item) => item.arrival),
-            backgroundColor: 'rgb(255,77,65, 0.5)',
+            backgroundColor: 'rgb(49,141,159, 0.8)',
             borderColor: 'rgb(0,0,0)',
             borderWidth: 0,  
           },
@@ -85,7 +85,7 @@ const options = {
       position: 'bottom',
       title: {
         display: true,
-        text: 'Номер занятия',
+        text: 'Практика',
         font: {
           size: 20,
           fontColor: 'black',
@@ -113,9 +113,18 @@ const options = {
     },
   },
   plugins: {
+    datalabels: {
+      display: true,
+        anchor: 'end',
+        align: 'end',
+        color: 'black',
+        formatter: (value, context) => {
+          return `${value}`; // Замените на тот формат, который вам нужен
+        },
+      },
     title: {
       display: true,
-      text: `Количество студентов на занятии, кол-во занятий:${numberOfday}`,
+      text: `Количество студентов на практике`,
       font: {
         size: 22,
         fontColor: 'black',
@@ -131,10 +140,10 @@ const options = {
   maintainAspectRatio: false, 
   layout: {
     padding: {
-      left: 0,
-      right: 0,
-      top: 50,
-      bottom: 0,
+      left: 40,
+      right: 10,
+      top: 10,
+      bottom: 10,
     },
   },
   elements: {
@@ -152,9 +161,10 @@ const options = {
 
 
 return (<>
-
-  <Bar ref={chartRef} data={data} options={options} />
   
+  <Box  h={[330]} mt={14} bg={'white'} borderRadius={20}>
+  <Bar ref={chartRef} data={data} options={options} />
+</Box>
   {/* {selectedLesson && <TableOfGroup teamId={teamId} selectedLesson={selectedLesson} />} */}
 
 </>);

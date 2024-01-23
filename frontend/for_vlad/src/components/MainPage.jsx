@@ -145,22 +145,15 @@ return (
      
 
            {/* </Box> */}
-           <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end' }}>
-           
-           <Tooltip label={getRoleTooltip(userData)} fontSize='md'>
-            <Avatar
-              onMouseEnter={() => console.log('Mouse entered')}
-              onMouseLeave={() => console.log('Mouse left')}
-              // Другие пропсы для Avatar
-            />
-          </Tooltip>
-
-            <Select width='270px' colorScheme='twitter' p={2}
+           {/* <div style={{  display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}> */}
+            <Flex justifyContent={'flex-end'} alignItems={'center'} p={2}>
+              
+            <Select width='270px' borderWidth={1}  fontFamily={'Trebuchet MS'}
               placeholder="Выберите вашу группу"
-              borderColor='purple'
-              _active={{ borderColor: "purple" }} 
-              _hover={{ color: "purple" }}
-              _selected={{ bg: "red.500", borderColor: "red.500", color: "white" }}
+              borderColor='teal'
+              _active={{ borderColor: "teal" }} 
+              _hover={{ color: "teal" }}
+              _selected={{ bg: "teal.500", borderColor: "red.500", color: "white" }}
 
 
               onChange={(e) => handleTeamChange(e.target.value, e.target.selectedOptions[0].label)}
@@ -177,35 +170,55 @@ return (
                 <option disabled>No teams available</option>
               )}
             </Select>
-            </div>
+
+              
+            
+            <Tooltip mr={4} borderRadius={'lg'} fontFamily={'Trebuchet MS'} label={getRoleTooltip(userData)} fontSize='md'>
+            <Avatar bg='gray.500' ml={3} mr={3} 
+              onMouseEnter={() => console.log('Mouse entered')}
+              onMouseLeave={() => console.log('Mouse left')}
+              // Другие пропсы для Avatar
+            />
+          </Tooltip>
+
+          </Flex>
+            {/* </div> */}
 
             
 
       <Flex direction="column" height="80vh">
-        <Flex flex="1">
+        <Flex ml={6} flex="1">
 
-          <Box flex="2" h={[425]}>
-            {selectedTeam && <AtendenceTotalPoints teamId={selectedTeam} teamName={selectedTeamName}  />}
+          <Box flex="2" h={[350]}>
+            {/* <Box h={'380'} bg={'white'} borderRadius={20}> */}
+              {selectedTeam && <AtendenceTotalPoints teamId={selectedTeam} teamName={selectedTeamName}  />}
+            {/* </Box> */}
           </Box>
 
           
-          <Box flex="1" h={[300]}>
+          <Box ml={4} mr={6} flex="1" h={[350]}>
+            {/* <Box h={'380'} bg={'white'} borderRadius={20}> */}
             {selectedTeam && <StataOfGroup teamId={selectedTeam} teamName={selectedTeamName} />}
+            {/* </Box>     */}
           </Box>
           
 
 
 
-        </Flex>
+        </Flex  >
 
-        <Flex flex="1">
+        <Flex ml={6} flex="1">
 
-          <Box mr={6} flex="2" h={[400]}>
-            {selectedTeam && <NumCountStudInLern teamId={selectedTeam} teamName={selectedTeamName} onLessonSelect={handleLessonSelect} />}
+          <Box flex="2" h={[350]}>
+            {/* <Box mt={16} h={'380'} bg={'white'} borderRadius={20}> */}
+              {selectedTeam && <NumCountStudInLern teamId={selectedTeam} teamName={selectedTeamName} onLessonSelect={handleLessonSelect} />}
+            {/* </Box> */}
           </Box>
 
-          <Box mr={6} flex="1" h={[400]}>
+          <Box ml={4} mr={6} flex="1" h={[350]}>
+          {/* <Box h={'350'} bg={'white'} borderRadius={20}> */}
             {selectedTeam && <TableOfGroup teamName={selectedTeamName} teamId={selectedTeam} selectedLesson={selectedLessonMainPage}/>}
+          {/* </Box> */}
           </Box>
 
         </Flex>

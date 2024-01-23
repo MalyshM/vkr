@@ -46,9 +46,9 @@ const AnalysKrFiltres = ({ tokenUsers, type, kr, teacher,speciality,team }) => {
           {
             label: 'Boxplot',
             data: data,
-            backgroundColor: '#B1B9FD',
-            borderColor: 'purple',
-            borderWidth: 1,
+            borderColor: 'rgba(86, 173, 192, 1)',
+            backgroundColor: 'rgba(223, 88, 87, 0.9)',
+            borderWidth: 2,
           },
         ],
       };
