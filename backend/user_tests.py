@@ -88,7 +88,17 @@ class UserTests(unittest.TestCase):
 
 
     def test_get_teams_for_user(self):
-        response = self.client.get('/api/get_teams_for_user')
+
+        login_data = {
+            "FIO": "string",
+            "username": "string",
+            "password": "string",
+            "email": "string"
+        }
+        response = self.client.post("/api/login_standard", json=login_data)
+        token = response.json()['access_token']
+
+        response = self.client.get(f"/api/get_teams_for_user?token={token}")
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers['content-type'], 'application/json')
@@ -96,21 +106,8 @@ class UserTests(unittest.TestCase):
         data = response.json()
         self.assertIsInstance(data, list)
 
-        # todo: Replace the expected_data with the actual expected data you want to test against
-        '''
-        expected_data = [
-            {
-                "id": 17,
-                "name": "ПиОА П-06.02"
-            },
-            {
-                "id": 39,
-                "name": "ПиОА П-07.03"
-            }
-        ] 
-
-        self.assertEqual(data, expected_data)
-        '''
+        self.assertTrue(type(response.json()["id"]), int)
+        self.assertTrue(type(response.json()["name"]), str)
 
     def test_get_student(self):
         # todo: Replace the student_id with the actual student ID you want to test
@@ -133,6 +130,7 @@ class UserTests(unittest.TestCase):
         }
 
         self.assertEqual(data, expected_data)
+
 
 
 
