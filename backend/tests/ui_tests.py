@@ -183,6 +183,7 @@ def comparison_page_check(driver):
     team_select_2 = driver.find_element(by=By.XPATH, value='//*[@id="root"]/div[2]/div/div/div[2]/div/select')
     team_select_1.click()
     team_select_2.click()
+    time.sleep(3)
     team1 = driver.find_element(by=By.XPATH, value='//*[@id="root"]/div[2]/div/div/div[1]/div/select/option[2]')
     team2 = driver.find_element(by=By.XPATH, value='//*[@id="root"]/div[2]/div/div/div[2]/div/select/option[5]')
     team1.click()
