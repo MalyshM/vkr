@@ -30,6 +30,22 @@ services:
     depends_on:
       - db
 
+  tests:
+    build:
+      context: backend
+      dockerfile: ./backend.Dockerfile
+    container_name: tests_michael
+    command: bash -c "cd /backend; python user_tests.py;"
+    env_file:
+      - .env
+    volumes:
+      - ./backend:/backend
+    environment:
+      - PYTHONPATH=/backend
+    depends_on:
+      - db
+      - backend
+
   frontend:
     image: node:20.10.0
     container_name: frontend_BLOODY_VLADI
