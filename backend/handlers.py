@@ -194,6 +194,12 @@ async def delete_all_users(db=Depends(connect_db_users)):
     return {"message": "All users deleted successfully"}
 
 
+def delete_test_user(db=connect_db_users()):
+    # Create your plot using Plotly
+    db.query(User).filter(User.username=="string",User.email=="string",User.fio=="string").delete()
+    db.commit()
+    return {"message": "test user deleted successfully"}
+
 @router.post('/api/login_standard', name='Registration:login_standard', status_code=status.HTTP_200_OK,
              tags=["Registration"], description=
              """
@@ -525,6 +531,7 @@ async def get_all_teachers_unique(token: str, db=Depends(connect_db_data)):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
 
+
 @router.get('/api/get_all_teachers', name='Stud:get_all_teachers', status_code=status.HTTP_200_OK,
             tags=["Util"], description=
             """
@@ -565,6 +572,8 @@ async def get_all_teachers(token: str, db=Depends(connect_db_data)):
         db.close()
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
+
+
 # Main page
 # region
 @router.get('/api/attendance_per_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -662,7 +671,8 @@ async def total_points_attendance_per_stud_for_team(id_team: int, db=Depends(con
     total_points_sum = 0.0
     arrival_sum = 0.0
     for row in result_query:
-        df_list.append({'Stud_name': row[0], 'Stud_id': row[1], 'Успеваемость': row[2] if row[2]>=0 else 0, 'Посещаемость': row[3]})
+        df_list.append({'Stud_name': row[0], 'Stud_id': row[1], 'Успеваемость': row[2] if row[2] >= 0 else 0,
+                        'Посещаемость': row[3]})
         total_points_sum += row[2]
         arrival_sum += row[3]
     df_list.append({'total_points_avg': total_points_sum / len(df_list), 'arrival_avg': arrival_sum / len(df_list)})
@@ -931,7 +941,7 @@ async def attendance_num_for_stud_for_team_stat_table(id_team: int, name_of_less
             'stud_name': dict_stud[key][0]['stud_name'],
             'id': dict_stud[key][0]['id'],
             'Успеваемость': total_points_temp if total_points_temp >= 0 else 0,
-            'Посещаемость': sum(1 for d in dict_stud[key] if d['arrival'] == 'П') / len(dict_stud[key]) *100,
+            'Посещаемость': sum(1 for d in dict_stud[key] if d['arrival'] == 'П') / len(dict_stud[key]) * 100,
         })
     db.close()
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
@@ -1365,7 +1375,7 @@ async def total_points_studs_for_all_teams(token: str, db=Depends(connect_db_dat
     # Create your plot using Plotly
     await asyncio.sleep(0)
     start_time = time.time()
-    teams = await get_teams_for_user_private(token, db)
+    teams = await get_teams_for_user_private_without_lect(token, db)
     teams_true = [team[1] for team in teams]
     sub_query = (
         db.query(
@@ -1529,9 +1539,9 @@ async def total_points_for_specialities(token: str, speciality1: str, speciality
             dict_team[row[1]] = counter
             counter += 1
         if dict_team[row[1]] == 0:
-            team_a.append({'total_points': row[0], 'speciality': row[1], 'id': row[2]})
+            team_a.append({'total_points': row[0] if row[0] > 0 else 0, 'speciality': row[1], 'id': row[2]})
         elif dict_team[row[1]] == 1:
-            team_b.append({'total_points': row[0], 'speciality': row[1], 'id': row[2]})
+            team_b.append({'total_points': row[0] if row[0] > 0 else 0, 'speciality': row[1], 'id': row[2]})
     team_a.sort(key=lambda x: x['total_points'], reverse=True)
     team_b.sort(key=lambda x: x['total_points'], reverse=True)
     # print(len(team_a))
