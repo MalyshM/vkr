@@ -4,13 +4,18 @@ import { Bar } from 'react-chartjs-2';
 import TableOfGroup from './TableOfGroup';
 // import { TableOfGroup } from './TableOfGroup';
 import { useNavigate  } from 'react-router-dom';
-import { Flex } from "@chakra-ui/react";
+import { Box } from "@chakra-ui/react";
+import { useNumberItems } from './NumberItemsContext';
 
 
-const NumCountStudInLern = ({ teamId,onLessonSelect }) => {
+const NumCountStudInLern = ({ teamId,onLessonSelect, numberOfItems}) => {
+  const numberOfItemsRef = useNumberItems();
+
   const [AtendanceNumCountStudInLernData, setAtendanceNumCountStudInLernData] = useState(null);
   const [selectedLesson, setSelectedLesson] = useState(null);
   const chartRef = useRef(null);
+  const [numberOfday ,setNumberOfday] = useState(null)
+
 
   const handleBarClick = (_, elements) => {
     if (elements && elements.length > 0) {
@@ -33,6 +38,9 @@ const NumCountStudInLern = ({ teamId,onLessonSelect }) => {
    
           // Обновляем состояние с полученными данными
           setAtendanceNumCountStudInLernData(dataArray);
+
+          setNumberOfday(dataArray.length)
+
         }
       } catch (error) {
         console.error('Error fetching attendanceTotalPoints data:', error);
@@ -52,19 +60,18 @@ const NumCountStudInLern = ({ teamId,onLessonSelect }) => {
 //   const labelsWithIndex = AtendanceNumCountStudInLernData.map((item, index) => ({ name: item.name, index: index + 1 }));
 
   const data = {
-    labels: AtendanceNumCountStudInLernData.map((item => item.name)),
+    labels: AtendanceNumCountStudInLernData.map((item, index) => `${index + 1}. ${item.name}`),
 
     datasets: [
         {
-            label: 'Кол-во студентов',
+            label: `Кол-во студентов`,
             data: AtendanceNumCountStudInLernData.map((item) => item.arrival),
-            backgroundColor: 'rgb(255,77,65, 0.5)',
+            backgroundColor: 'rgb(49,141,159, 0.8)',
             borderColor: 'rgb(0,0,0)',
             borderWidth: 0,  
           },
     ],
   };
-// console.log('Data for NumCountStudInLern:', data);
 
 const options = {
 
@@ -72,13 +79,13 @@ const options = {
   scales: {
     x: {
         ticks: {
-            display: false,
+          callback: (value, index) => (index + 1).toString(), 
         },
       type: 'category',
       position: 'bottom',
       title: {
         display: true,
-        text: 'Встреча/пара',
+        text: 'Практика',
         font: {
           size: 20,
           fontColor: 'black',
@@ -99,12 +106,25 @@ const options = {
         },
       },
       id: 'y-axis-0',
+      ticks: {
+        callback: (value) => value.toString(), // Установка значения для оси Y
+      },
+      
     },
   },
   plugins: {
+    datalabels: {
+      display: true,
+        anchor: 'end',
+        align: 'end',
+        color: 'black',
+        formatter: (value, context) => {
+          return `${value}`; // Замените на тот формат, который вам нужен
+        },
+      },
     title: {
       display: true,
-      text: 'Количество студентов на паре',
+      text: `Количество студентов на практике`,
       font: {
         size: 22,
         fontColor: 'black',
@@ -120,10 +140,10 @@ const options = {
   maintainAspectRatio: false, 
   layout: {
     padding: {
-      left: 0,
-      right: 0,
-      top: 50,
-      bottom: 0,
+      left: 40,
+      right: 10,
+      top: 10,
+      bottom: 10,
     },
   },
   elements: {
@@ -141,9 +161,10 @@ const options = {
 
 
 return (<>
-
-  <Bar ref={chartRef} data={data} options={options} />
   
+  <Box  h={[330]} mt={14} bg={'white'} borderRadius={20}>
+  <Bar ref={chartRef} data={data} options={options} />
+</Box>
   {/* {selectedLesson && <TableOfGroup teamId={teamId} selectedLesson={selectedLesson} />} */}
 
 </>);

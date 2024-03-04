@@ -76,17 +76,25 @@ const useAuth = () => {
 
   const setUserToken = (token) => {
     // Обновите логику обновления токена, например, обновление состояния пользователя или сохранение в localStorage
-    console.log('Setting user token:', token);
     setContextUserToken(token);
+    localStorage.setItem('token', token);
+    console.log('Setting user token:', token);
   };
 
   const updateUserToken = (token) => {
-    // Обновите логику обновления токена, например, обновление состояния пользователя или сохранение в localStorage
-    console.log('Updating user token:', token);
-    // Вместо console.log() вы можете выполнить другие действия, в зависимости от вашей логики
+    setContextUserToken(token);
+    localStorage.setItem('token', token);
+
   };
 
-  return { userToken, setUserToken, updateUserToken };
+  const clearUserToken = () => {
+    // Очищаем состояние и удаляем значение из localStorage
+    setContextUserToken('');
+    localStorage.removeItem('token');
+  };
+
+
+  return { userToken, setUserToken, updateUserToken,clearUserToken  };
 };
 
 const AuthProvider = ({ children }) => {

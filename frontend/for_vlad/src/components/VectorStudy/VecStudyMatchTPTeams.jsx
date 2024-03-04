@@ -107,7 +107,7 @@ if (!VecStudyMatchTPTeamsData) {
           // },
           formatter: (value, context) => {
             const roundedValue = (value).toFixed(0);
-            return `${roundedValue}%`;
+            return `${roundedValue} Б`;
           },
         },
 

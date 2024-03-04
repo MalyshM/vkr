@@ -18,6 +18,8 @@ import YourGroup from './components/Match/YourGroup';
 import YourVectorStudy from './components/VectorStudy/YourVectorStudy';
 
 import AnalysKr from './components/AnalysKrFolder/AnalysKr';
+import { NumberItemsProvider } from './components/chart/NumberItemsContext';
+
 
 function App() {
 
@@ -27,11 +29,13 @@ function App() {
       <Router>
       <Header />
     <AuthProvider>
+      <NumberItemsProvider>
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegistrationPage />} />
         <Route path="/main" element={<MainPage />} />
+        <Route path={"/main/:teamId/:teamName"} element={<MainPage />} />
         <Route path="/match2team" element={<MatchToTeamPage />} />
         <Route path={"/student/:studentId/:teamId/:teamName"} element={<GeneralStudPage />} />
         <Route path="/match2team_vectorstudy" element={<MatchTwoTeamVectorStudy/>} />
@@ -41,6 +45,7 @@ function App() {
 
 
       </Routes>
+      </NumberItemsProvider>
     </AuthProvider>
   </Router>
   </ChakraProvider>

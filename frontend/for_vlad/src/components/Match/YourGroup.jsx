@@ -44,7 +44,7 @@ const YourGroup = () => {
       } catch (error) {
         console.error('MATCH2TEAM- Error during fetch user teams data:', error);
       }
-  }
+  } 
 
   useEffect(() => {
     const fetchData = async () => {

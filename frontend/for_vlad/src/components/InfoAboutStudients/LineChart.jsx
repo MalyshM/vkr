@@ -21,6 +21,16 @@ const LineChart = ({ data, options }) => {
           },
         },
         plugins: {
+          datalabels: {
+            display: false,
+            anchor: 'end',
+            align: 'end',
+            color: 'black', // Цвет текста
+            formatter: (value, context) => {
+              return `${data[context.dataIndex].avg_total_points.toFixed(0)} Б`;
+    
+            },
+          },
           legend: {
             display: false, // Установите true, если хотите отобразить легенду
           },

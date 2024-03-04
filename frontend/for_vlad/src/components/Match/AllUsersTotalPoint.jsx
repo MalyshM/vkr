@@ -5,6 +5,8 @@ import { Chart } from 'chart.js/auto';
 
 const AllUsersTotalPoint = ({tokenUsers}) => {
   const [AllUsersTotalPointData, setAllUsersTotalPointData] = useState(null);
+  const [NumberOfGr, setNumberOfGr] = useState(null);
+
   const chartRef = useRef(null);
 
   useEffect(() => {
@@ -31,6 +33,8 @@ const AllUsersTotalPoint = ({tokenUsers}) => {
         const response = await fetch(`http://localhost:8090/api/total_points_studs_for_all_teams?token=${tokenUsers}`);
         const result = await response.json();
         setAllUsersTotalPointData(result);
+
+        setNumberOfGr(result.length);
       }
     } catch (error) {
       console.error('AllUsersTotalPoint - Error fetching attendance data:', error);
@@ -59,14 +63,17 @@ if (!AllUsersTotalPointData) {
     'Дубровин Михаил Григорьевич': 'rgb(128, 0, 0, 0.5)',      // Темно-красный
     'Аврискин Михаил Владимирович, Подзолков Павел Николаевич': 'rgb(0, 128, 128, 0.5)',    // Темно-бирюзовый
   };
+
+  const sortedData = AllUsersTotalPointData.sort((a, b) => b.avg_total_points - a.avg_total_points);
+
   
     const data = {
-      labels: AllUsersTotalPointData.map(item => `${item.team_name} (${item.teacher_name})`),
+      labels: sortedData.map(item => `${item.team_name} (${item.teacher_name})`),
       datasets: [
         {
           label: 'Средняя усепваемость',
-          data: AllUsersTotalPointData.map(item => item.avg_total_points),
-          backgroundColor: AllUsersTotalPointData.map(item => uniqueTeachersColors[item.teacher_name]),
+          data: sortedData.map(item => item.avg_total_points),
+          backgroundColor: sortedData.map(item => uniqueTeachersColors[item.teacher_name]),
           borderColor: 'rgb(0,174,239)',
           borderWidth: 0,
           },
@@ -110,19 +117,18 @@ if (!AllUsersTotalPointData) {
     },
     plugins: {
       datalabels: {
-        display: false,
+        display: true,
         anchor: 'end',
         align: 'end',
         color: 'black', // Цвет текста
         formatter: (value, context) => {
-          const teacherName = data.labels[context.dataIndex].split(' ')[1].slice(1, -1); // Получаем teacher_name
-          return teacherName;
+          return `${sortedData[context.dataIndex].avg_total_points.toFixed(0)} Б`;
 
         },
       },
       title: {
         display: true,
-        text: 'Успеваемость ваших групп',
+        text: `Успеваемость ваших групп, кол-во: ${NumberOfGr}`,
         font: {
           size: 22,
           fontColor: 'black',

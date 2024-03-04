@@ -6,6 +6,7 @@ import 'chartjs-plugin-datalabels'; // Импортируйте плагин
 const VecStudyAllUsersTP = ({tokenUsers}) => {
   const [VecStudyAllUsersTPData, setVecStudyAllUsersTPData] = useState(null);
   const chartRef = useRef(null);
+  const [count, setCount] = useState(null); // Новый стейт для данных о командах
 
 
   useEffect(() => {
@@ -31,7 +32,8 @@ const VecStudyAllUsersTP = ({tokenUsers}) => {
         if (tokenUsers!== null) {
         const response = await fetch(`http://localhost:8090/api/total_points_studs_for_all_specialities?token=${tokenUsers}&lect=${false}`);
         const result = await response.json();
-        setVecStudyAllUsersTPData(result);       
+        setVecStudyAllUsersTPData(result);  
+        setCount(result.length);
       }
     } catch (error) {
       console.error('VecStudyAllUsersAt - Error fetching attendance data:', error);
@@ -74,15 +76,16 @@ if (!VecStudyAllUsersTPData) {
     '49.03.01 Физическая культура': 'rgb(255, 0, 0, 0.5)',
     'NaN': 'rgb(255, 128, 128, 0.5)',
   };
-  
+
+  const sortedData = VecStudyAllUsersTPData.sort((a, b) => b.avg_total_points - a.avg_total_points);
 
   const data = {
-    labels: VecStudyAllUsersTPData.map(item => `${item.Stud_speciality} - кол-во студентов: ${item.studs_in_speciality}`),
+    labels: sortedData.map(item => `${item.Stud_speciality} - кол-во студентов: ${item.studs_in_speciality}`),
     datasets: [
       {
         label: 'Баллы',
-        data: VecStudyAllUsersTPData.map(item => item.avg_total_points),
-        backgroundColor: VecStudyAllUsersTPData.map(item => uniqueTeachersColors[item.Stud_speciality]),
+        data: sortedData.map(item => item.avg_total_points),
+        backgroundColor: sortedData.map(item => uniqueTeachersColors[item.Stud_speciality]),
         borderColor: 'rgb(0,174,239)',
         borderWidth: 0,
       },
@@ -125,21 +128,22 @@ if (!VecStudyAllUsersTPData) {
     },
     plugins: {
       datalabels: {
-        display: false,
+        display: true,
+        font: {
+          weight: "normal",
+        },
         anchor: 'end',
         align: 'end',
         color: 'black', // Цвет текста
         formatter: (value, context) => {
-          const teacherName = data.labels[context.dataIndex].split(' ')[1].slice(1, -1); // Получаем teacher_name
-          return teacherName;
-
+          return `${sortedData[context.dataIndex].avg_total_points.toFixed(0)} Б\nкол-во:${sortedData[context.dataIndex].studs_in_speciality}`;
         },
       },
 
 
     title: {
         display: true,
-        text: 'Успеваемость ваших направлений',
+                text: `Успеваемость ваших направлений, кол-во: ${count}`,
         font: {
           size: 22,
           fontColor: 'black',

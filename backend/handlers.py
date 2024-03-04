@@ -925,12 +925,13 @@ async def attendance_num_for_stud_for_team_stat_table(id_team: int, name_of_less
     response_list = []
     for key in dict_stud.keys():
         total_points_temp = (sum(d['test'] for d in dict_stud[key]) + sum(
-            d['mark_for_work'] for d in dict_stud[key])) / len(dict_stud[key])
+            d['mark_for_work'] for d in dict_stud[key]))
+
         response_list.append({
             'stud_name': dict_stud[key][0]['stud_name'],
             'id': dict_stud[key][0]['id'],
             'Успеваемость': total_points_temp if total_points_temp >= 0 else 0,
-            'Посещаемость': sum(1 for d in dict_stud[key] if d['arrival'] == 'П') / len(dict_stud[key]),
+            'Посещаемость': sum(1 for d in dict_stud[key] if d['arrival'] == 'П') / len(dict_stud[key]) *100,
         })
     db.close()
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
@@ -1849,28 +1850,3 @@ async def kr_analyse_with_filters(token: str, kr: str, type_select: int, teacher
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
     return dict_of_teams
 # endregion
-
-# @router.get('/api/tolko_chto_dobavil', name='Plot:plot', status_code=status.HTTP_200_OK,
-#             tags=["kr page"], description=
-#             """
-#                     Получает token: str, kr: str, type:int, teacher: Optional[str] = None, speciality: Optional[str] = None,
-#                                   team: Optional[str] = None,
-#                     Returns:
-#                         Словарь с ключами(преподаватели/аправления/команды) и любые их сочетания(проверь чтоб понять)
-#                     \n
-#                     {
-#                       "Трефилин Иван Андреевич": [
-#                         12,
-#                         0,
-#                         14.43,
-#                         3,
-#                         6.83,
-#                         12.3,
-#                         2,
-#             """)
-# async def tolko_chto_dobavil(token: str,
-#                                   db=Depends(connect_db_data)):
-#     # Create your plot using Plotly
-#     await asyncio.sleep(0)
-#     print(token)
-#     return token

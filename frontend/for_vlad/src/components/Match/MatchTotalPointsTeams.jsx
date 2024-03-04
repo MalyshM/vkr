@@ -109,8 +109,8 @@ const options = {
         align: 'end',
         color: 'black',
         formatter: (value, context) => {
-          const roundedValue = (value).toFixed(1);
-          return `${roundedValue}`;
+          const roundedValue = (value).toFixed(0);
+          return `${roundedValue} Б`;
         },
       },
 

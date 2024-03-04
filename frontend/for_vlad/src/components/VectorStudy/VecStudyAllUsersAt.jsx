@@ -6,6 +6,7 @@ import 'chartjs-plugin-datalabels'; // Импортируйте плагин
 const VecStudyAllUsersAt = ({tokenUsers}) => {
   const [VecStudyAllUsersAtData, setVecStudyAllUsersAtData] = useState(null);
   const chartRef = useRef(null);
+  const [count, setCount] = useState(null); // Новый стейт для данных о командах
 
 
   useEffect(() => {
@@ -31,7 +32,8 @@ const VecStudyAllUsersAt = ({tokenUsers}) => {
         if (tokenUsers!== null) {
         const response = await fetch(`http://localhost:8090/api/attendance_static_stud_for_all_specialities?token=${tokenUsers}&lect=${false}`);
         const result = await response.json();
-        setVecStudyAllUsersAtData(result);       
+        setVecStudyAllUsersAtData(result); 
+        setCount(result.length);
       }
     } catch (error) {
       console.error('VecStudyAllUsersAt - Error fetching attendance data:', error);
@@ -74,15 +76,17 @@ if (!VecStudyAllUsersAtData) {
     '49.03.01 Физическая культура': 'rgb(255, 0, 0, 0.5)',
     'NaN': 'rgb(255, 128, 128, 0.5)',
   };
-  
+
+  const sortedData = VecStudyAllUsersAtData.sort((a, b) => b.arrival - a.arrival);
+
 
   const data = {
-    labels: VecStudyAllUsersAtData.map(item => `${item.Stud_speciality} - кол-во студентов: ${item.studs_in_speciality}`),
+    labels: sortedData.map(item => `${item.Stud_speciality} - кол-во студентов: ${item.studs_in_speciality}`),
     datasets: [
       {
         label: 'Процент посещаемости',
-        data: VecStudyAllUsersAtData.map(item => item.arrival),
-        backgroundColor: VecStudyAllUsersAtData.map(item => uniqueTeachersColors[item.Stud_speciality]),
+        data: sortedData.map(item => item.arrival),
+        backgroundColor: sortedData.map(item => uniqueTeachersColors[item.Stud_speciality]),
         borderColor: 'rgb(0,174,239)',
         borderWidth: 0,
       },
@@ -125,21 +129,23 @@ if (!VecStudyAllUsersAtData) {
     },
     plugins: {
       datalabels: {
-        display: false,
-        anchor: 'end',
-        align: 'end',
+        display: true,
+        font: {
+          weight: 'normal'
+        },
+        align: 'end', // Выравнивание текста
+        anchor: 'end', // Анкер (точка прикрепления) текста
         color: 'black', // Цвет текста
         formatter: (value, context) => {
-          const teacherName = data.labels[context.dataIndex].split(' ')[1].slice(1, -1); // Получаем teacher_name
-          return teacherName;
-
+          return `${sortedData[context.dataIndex].arrival.toFixed(0)}%\nкол-во:${sortedData[context.dataIndex].studs_in_speciality}`;
         },
+        
       },
 
 
     title: {
         display: true,
-        text: 'Посещаемость ваших направлений',
+        text: `Посещаемость ваших направлений, кол-во: ${count}`,
         font: {
           size: 22,
           fontColor: 'black',

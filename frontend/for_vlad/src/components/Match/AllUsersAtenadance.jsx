@@ -2,18 +2,25 @@ import React, { useEffect, useRef ,useState} from 'react';
 import { Bar } from 'react-chartjs-2';
 import { Chart } from 'chart.js/auto';
 import 'chartjs-plugin-datalabels'; // Импортируйте плагин
+import { useNavigate  } from 'react-router-dom';
 
-const AllUsersAtenadance = ({tokenUsers}) => {
+const AllUsersAtenadance = ({tokenUsers,teamId,teamName}) => {
   const [AllUsersAtenadanceData, setAllUsersAtenadanceData] = useState(null);
   const chartRef = useRef(null);
+  const [NumberOfGr, setNumberOfGr] = useState(null);
+  const navigate = useNavigate ();
 
+  
 
   useEffect(() => {
     if (chartRef.current) {
+      // Сохраняем значение в переменную
+      const currentChartRef = chartRef.current;
+  
       // Уничтожаем чарт при размонтировании компонента
       return () => {
-        if (chartRef.current) {
-          const chartInstance = Chart.getChart(chartRef.current); // Получаем экземпляр чарта
+        if (currentChartRef) {
+          const chartInstance = Chart.getChart(currentChartRef); // Получаем экземпляр чарта
           if (chartInstance) {
             chartInstance.destroy(); // Уничтожаем чарт
           }
@@ -22,6 +29,14 @@ const AllUsersAtenadance = ({tokenUsers}) => {
     }
   }, []);
 
+  // const handleTeleportGroup = (_, elements) => {
+  //   if (elements && elements.length > 0) {
+  //     const clickedElement = elements[0];
+  //     const dataIndex = clickedElement.index;
+  //     const teamName  = sortedData[dataIndex]?.team_name;
+  //     navigate (`/main/${teamName}`);
+  //   }
+  // };
  
   console.log('AllUsersAtenadance-token:', tokenUsers,);
   
@@ -31,7 +46,9 @@ const AllUsersAtenadance = ({tokenUsers}) => {
         if (tokenUsers!== null) {
         const response = await fetch(`http://localhost:8090/api/attendance_static_stud_for_all_teams?token=${tokenUsers}`);
         const result = await response.json();
-        setAllUsersAtenadanceData(result);       
+        setAllUsersAtenadanceData(result);  
+        
+        setNumberOfGr(result.length)
       }
     } catch (error) {
       console.error('AllUsersAtenadance - Error fetching attendance data:', error);
@@ -62,13 +79,16 @@ if (!AllUsersAtenadanceData) {
     'Аврискин Михаил Владимирович, Подзолков Павел Николаевич': 'rgb(0, 128, 128, 0.5)',    // Темно-бирюзовый
   };
 
+  const sortedData = AllUsersAtenadanceData.sort((a, b) => b.arrival - a.arrival);
+
+
   const data = {
-    labels: AllUsersAtenadanceData.map(item => `${item.team_name} (${item.teacher_name})`),
+    labels: sortedData.map(item => `${item.team_name} (${item.teacher_name})`),
     datasets: [
       {
         label: 'Среднее посещение',
-        data: AllUsersAtenadanceData.map(item => item.arrival),
-        backgroundColor: AllUsersAtenadanceData.map(item => uniqueTeachersColors[item.teacher_name]),
+        data: sortedData.map(item => item.arrival),
+        backgroundColor: sortedData.map(item => uniqueTeachersColors[item.teacher_name]),
         borderColor: 'rgb(0,174,239)',
         borderWidth: 0,
       },
@@ -76,7 +96,7 @@ if (!AllUsersAtenadanceData) {
   };
   
   const options = {
-    
+    // onClick: handleTeleportGroup,
     scales: {
       x: {
         stacked: true, 
@@ -100,7 +120,7 @@ if (!AllUsersAtenadanceData) {
         position: 'left',
         title: {
           display: true,
-          text: 'Баллы',
+          text: 'Процент посещаемости',
           font: {
             size: 20, // Размер шрифта названия оси X
             fontColor: 'black',
@@ -111,13 +131,12 @@ if (!AllUsersAtenadanceData) {
     },
     plugins: {
       datalabels: {
-        display: false,
+        display: true,
         anchor: 'end',
         align: 'end',
         color: 'black', // Цвет текста
         formatter: (value, context) => {
-          const teacherName = data.labels[context.dataIndex].split(' ')[1].slice(1, -1); // Получаем teacher_name
-          return teacherName;
+          return `${sortedData[context.dataIndex].arrival.toFixed(0)}%`;
 
         },
       },
@@ -125,7 +144,7 @@ if (!AllUsersAtenadanceData) {
 
     title: {
         display: true,
-        text: 'Посещаемость ваших групп',
+        text: `Посещаемость ваших групп, кол-во: ${NumberOfGr}`,
         font: {
           size: 22,
           fontColor: 'black',
@@ -139,11 +158,7 @@ if (!AllUsersAtenadanceData) {
         
       },
     },
-    // interaction: {
-    //   mode: 'index',
-    //   intersect: false,
-    // },
-  
+
     maintainAspectRatio: false,
     layout: {
       padding: {

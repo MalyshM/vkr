@@ -34,9 +34,9 @@ const AnalysKrSimple = ({ tokenUsers, type, kr }) => {
           {
             label: 'Boxplot',
             data: data,
-            backgroundColor: 'rgba(0, 123, 255, 0.5)',
-            borderColor: 'rgba(0, 123, 255, 1)',
-            borderWidth: 1,
+            backgroundColor: 'rgba(86, 173, 192, 0.8)',
+            borderColor: 'rgba(223, 88, 87, 1)',
+            borderWidth: 2,
           },
         ],
       };
@@ -44,18 +44,97 @@ const AnalysKrSimple = ({ tokenUsers, type, kr }) => {
       const config = {
         type: 'boxplot',
         data: boxplotData,
+
         options: {
+          scales: {
+            x: {
+              stacked: true, 
+              ticks: {
+                display: true,
+            },
+              type: 'category',
+              position: 'bottom',
+              title: {
+                display: false,
+                text: 'Все группы',
+                font: {
+                  size: 20, // Размер шрифта названия оси X
+                  fontColor: 'black',
+                  family: 'Trebuchet MS'
+                },
+              },
+            },
+            y: {
+              type: 'linear', // изменение типа шкалы на категорию
+              position: 'left',
+              title: {
+                display: true,
+                text: 'Баллы',
+                font: {
+                  size: 20, // Размер шрифта названия оси X
+                  fontColor: 'black',
+                  family: 'Trebuchet MS'
+                },
+              },
+            },
+          },
           plugins: {
+            datalabels: {
+              display: false,
+              anchor: 'end',
+              align: 'end',
+              color: 'black', // Цвет текста
+              formatter: (value, context) => {
+                const teacherName = data.labels[context.dataIndex].split(' ')[1].slice(1, -1); // Получаем teacher_name
+                return teacherName;
+      
+              },
+            },
+
+            title: {
+              display: true,
+              text: 'Общий график результатов контрольных работ',
+              font: {
+                size: 22,
+                fontColor: 'black',
+                family: 'Trebuchet MS'
+              },
+            },
+        
             legend: {
               display: false,
             },
+          },
+          maintainAspectRatio: false,
+          responsive: true, 
+          layout: {
+            padding: {
+              left: 50,
+              right: 50,
+              top: 0,
+              bottom: 0,
+            },
+          },
+          elements: {
+            bar: {
+              barThickness: 400,
+              borderRadius: 10, 
+            },
+          },
+          animation: {
+            duration: 2000,
           },
         },
       };
 
       const ctx = chartRef.current.getContext('2d');
-      // new Chart(ctx, config);
-      new BoxPlotChart(ctx,config);
+
+      if (chartRef.current.chart) {
+        chartRef.current.chart.destroy();
+      }
+
+      chartRef.current.chart = new BoxPlotChart(ctx, config);
+
     }
   }, [AnalysKrSimpleData]);
 
@@ -64,9 +143,8 @@ const AnalysKrSimple = ({ tokenUsers, type, kr }) => {
   }
 
   return (
-    <div>
-      <canvas ref={chartRef} width="400" height="200"></canvas>
-    </div>
+    
+      <canvas ref={chartRef} > </canvas>
   );
 };
 

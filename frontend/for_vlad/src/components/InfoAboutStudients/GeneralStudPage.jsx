@@ -115,6 +115,16 @@ const GeneralStudPage = () => {
         },
       },
       plugins: {
+        datalabels: {
+          display: false,
+          anchor: 'end',
+          align: 'end',
+          color: 'black', // Цвет текста
+          formatter: (value, context) => {
+            return `${attendanceStaticData[context.dataIndex].avg_total_points.toFixed(0)} Б`;
+  
+          },
+        },
         title: {
           display: true,
           text: 'Кумулятивная сумма баллов студента по дисциплине ПиОА',
@@ -130,12 +140,14 @@ const GeneralStudPage = () => {
           position: 'top',
         },
       },
+      maintainAspectRatio: false, 
+
       layout: {
         padding: {
-          left: 0,
-          right: 0,
-          top: 0,
-          bottom: 0,
+          left: 20,
+          right: 20,
+          top: 20,
+          bottom: 20,
         },
       },
       elements: {
@@ -191,6 +203,13 @@ const GeneralStudPage = () => {
         },
       },
       plugins: {
+        datalabels: {
+          display: false,
+          anchor: 'end',
+          align: 'end',
+          color: 'black', // Цвет текста
+          
+        },
         title: {
           display: true,
           text: 'Динамическое посещение студента',
@@ -206,12 +225,14 @@ const GeneralStudPage = () => {
           position: 'top',
         },
       },
+      maintainAspectRatio: false, 
+
       layout: {
         padding: {
-          left: 0,
-          right: 0,
-          top: 0,
-          bottom: 0,
+          left: 20,
+          right: 20,
+          top: 20,
+          bottom: 20,
         },
       },
       elements: {
@@ -267,6 +288,13 @@ const GeneralStudPage = () => {
         },
       },
       plugins: {
+        datalabels: {
+          display: false,
+          anchor: 'end',
+          align: 'end',
+          color: 'black', // Цвет текста
+          
+        },
         title: {
           display: true,
           text: 'Статическое посещение студента',
@@ -282,12 +310,14 @@ const GeneralStudPage = () => {
           position: 'top',
         },
       },
+      maintainAspectRatio: false, 
+
       layout: {
         padding: {
-          left: 0,
-          right: 0,
-          top: 0,
-          bottom: 0,
+          left: 20,
+          right: 20,
+          top: 20,
+          bottom: 20,
         },
       },
       elements: {
@@ -304,45 +334,42 @@ const GeneralStudPage = () => {
 
   return (<>
 
-<Flex direction="column" height="100vh">
+<Flex direction="column" height="90vh">
 
-        <Flex  flex="1">
+  <Flex mt={10} flex="1">
 
-          <Box  flex="1">
-            <Button as={Link} to="/main" leftIcon={<ArrowBackIcon />} colorScheme="purple" m={3} >
-              Вернуться назад
-            </Button>
-         
-          <Flex direction="column" alignItems={'center'}>
+    <Box ml={5} mr={5} h={[400]} bg={'white'} borderRadius={20} flex="1">
+      <Flex mt={14} direction="column" alignItems="center" justifyContent="center">
+        <Avatar size="2xl" src="https://bit.ly/broken-link" mr={5} />
+        {studentId && <StudentInfo studentId={studentId} teamName={teamName} />}
+      </Flex>
 
-          <Avatar size={'2xl'} src='https://bit.ly/broken-link' mr={5} />
-          {studentId && <StudentInfo studentId={studentId} teamName={teamName} />}
-          </Flex>
+    </Box>
+    <Box mr={5}  bg={'white'} borderRadius={20} flex="1" h={[400]}>
+      <Line data={chartAttendanceData} options={OptionsChartAttendance} />
+    </Box>
 
-
-          </Box>
-
-          
-          <Box flex="1" h={[400]}>
-              <Line data={chartAttendanceData} options={OptionsChartAttendance} />
-          </Box>
-          
-        </Flex>
+  </Flex>
 
 
-        <Flex flex="1">
 
-          <Box flex="1" h={[400]}>
-            <Line data={chartStaticData} options={OptionsStaticChart} />
-          </Box>
+  <Flex flex="1">
+    <Box bg={'white'} borderRadius={20} flex="1" h={[400]}  ml={5} mr={5} >
+      <Line data={chartStaticData} options={OptionsStaticChart} />
+    </Box>
 
-          <Box flex="1" h={[400]}>
-            <Line data={charDynamictData} options={OptionsDynamicChart} />  
-          </Box>
 
-        </Flex>
+    <Box mr={5} bg={'white'} borderRadius={20} flex="1" h={[400]}>
+      <Line data={charDynamictData} options={OptionsDynamicChart} />  
+    </Box>
+  </Flex>
 
-     </Flex>
+
+
+</Flex>
+
+{/* <Box h={'380'} bg={'white'} borderRadius={20}> */}
+
     
      
      </>);
