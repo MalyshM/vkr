@@ -10,7 +10,7 @@ metadata = Base.metadata
 
 
 def connect_db_data():
-    DATABASE_URL = "postgresql://postgres:admin@localhost/vkr_db"
+    DATABASE_URL = "postgresql://postgres:admin@db/vkr_db"
     engine = create_engine(DATABASE_URL)
     Session = sessionmaker(bind=engine)
     session = Session()
@@ -18,7 +18,7 @@ def connect_db_data():
 
 
 def connect_db_users():
-    DATABASE_URL = "postgresql://postgres:admin@localhost/vkr_db_users"
+    DATABASE_URL = "postgresql://postgres:admin@db/vkr_db_users"
     engine = create_engine(DATABASE_URL)
     Session = sessionmaker(bind=engine)
     session = Session()
