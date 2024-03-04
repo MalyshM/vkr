@@ -1,4 +1,5 @@
 import React, { useState,useEffect} from 'react';
+
 import { Box, Flex, Select ,Heading} from '@chakra-ui/react';
 import { useAuth } from '../useAuth';
 
@@ -33,33 +34,7 @@ const AnalysRr = () => {
     const [selectedModeSimple, setSelectedModeSimple] = useState(null);
     const [selectedModeFiltr, setSelectedModeFiltr] = useState(null);
 
-  //   //  ПОЛУЧАЕМ ИНФУ О КОМАНДАХ ЮЗЕРА
-  //   const fetchUserTeams = async () => {
-  //   if (!userToken) {
-  //     console.error('User token is missing');
-  //     return;
-  //   }
-  //     try {
-  //       // Отправляем GET-запрос для получения данных о командах пользователя
-  //       const response = await fetch(`http://localhost:8090/api/get_teams_for_user_without_lect?token=${userToken}`, {
-  //         method: 'GET',
-  //         headers: {
-  //           'Content-Type': 'application/json',
-  //           'Authorization': `Bearer ${userToken}`, // Используем Authorization заголовок для GET-запроса
-  //         },
-  //       });
 
-  //       if (response.ok) {
-  //         const userTeamsData = await response.json();
-  //         console.log('User Teams Data:', userTeamsData);
-  //         setUserTeams(userTeamsData);
-  //       } else {
-  //         console.error('fetchUserTeams|AnalysRr - Failed to fetch user teams data');
-  //       }
-  //     } catch (error) {
-  //       console.error('AnalysRr- Error during fetch user teams data:', error);
-  //     }
-  // }
 
 
   const fetchNameKR = async () => {
@@ -68,6 +43,7 @@ const AnalysRr = () => {
     const result = await response.json();
     setKRSimple(result);
     setKRFiltr(result);
+
 
     console.log('Data from fetchNameKR:', result);
 
@@ -161,7 +137,6 @@ const fetchAllTeachers = async () => {
   const handleTeamChange = (value) => {
     setSelectedTeam(value);
   }
-
  
 return( 
 <>
@@ -185,7 +160,6 @@ return(
             )}
           </Select>
         </Box>
-
         
 
         <Box mr={4} w="330px" borderRadius="lg" boxShadow="lg">

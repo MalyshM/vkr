@@ -34,7 +34,6 @@ const VecStudyAllUsersAt = ({tokenUsers}) => {
         const result = await response.json();
         setVecStudyAllUsersAtData(result); 
         setCount(result.length);
-      
       }
     } catch (error) {
       console.error('VecStudyAllUsersAt - Error fetching attendance data:', error);
@@ -142,7 +141,6 @@ if (!VecStudyAllUsersAtData) {
         },
         
       },
-      
 
 
     title: {

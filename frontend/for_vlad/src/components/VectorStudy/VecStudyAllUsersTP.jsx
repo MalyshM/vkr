@@ -34,7 +34,6 @@ const VecStudyAllUsersTP = ({tokenUsers}) => {
         const result = await response.json();
         setVecStudyAllUsersTPData(result);  
         setCount(result.length);
-     
       }
     } catch (error) {
       console.error('VecStudyAllUsersAt - Error fetching attendance data:', error);
@@ -138,7 +137,6 @@ if (!VecStudyAllUsersTPData) {
         color: 'black', // Цвет текста
         formatter: (value, context) => {
           return `${sortedData[context.dataIndex].avg_total_points.toFixed(0)} Б\nкол-во:${sortedData[context.dataIndex].studs_in_speciality}`;
-
         },
       },
 
@@ -146,7 +144,6 @@ if (!VecStudyAllUsersTPData) {
     title: {
         display: true,
                 text: `Успеваемость ваших направлений, кол-во: ${count}`,
-
         font: {
           size: 22,
           fontColor: 'black',

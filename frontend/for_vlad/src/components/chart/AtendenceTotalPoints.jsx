@@ -77,7 +77,6 @@ const handleButtonClick = (sortType) => {
             );
           // Обновляем состояние с полученными данными
           setAttendanceTotalPointsData(sortedDataArray);
-
           setNumberOfItems(sortedDataArray.length - 1);
         }
       } catch (error) {
@@ -181,7 +180,6 @@ onClick: handleChartClick,
     background: {
       color: 'red' // Set the background color for the entire canvas
     },
-
     datalabels: {
       display: false,
         anchor: 'end',

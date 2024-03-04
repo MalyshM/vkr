@@ -22,13 +22,6 @@ const AnalysKrSimple = ({ tokenUsers, type, kr }) => {
     fetchAnalysKrSimpleData();
   }, [type, kr, tokenUsers]);
 
-  console.log("tokenUsers - ", tokenUsers)
-  console.log("type - ", type)
-  console.log("kr - ", kr)
-  console.log("AnalysKrSimpleData - ", AnalysKrSimpleData)
-
-  
-
   useEffect(() => {
     if (AnalysKrSimpleData) {
       const labels = Object.keys(AnalysKrSimpleData);
@@ -152,7 +145,6 @@ const AnalysKrSimple = ({ tokenUsers, type, kr }) => {
   return (
     
       <canvas ref={chartRef} > </canvas>
-    
   );
 };
 

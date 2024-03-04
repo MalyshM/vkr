@@ -138,7 +138,6 @@ if (!AllUsersAtenadanceData) {
         formatter: (value, context) => {
           return `${sortedData[context.dataIndex].arrival.toFixed(0)}%`;
 
-
         },
       },
 
@@ -159,7 +158,7 @@ if (!AllUsersAtenadanceData) {
         
       },
     },
- 
+
     maintainAspectRatio: false,
     layout: {
       padding: {
