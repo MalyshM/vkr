@@ -35,7 +35,7 @@ services:
       context: backend
       dockerfile: ./backend.Dockerfile
     container_name: tests_michael
-    command: bash -c "cd /backend; python user_tests.py;"
+    command: bash -c "cd /backend; python user_tests.py; python tests/ui_tests.py"
     env_file:
       - .env
     volumes:
@@ -55,3 +55,17 @@ services:
 #    entrypoint: ["bash", "-c", "cd /frontend/for_vlad; npm install ; npm run build ; npm run start"]
     volumes:
       - ./frontend/for_vlad:/frontend/for_vlad
+
+  master:
+    image: locustio/locust
+    ports:
+      - "8089:8089"
+    volumes:
+      - ./:/mnt/locust
+    command: -f /mnt/locust/locustfile.py --master -H http://master:8089
+
+  worker:
+    image: locustio/locust
+    volumes:
+      - ./:/mnt/locust
+    command: -f /mnt/locust/locustfile.py --worker --master-host master
