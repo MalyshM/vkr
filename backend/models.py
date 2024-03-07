@@ -1,4 +1,5 @@
 from sqlalchemy import BigInteger, Boolean, Column, DateTime, Float, ForeignKey, Integer, String, text, create_engine
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -8,21 +9,25 @@ metadata = Base.metadata
 
 # DATABASE_URL = "postgresql+asyncpg://postgres:admin@localhost/vkr_db"
 
+DATABASE_URL_vkr = "postgresql+asyncpg://postgres:admin@db/vkr_db"
 
-def connect_db_data():
-    DATABASE_URL = "postgresql://postgres:admin@db/vkr_db"
-    engine = create_engine(DATABASE_URL)
-    Session = sessionmaker(bind=engine)
-    session = Session()
-    return session
+engine = create_async_engine(DATABASE_URL_vkr, echo=False)
+async_session_vkr = sessionmaker(
+    engine, class_=AsyncSession, expire_on_commit=False
+)
+async def connect_db_data() -> AsyncSession:
+    async with async_session_vkr() as session:
+        yield session
+DATABASE_URL_users = "postgresql+asyncpg://postgres:admin@db/vkr_db_users"
 
+engine = create_async_engine(DATABASE_URL_users, echo=False)
+async_session_users = sessionmaker(
+    engine, class_=AsyncSession, expire_on_commit=False
+)
 
-def connect_db_users():
-    DATABASE_URL = "postgresql://postgres:admin@db/vkr_db_users"
-    engine = create_engine(DATABASE_URL)
-    Session = sessionmaker(bind=engine)
-    session = Session()
-    return session
+async def connect_db_users() -> AsyncSession:
+    async with async_session_users() as session:
+        yield session
 
 
 class Rmup(Base):
