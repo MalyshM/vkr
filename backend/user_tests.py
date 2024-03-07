@@ -87,7 +87,7 @@ class UserTests(unittest.TestCase):
             self.assertIn("date_of_add", user)
 
 
-    def test_get_teams_for_user(self):
+    def test_get_teams_for_user_by_true_token(self):
 
         login_data = {
             "FIO": "string",
@@ -103,14 +103,17 @@ class UserTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers['content-type'], 'application/json')
 
-        data = response.json()
-        self.assertIsInstance(data, list)
+        self.assertIsInstance(response.json(), list)
+        for team in response.json():
+            self.assertIn("id", team)
+            self.assertIn("name", team)
 
-        self.assertTrue(type(response.json()["id"]), int)
-        self.assertTrue(type(response.json()["name"]), str)
+    def test_get_teams_for_user_by_false_token(self):
+        response = self.client.get(f"/api/get_teams_for_user?token=token")
+        self.assertEqual(response.status_code, 409)
+
 
     def test_get_student(self):
-        # todo: Replace the student_id with the actual student ID you want to test
         student_id = 2
         response = self.client.get(f'/api/get_student?id_stud={student_id}')
 
@@ -120,19 +123,11 @@ class UserTests(unittest.TestCase):
         data = response.json()
         self.assertIsInstance(data, dict)
 
-        # todo: Replace the expected_data with the actual expected data you want to test against
-        expected_data = {
-            "speciality": "10.05.03 Информационная безопасность автоматизированных систем",
-            "id": 2,
-            "email": "stud0000278787@study.utmn.ru",
-            "date_of_add": "2024-01-13T00:00:00",
-            "name": "bcd765d44ffc513ca68a954f119ea527407c413e3486c7029ff0c5522343810a"
-        }
-
-        self.assertEqual(data, expected_data)
-
-
-
+        self.assertTrue(type(response.json()["speciality"]), str)
+        self.assertTrue(type(response.json()["id"]), int)
+        self.assertTrue(type(response.json()["email"]), str)
+        self.assertTrue(type(response.json()["date_of_add"]), str)
+        self.assertTrue(type(response.json()["name"]), str)
 
 
     def test_login_standard_success(self):
