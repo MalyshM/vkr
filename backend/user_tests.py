@@ -88,15 +88,15 @@ class UserTests(unittest.TestCase):
             self.assertEqual(type(user["isteacher"]), bool)
             self.assertEqual(type(user["date_of_add"]), str)
 
-            # Проверка на НаНы
-            self.assertFalse(math.isnan(user["id"]))
-            self.assertFalse(math.isnan(user["isadmin"]))
-            self.assertFalse(math.isnan(user["iscurator"]))
-            self.assertFalse(math.isnan(user["email"]))
-            self.assertFalse(math.isnan(user["fio"]))
-            self.assertFalse(math.isnan(user["username"]))
-            self.assertFalse(math.isnan(user["isteacher"]))
-            self.assertFalse(math.isnan(user["date_of_add"]))
+            # Проверка на none
+            self.assertIsNone(ser["id"])
+            self.assertIsNone(user["isadmin"])
+            self.assertIsNone(user["iscurator"])
+            self.assertIsNone(user["email"])
+            self.assertIsNone(user["fio"])
+            self.assertIsNone(user["username"])
+            self.assertIsNone(user["isteacher"])
+            self.assertIsNone(user["date_of_add"])
 
     def test_get_teams_for_user_by_true_token(self):
 
@@ -119,8 +119,8 @@ class UserTests(unittest.TestCase):
             self.assertEqual(type(team["id"]), int)
             self.assertEqual(type(team["name"]), str)
 
-            self.assertFalse(math.isnan(response.json()["id"]))
-            self.assertFalse(math.isnan(response.json()["name"]))
+            self.assertIsNone(response.json()["id"])
+            self.assertIsNone(response.json()["name"])
 
     def test_get_teams_for_user_by_false_token(self):
         response = self.client.get(f"/api/get_teams_for_user?token=token")
@@ -143,12 +143,12 @@ class UserTests(unittest.TestCase):
         self.assertEqual(type(response.json()["date_of_add"]), str)
         self.assertEqual(type(response.json()["name"]), str)
 
-        # Проверка на НаНы
-        self.assertFalse(math.isnan(response.json()["speciality"]))
-        self.assertFalse(math.isnan(response.json()["id"]))
-        self.assertFalse(math.isnan(response.json()["email"]))
-        self.assertFalse(math.isnan(response.json()["date_of_add"]))
-        self.assertFalse(math.isnan(response.json()["name"]))
+        # Проверка на none
+        self.assertIsNone(response.json()["speciality"])
+        self.assertIsNone(response.json()["id"])
+        self.assertIsNone(response.json()["email"])
+        self.assertIsNone(response.json()["date_of_add"])
+        self.assertIsNone(response.json()["name"])
 
 
     def test_login_standard_success(self):
