@@ -63,22 +63,18 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
                     }
              """)
 async def registration_standard(user: UserRegistration, db: AsyncSession = Depends(connect_db_users)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
-
     query = await db.execute(f"""
-    select
-	*
-from users u
-where 
-	u.username ='{user.username}' and
-	u.email = '{user.email}'
+        select
+            *
+        from users u
+        where 
+            u.username ='{user.username}' and
+            u.email = '{user.email}'
 	""")
     check_user = query.first()
     if check_user is not None:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="Пользователь с такими данными уже существует(юзернейм, емейл)")
-
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"FIO": user.FIO, "isAdmin": user.isAdmin, "isCurator": user.isCurator, "isTeacher": user.isTeacher,
@@ -183,11 +179,9 @@ async def get_current_user_dev(token: str):
         ]
 """)
 async def get_all_users(db: AsyncSession = Depends(connect_db_users)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
     all_users = await db.execute("""
-    Select *
-    from users u
+        Select *
+        from users u
     """)
     return all_users.fetchall()
 
@@ -209,10 +203,11 @@ async def delete_all_users(db: AsyncSession = Depends(connect_db_users)):
 
 
 async def delete_test_user(db: AsyncSession = Depends(connect_db_users)):
-    await db.execute("""DELETE FROM users u
-     where u.username = 'string' and 
-     u.email = 'string' and 
-     u.fio = 'string'
+    await db.execute("""
+        DELETE FROM users u
+         where u.username = 'string' and 
+         u.email = 'string' and 
+         u.fio = 'string'
      """)
     await db.commit()
     return {"message": "test user deleted successfully"}
@@ -241,15 +236,13 @@ async def delete_test_user(db: AsyncSession = Depends(connect_db_users)):
                      }
              """)
 async def login_standard(user: UserLogin, db: AsyncSession = Depends(connect_db_users)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
     query = await db.execute(f"""
         select
-    	*
-    from users u
-    where 
-    	u.username ='{user.username}' and
-    	u.email = '{user.email}'
+            *
+        from users u
+        where 
+            u.username ='{user.username}' and
+            u.email = '{user.email}'
     	""")
     check_user = query.first()
     if check_user is None:
@@ -292,9 +285,6 @@ async def login_standard(user: UserLogin, db: AsyncSession = Depends(connect_db_
                       },
             """)
 async def get_teams_for_user(token: str, db: AsyncSession = Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
-    start_time = time.time()
     user = await get_current_user_dev(token)
     user_fio = user.fio
     if user.iscurator or user.isadmin:
@@ -331,9 +321,6 @@ async def get_teams_for_user(token: str, db: AsyncSession = Depends(connect_db_d
 
 
 async def get_teams_for_user_private(token: str, db):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
-    start_time = time.time()
     user = await get_current_user_dev(token)
     user_fio = user.fio
     if user.iscurator or user.isadmin:
@@ -370,9 +357,6 @@ async def get_teams_for_user_private(token: str, db):
 
 
 async def get_teams_for_user_private_without_lect(token: str, db):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
-    start_time = time.time()
     user = await get_current_user_dev(token)
     user_fio = user.fio
     if user.iscurator or user.isadmin:
@@ -439,9 +423,6 @@ async def get_teams_for_user_private_without_lect(token: str, db):
                       },
             """)
 async def get_teams_for_user_without_lect(token: str, db: AsyncSession = Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
-    start_time = time.time()
     user = await get_current_user_dev(token)
     user_fio = user.fio
     if user.iscurator or user.isadmin:
@@ -500,8 +481,6 @@ async def get_teams_for_user_without_lect(token: str, db: AsyncSession = Depends
         }
 """)
 async def get_student(id_stud: int, db: AsyncSession = Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
     all_users = await db.execute(f"""
         select
             *
@@ -532,9 +511,6 @@ async def get_student(id_stud: int, db: AsyncSession = Depends(connect_db_data))
                       },
             """)
 async def get_all_specialities(token: str, db: AsyncSession = Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
-    start_time = time.time()
     user = await get_current_user_dev(token)
     user_fio = user.fio
     if user.iscurator or user.isadmin:
@@ -547,7 +523,7 @@ async def get_all_specialities(token: str, db: AsyncSession = Depends(connect_db
         return response.fetchall()
     elif user.isteacher:
         # todo вот эту строчку поменять шо она будет искать подстроку user_fio в Teacher.name
-        response = await db.execute("""
+        response = await db.execute(f"""
             select distinct
                 s.speciality 
             from
@@ -565,7 +541,7 @@ async def get_all_specialities(token: str, db: AsyncSession = Depends(connect_db
                     from
                         teacher t
                     where
-                        t.name ilike '%Плотоненко%'))
+                        t.name ilike '%{user_fio}%'))
         """)
         return response.fetchall()
     else:
@@ -591,8 +567,6 @@ async def get_all_specialities(token: str, db: AsyncSession = Depends(connect_db
         ]
 """)
 async def get_all_kr(db: AsyncSession = Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
     all_users = await db.execute("""
         select distinct 
             l.name
@@ -626,9 +600,6 @@ async def get_all_kr(db: AsyncSession = Depends(connect_db_data)):
                       },
             """)
 async def get_all_teachers_unique(token: str, db: AsyncSession = Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
-    start_time = time.time()
     user = await get_current_user_dev(token)
     user_fio = user.fio
     if user.iscurator or user.isadmin:
@@ -681,9 +652,6 @@ async def get_all_teachers_unique(token: str, db: AsyncSession = Depends(connect
                       },
             """)
 async def get_all_teachers(token: str, db: AsyncSession = Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
-    start_time = time.time()
     user = await get_current_user_dev(token)
     user_fio = user.fio
     if user.iscurator or user.isadmin:
@@ -704,7 +672,7 @@ async def get_all_teachers(token: str, db: AsyncSession = Depends(connect_db_dat
             from
                 teacher t
             where
-                t.name ilike '{user_fio}'
+                t.name ilike '%{user_fio}%'
         """)
         return response.fetchall()
     else:
@@ -733,25 +701,20 @@ async def get_all_teachers(token: str, db: AsyncSession = Depends(connect_db_dat
                         "Посещаемость": 0.5
                       },
             """)
-async def attendance_per_stud_for_team(id_team: int, db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
+async def attendance_per_stud_for_team(id_team: int, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
-
-    result_query = (
-        db.query(
-            Stud.name,
-            Stud.id,
-            (cast(func.count(case([(Lesson.arrival == 'П', 1)], else_=None)), Float) / func.count(
-                Lesson.arrival)).label("Посещаемость"),
-        )
-        .filter(Lesson.team_id == id_team).join(Stud, Stud.id == Lesson.stud_id)
-        .group_by(Stud.name, Stud.id)
-        .all()
-    )
-    db.close()
+    result_query = await db.execute(f"""
+        select distinct
+            (select s.name from stud s where s.id=l.stud_id) as "stud_name",
+            (select s.id from stud s where s.id=l.stud_id) as "stud_id",
+            ROUND(count(id) filter (where l.arrival ='П') over (partition by stud_id) / count(id) over (partition by stud_id)::DECIMAL, 2) as "Посещаемость"
+        from
+            lesson l
+        where
+            l.team_id = {id_team}
+    """)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_query
+    return result_query.fetchall()
 
 
 @router.get('/api/total_points_attendance_per_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -786,42 +749,24 @@ async def attendance_per_stud_for_team(id_team: int, db=Depends(connect_db_data)
                         "arrival_avg": 77.8787878787879
                       }
             """)
-async def total_points_attendance_per_stud_for_team(id_team: int, db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
+async def total_points_attendance_per_stud_for_team(id_team: int, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
-
-    result_query = (
-        db.query(
-            Stud.name,
-            Stud.id,
-            (func.sum(Lesson.mark_for_work) + func.sum(Lesson.test)).label("Успеваемость"),
-            ((cast(func.count(case([(Lesson.arrival == 'П', 1)], else_=None)), Float) / func.count(
-                Lesson.arrival)) * 100).label("Посещаемость"),
-
-        )
-        .filter(Lesson.team_id == id_team).join(Stud, Stud.id == Lesson.stud_id)
-        .group_by(Stud.name, Stud.id)
-        .all()
-    )
-    db.close()
-    df_list = []
-    total_points_sum = 0.0
-    arrival_sum = 0.0
-    for row in result_query:
-        df_list.append({'Stud_name': row[0], 'Stud_id': row[1], 'Успеваемость': row[2] if row[2] >= 0 else 0,
-                        'Посещаемость': row[3]})
-        total_points_sum += row[2]
-        arrival_sum += row[3]
-    df_list.append({'total_points_avg': total_points_sum / len(df_list), 'arrival_avg': arrival_sum / len(df_list)})
+    result_query = await db.execute(f"""
+        select *, avg(sub.Успеваемость) over (partition by Посещаемость_средняя) as "Успеваемость_средняя"
+        from
+        (select distinct
+            (select s.name from stud s where s.id=l.stud_id) as "stud_name",
+            (select s.id from stud s where s.id=l.stud_id) as "stud_id",
+            ROUND(count(id) filter (where l.arrival ='П') over (partition by stud_id) / count(id) over (partition by stud_id)::DECIMAL, 2) as "Посещаемость",
+            ROUND((sum(l.mark_for_work) over (partition by stud_id) + sum(l.test) over (partition by stud_id))::DECIMAL, 2) as "Успеваемость",
+            ROUND(count(id) filter (where l.arrival ='П') over (partition by team_id) / count(id) over (partition by team_id)::DECIMAL, 2) as "Посещаемость_средняя"
+        from
+            lesson l
+        where
+            l.team_id = {id_team}) as sub
+    """)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    # print(result_query)
-    # response_list = []
-    # for row in result_query:
-    #     response_list.append({
-    #         "Итоговые баллы": row[0],
-    #         "ФИО студента": row[1]})
-    return df_list
+    return result_query.fetchall()
 
 
 @router.get('/api/total_points_per_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -843,24 +788,20 @@ async def total_points_attendance_per_stud_for_team(id_team: int, db=Depends(con
                         "Успеваемость": 5.93
                       },
             """)
-async def total_points_per_stud_for_team(id_team: int, db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
+async def total_points_per_stud_for_team(id_team: int, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
-
-    result_query = (
-        db.query(
-            Stud.name,
-            Stud.id,
-            (func.sum(Lesson.mark_for_work) + func.sum(Lesson.test)).label("Успеваемость")
-        )
-        .filter(Lesson.team_id == id_team).join(Stud, Stud.id == Lesson.stud_id)
-        .group_by(Stud.name, Stud.id)
-        .all()
-    )
-    db.close()
+    result_query = await db.execute(f"""
+            select distinct
+                (select s.name from stud s where s.id=l.stud_id) as "stud_name",
+                (select s.id from stud s where s.id=l.stud_id) as "stud_id",
+                ROUND((sum(l.mark_for_work) over (partition by stud_id) + sum(l.test) over (partition by stud_id))::DECIMAL, 2) as "Успеваемость"
+            from
+                lesson l
+            where
+                l.team_id = {id_team}
+        """)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_query
+    return result_query.fetchall()
 
 
 @router.get('/api/total_marks_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -894,46 +835,41 @@ async def total_points_per_stud_for_team(id_team: int, db=Depends(connect_db_dat
                       }
                     ]
             """)
-async def total_marks_for_team(id_team: int, db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
+async def total_marks_for_team(id_team: int, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
-
-    result_query = (
-        db.query(
-            Stud.name,
-            Stud.id,
-            (func.sum(Lesson.mark_for_work) + func.sum(Lesson.test)).label("Успеваемость")
-        )
-        .filter(Lesson.team_id == id_team).join(Stud, Stud.id == Lesson.stud_id)
-        .group_by(Stud.name, Stud.id)
-        .all()
-    )
-    db.close()
-    df_2 = []
-    df_3 = []
-    df_4 = []
-    df_5 = []
-    for row in result_query:
-        if row[2] < 61:
-            df_2.append({'Stud_name': row[0], 'Stud_id': row[1], 'Успеваемость': row[2], 'mark': "неудовл."})
-        elif 60 < row[2] < 76:
-            df_3.append({'Stud_name': row[0], 'Stud_id': row[1], 'Успеваемость': row[2], 'mark': "удовл."})
-        elif 75 < row[2] < 91:
-            df_4.append({'Stud_name': row[0], 'Stud_id': row[1], 'Успеваемость': row[2], 'mark': "хор."})
-        else:
-            df_5.append({'Stud_name': row[0], 'Stud_id': row[1], 'Успеваемость': row[2], 'mark': "отл."})
-
-    df_list = [df_2, df_3, df_4, df_5]
-    print(df_list)
-    response = []
-    for list_of_mark in df_list:
-        marks = [item["Успеваемость"] for item in list_of_mark]
-        if len(marks) > 0:
-            response.append({'avg_total_points': sum(marks) / len(marks), 'mark': list_of_mark[0]['mark'],
-                             'percent': len(list_of_mark) / len(result_query)})
+    result_query = await db.execute(f"""
+        SELECT
+            CASE
+                WHEN Успеваемость > 60 AND Успеваемость < 76 THEN 'удовл.'
+                WHEN Успеваемость > 75 AND Успеваемость < 91 THEN 'хор.'
+                WHEN Успеваемость > 90 THEN 'отл.'
+                ELSE 'неудовл.'
+            END AS mark,
+            ROUND(COUNT(*) / count_all::DECIMAL, 2) AS percent,
+            ROUND(AVG(Успеваемость)::DECIMAL, 2) AS avg_total_points
+        FROM
+            (
+            SELECT DISTINCT
+                (SELECT s.name FROM stud s WHERE s.id = l.stud_id) AS stud_name,
+                (SELECT s.id FROM stud s WHERE s.id = l.stud_id) AS stud_id,
+                ROUND((SUM(l.mark_for_work) + SUM(l.test))::DECIMAL, 0) AS Успеваемость,
+                (
+                SELECT COUNT(DISTINCT stud_id) AS count_all 
+                FROM lesson l
+                WHERE l.team_id = {id_team}
+                ) AS count_all
+            FROM
+                lesson l
+            WHERE
+                l.team_id = {id_team}
+            GROUP BY 
+                stud_id
+            ) AS sub
+        GROUP BY 
+            mark, count_all;
+    """)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return response
+    return result_query.fetchall()
 
 
 @router.get('/api/attendance_num_for_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -963,50 +899,22 @@ async def total_marks_for_team(id_team: int, db=Depends(connect_db_data)):
                         "arrival": 24
                       },
             """)
-async def attendance_num_for_stud_for_team(id_team: int, db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
+async def attendance_num_for_stud_for_team(id_team: int, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
-
-    sub_query = (
-        db.query(
-            Lesson.stud_id,
-        )
-        .filter(and_(Lesson.team_id == id_team))
-        .distinct()
-        .all()
-    )
-    stud_id_list = [row[0] for row in sub_query]
-    sub_query = (
-        db.query(
-            Lesson.name,
-            (cast(func.count(case([(Lesson.arrival == 'П', 1)], else_=None)), Float)).label("arrival"),
-        )
-        .filter(and_(Lesson.team_id == id_team, Lesson.stud_id.in_(stud_id_list)))
-        .group_by(Lesson.name)
-        .all()
-    )
-    df_list = []
-    fix_sort = (
-        db.query(
-            Lesson.name
-        )
-        .filter(and_(Lesson.team_id == id_team, Lesson.stud_id == stud_id_list[0]))
-        .all()
-    )
-
-    for row in sub_query:
-        df_list.append({'name': row[0], 'arrival': row[1]})
-    df_true = []
-    for fixed_row in fix_sort:
-        for i in range(len(df_list)):
-            if fixed_row[0] in df_list[i]['name']:
-                df_true.append(df_list[i])
-                break
-
-    db.close()
+    result_query = await db.execute(f"""
+        select 
+            l.name,
+            l.id,
+            count(id) filter (where l.arrival ='П') over (partition by l.name) as "Посещаемость"
+        from
+            lesson l
+        where
+            l.team_id = {id_team}
+        order by id
+        limit 22
+        """)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return df_true
+    return result_query.fetchall()
 
 
 @router.get('/api/attendance_num_for_stud_for_team_stat_table', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -1030,60 +938,28 @@ async def attendance_num_for_stud_for_team(id_team: int, db=Depends(connect_db_d
                         "Посещаемость": 26.666666666666668
                       },
             """)
-async def attendance_num_for_stud_for_team_stat_table(id_team: int, name_of_lesson: str, db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
+async def attendance_num_for_stud_for_team_stat_table(id_team: int, name_of_lesson: str, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
-
-    find_missing_studs = (
-        db.query(
-            Lesson.name.label("lesson_name"),
-            Stud.name,
-            Stud.id,
-            Lesson.id.label("Lesson_id"),
-        )
-        .filter(Lesson.team_id == id_team, Lesson.name == name_of_lesson, Lesson.arrival != 'П')
-        .join(Stud, Stud.id == Lesson.stud_id)
-        .group_by(Stud.name, Stud.id, Lesson.name, Lesson.id)
-        .all()
-    )
-    stud_id_list = [item[2] for item in find_missing_studs]
-    result_query = (
-        db.query(
-            Stud.name.label('stud_name'),
-            Stud.id,
-            Lesson.name,
-            Lesson.test,
-            Lesson.mark_for_work,
-            Lesson.arrival,
-            Lesson.date_of_add,
-        )
-        .filter(and_(Lesson.team_id == id_team, Lesson.stud_id.in_(stud_id_list)))
-        .join(Stud, Stud.id == Lesson.stud_id)
-        .all()
-    )
-    dict_stud = {}
-    for row in result_query:
-        if row[1] not in dict_stud:
-            dict_stud[row[1]] = []
-        if not any(d['name'] == name_of_lesson for d in dict_stud[row[1]]):
-            dict_stud[row[1]].append(
-                {'stud_name': row[0], 'id': row[1], 'name': row[2], 'test': row[3], 'mark_for_work': row[4],
-                 'arrival': row[5], 'date_of_add': row[6]})
-    response_list = []
-    for key in dict_stud.keys():
-        total_points_temp = (sum(d['test'] for d in dict_stud[key]) + sum(
-            d['mark_for_work'] for d in dict_stud[key]))
-
-        response_list.append({
-            'stud_name': dict_stud[key][0]['stud_name'],
-            'id': dict_stud[key][0]['id'],
-            'Успеваемость': total_points_temp if total_points_temp >= 0 else 0,
-            'Посещаемость': sum(1 for d in dict_stud[key] if d['arrival'] == 'П') / len(dict_stud[key]) * 100,
-        })
-    db.close()
+    result_query = await db.execute(f"""
+        SELECT sub.stud_name, sub.id, sub.Посещаемость, sub.Успеваемость
+        FROM (
+          SELECT
+            (SELECT s.name FROM stud s WHERE s.id = l.stud_id) AS stud_name,
+            (SELECT s.id FROM stud s WHERE s.id = l.stud_id) AS id,
+            l.name,
+            ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / COUNT(id) OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::DECIMAL, 2) AS Посещаемость,
+            ROUND((SUM(l.mark_for_work) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) + SUM(l.test) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW))::DECIMAL, 2) AS Успеваемость,
+            l.arrival
+          FROM
+            lesson l
+          WHERE
+            l.team_id = {id_team}
+        ) AS sub
+        WHERE
+          sub.name = '{name_of_lesson}' AND sub.arrival = 'Н';
+            """)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return response_list
+    return result_query.fetchall()
 
 
 # endregion
