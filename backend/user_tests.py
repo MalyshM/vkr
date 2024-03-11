@@ -4,6 +4,8 @@ from fastapi.testclient import TestClient
 from handlers import delete_test_user
 from main import get_application
 
+import math
+
 
 class UserTests(unittest.TestCase):
     def setUp(self):
@@ -77,15 +79,24 @@ class UserTests(unittest.TestCase):
         self.assertIsInstance(response.json(), list)
 
         for user in response.json():
-            self.assertIn("id", user)
-            self.assertIn("isadmin", user)
-            self.assertIn("iscurator", user)
-            self.assertIn("email", user)
-            self.assertIn("fio", user)
-            self.assertIn("username", user)
-            self.assertIn("isteacher", user)
-            self.assertIn("date_of_add", user)
+            self.assertEqual(type(user["id"]), int)
+            self.assertEqual(type(user["isadmin"]), bool)
+            self.assertEqual(type(user["iscurator"]), bool)
+            self.assertEqual(type(user["email"]), str)
+            self.assertEqual(type(user["fio"]), str)
+            self.assertEqual(type(user["username"]), str)
+            self.assertEqual(type(user["isteacher"]), bool)
+            self.assertEqual(type(user["date_of_add"]), str)
 
+            # Проверка на НаНы
+            self.assertFalse(math.isnan(user["id"]))
+            self.assertFalse(math.isnan(user["isadmin"]))
+            self.assertFalse(math.isnan(user["iscurator"]))
+            self.assertFalse(math.isnan(user["email"]))
+            self.assertFalse(math.isnan(user["fio"]))
+            self.assertFalse(math.isnan(user["username"]))
+            self.assertFalse(math.isnan(user["isteacher"]))
+            self.assertFalse(math.isnan(user["date_of_add"]))
 
     def test_get_teams_for_user_by_true_token(self):
 
@@ -105,8 +116,11 @@ class UserTests(unittest.TestCase):
 
         self.assertIsInstance(response.json(), list)
         for team in response.json():
-            self.assertIn("id", team)
-            self.assertIn("name", team)
+            self.assertEqual(type(team["id"]), int)
+            self.assertEqual(type(team["name"]), str)
+
+            self.assertFalse(math.isnan(response.json()["id"]))
+            self.assertFalse(math.isnan(response.json()["name"]))
 
     def test_get_teams_for_user_by_false_token(self):
         response = self.client.get(f"/api/get_teams_for_user?token=token")
@@ -123,11 +137,18 @@ class UserTests(unittest.TestCase):
         data = response.json()
         self.assertIsInstance(data, dict)
 
-        self.assertTrue(type(response.json()["speciality"]), str)
-        self.assertTrue(type(response.json()["id"]), int)
-        self.assertTrue(type(response.json()["email"]), str)
-        self.assertTrue(type(response.json()["date_of_add"]), str)
-        self.assertTrue(type(response.json()["name"]), str)
+        self.assertEqual(type(response.json()["speciality"]), str)
+        self.assertEqual(type(response.json()["id"]), int)
+        self.assertEqual(type(response.json()["email"]), str)
+        self.assertEqual(type(response.json()["date_of_add"]), str)
+        self.assertEqual(type(response.json()["name"]), str)
+
+        # Проверка на НаНы
+        self.assertFalse(math.isnan(response.json()["speciality"]))
+        self.assertFalse(math.isnan(response.json()["id"]))
+        self.assertFalse(math.isnan(response.json()["email"]))
+        self.assertFalse(math.isnan(response.json()["date_of_add"]))
+        self.assertFalse(math.isnan(response.json()["name"]))
 
 
     def test_login_standard_success(self):
