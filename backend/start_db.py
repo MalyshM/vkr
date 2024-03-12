@@ -87,7 +87,7 @@ DO $$
 BEGIN
   FOR i IN 1..200 LOOP
     EXECUTE format('CREATE TABLE lesson_%s PARTITION OF lesson FOR VALUES FROM (%s) TO (%s)',
-                   i, (i-1)*1000, i*1000);
+                   i, (i-1)*10, i*10);
   END LOOP;
 END $$;
     '''

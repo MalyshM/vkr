@@ -185,7 +185,7 @@ df_real = pd.read_csv('/backend/scripts/df_true.csv', delimiter='_', header=None
 print(df_real.columns)
 df_real.columns = df_real.columns.astype(str)
 
-db = connect_db_data()
+db = connect_db_data_old()
 
 unique_values_rmup_table = df_real[['0', '1']].drop_duplicates().values.tolist()
 names = [row[0] for row in unique_values_rmup_table]
