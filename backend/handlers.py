@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import time
 from datetime import datetime, timedelta
 from typing import Optional
@@ -9,16 +10,17 @@ import pandas as pd
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import func, Float
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import and_, case, cast, or_, distinct
 from starlette import status
 from starlette.exceptions import HTTPException
 
-from models import connect_db_data, connect_db_users, Lesson, Team, User, Stud, Teacher
+from models import connect_db_data, connect_db_users, Lesson, Team, User, Stud, Teacher, async_session_users
 from schemas import UserRegistration, TokenData, UserLogin
 from util import Hasher
 
 router = APIRouter()
-
+logging.getLogger('passlib').setLevel(logging.ERROR)
 SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -60,15 +62,19 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
                       "token_type": "bearer"
                     }
              """)
-async def registration_standard(user: UserRegistration, db=Depends(connect_db_users)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
-    checkuser = db.query(User).filter(and_(User.username == user.username, User.email == user.email)).first()
-    if checkuser is not None:
-        db.close()
+async def registration_standard(user: UserRegistration, db: AsyncSession = Depends(connect_db_users)):
+    query = await db.execute(f"""
+        select
+            *
+        from users u
+        where 
+            u.username ='{user.username}' and
+            u.email = '{user.email}'
+	""")
+    check_user = query.first()
+    if check_user is not None:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="Пользователь с такими данными уже существует(юзернейм, емейл)")
-
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"FIO": user.FIO, "isAdmin": user.isAdmin, "isCurator": user.isCurator, "isTeacher": user.isTeacher,
@@ -79,17 +85,22 @@ async def registration_standard(user: UserRegistration, db=Depends(connect_db_us
         User(isadmin=user.isAdmin, iscurator=user.isCurator, isteacher=user.isTeacher, fio=user.FIO,
              username=user.username, password=Hasher.get_password_hash(user.password), email=user.email,
              date_of_add=datetime.now().date()))
-    db.commit()
-    db.close()
-    print({"access_token": access_token, "token_type": "bearer"})
+    await db.commit()
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-def get_user(username, email):
-    db = connect_db_users()
-    res = db.query(User).filter(and_(User.username == username, User.email == email)).first()
-    db.close()
-    return res
+async def get_user(username, email):
+    async with async_session_users() as db:
+        query = await db.execute(f"""
+            select
+            *
+        from users u
+        where 
+            u.username ='{username}' and
+            u.email = '{email}'
+            """)
+        user = query.one()
+        return user
 
 
 @router.post('/api/get_current_user_dev', name='User:get_current_user_dev', status_code=status.HTTP_200_OK,
@@ -123,17 +134,15 @@ async def get_current_user_dev(token: str):
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        print(payload)
         username: str = payload.get("username")
         password: str = payload.get("password")
         email: str = payload.get("email")
         if username is None:
             raise credentials_exception
         token_data = TokenData(username=username, password=password, email=email)
-        print(token_data)
     except:
         raise credentials_exception
-    user = get_user(username=token_data.username, email=token_data.email)
+    user = await get_user(username=token_data.username, email=token_data.email)
     if user is None:
         raise credentials_exception
     return user
@@ -169,11 +178,12 @@ async def get_current_user_dev(token: str):
           }
         ]
 """)
-async def get_all_users(db=Depends(connect_db_users)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
-    all_users = db.query(User).all()
-    return all_users
+async def get_all_users(db: AsyncSession = Depends(connect_db_users)):
+    all_users = await db.execute("""
+        Select *
+        from users u
+    """)
+    return all_users.fetchall()
 
 
 @router.get('/api/delete_all_users', name='User:delete_all_users', status_code=status.HTTP_200_OK, tags=["User"],
@@ -186,19 +196,22 @@ async def get_all_users(db=Depends(connect_db_users)):
                       "message": "All users deleted successfully"
                     }
             """)
-async def delete_all_users(db=Depends(connect_db_users)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
-    db.query(User).delete()
-    db.commit()
+async def delete_all_users(db: AsyncSession = Depends(connect_db_users)):
+    await db.execute("""DELETE FROM users""")
+    await db.commit()
     return {"message": "All users deleted successfully"}
 
 
-def delete_test_user(db=connect_db_users()):
-    # Create your plot using Plotly
-    db.query(User).filter(User.username=="string",User.email=="string",User.fio=="string").delete()
-    db.commit()
+async def delete_test_user(db: AsyncSession = Depends(connect_db_users)):
+    await db.execute("""
+        DELETE FROM users u
+         where u.username = 'string' and 
+         u.email = 'string' and 
+         u.fio = 'string'
+     """)
+    await db.commit()
     return {"message": "test user deleted successfully"}
+
 
 @router.post('/api/login_standard', name='Registration:login_standard', status_code=status.HTTP_200_OK,
              tags=["Registration"], description=
@@ -222,24 +235,27 @@ def delete_test_user(db=connect_db_users()):
                       "token_type": "bearer"
                      }
              """)
-async def login_standard(user: UserLogin, db=Depends(connect_db_users)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
-    checkuser = db.query(User).filter(and_(User.username == user.username, User.email == user.email)).first()
-    print(checkuser)
-    if checkuser is None:
-        db.close()
+async def login_standard(user: UserLogin, db: AsyncSession = Depends(connect_db_users)):
+    query = await db.execute(f"""
+        select
+            *
+        from users u
+        where 
+            u.username ='{user.username}' and
+            u.email = '{user.email}'
+    	""")
+    check_user = query.first()
+    if check_user is None:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="Нельзя войти в несуществующий аккаунт/Неправильно введены данные")
-    is_true_login = Hasher.verify_password(user.password, checkuser.password)
+    is_true_login = Hasher.verify_password(user.password, check_user.password)
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"FIO": checkuser.fio, "isAdmin": checkuser.isadmin, "isCurator": checkuser.iscurator,
-              "isTeacher": checkuser.isteacher,
-              "username": checkuser.username, "password": checkuser.password, "email": checkuser.email},
+        data={"FIO": check_user.fio, "isAdmin": check_user.isadmin, "isCurator": check_user.iscurator,
+              "isTeacher": check_user.isteacher,
+              "username": check_user.username, "password": check_user.password, "email": check_user.email},
         expires_delta=access_token_expires
     )
-    db.close()
     if is_true_login:
         return {"access_token": access_token, "token_type": "bearer"}
     else:
@@ -268,81 +284,118 @@ async def login_standard(user: UserLogin, db=Depends(connect_db_users)):
                         "name": "ПиОА П-07.03"
                       },
             """)
-async def get_teams_for_user(token: str, db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
-    start_time = time.time()
+async def get_teams_for_user(token: str, db: AsyncSession = Depends(connect_db_data)):
     user = await get_current_user_dev(token)
     user_fio = user.fio
     if user.iscurator or user.isadmin:
-        response = db.query(Team.id, Team.name).distinct().all()
-        db.close()
-        return response
+        response = await db.execute("""
+        select distinct t.id, t.name from team t
+        """)
+        return response.fetchall()
     elif user.isteacher:
-        # todo вот эту строчку поменять шо она будет искать подстроку user_fio в Teacher.name
-        teacher_id_query = db.query(Teacher.id).filter(Teacher.name.like(f"%{user_fio}%")).all()
-        teacher_id_list = [row[0] for row in teacher_id_query]
-        team_id_query = db.query(Lesson.team_id).filter(Lesson.teacher_id.in_(teacher_id_list)).distinct().all()
-        team_id_list = [row[0] for row in team_id_query]
-        response = db.query(Team.id, Team.name).filter(Team.id.in_(team_id_list)).distinct().all()
-        db.close()
-        return response
+        response = await db.execute(f"""
+            select
+                distinct t.id,
+                t.name
+            from
+                team t
+            where
+                t.id in (
+                select
+                    distinct l.team_id
+                from
+                    lesson l
+                where
+                    l.teacher_id in (
+                    select
+                        distinct t.id
+                    from
+                        teacher t
+                    where
+                        t.name ilike '%{user_fio}%'))
+        """)
+        return response.fetchall()
     else:
-        db.close()
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
 
 
 async def get_teams_for_user_private(token: str, db):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
-    start_time = time.time()
     user = await get_current_user_dev(token)
     user_fio = user.fio
     if user.iscurator or user.isadmin:
-        response = db.query(Team.id, Team.name).distinct().all()
-        db.close()
-        return response
+        response = await db.execute("""
+            select distinct t.id, t.name from team t
+            """)
+        return response.fetchall()
     elif user.isteacher:
-        # todo вот эту строчку поменять шо она будет искать подстроку user_fio в Teacher.name
-        teacher_id_query = db.query(Teacher.id).filter(Teacher.name.like(f"%{user_fio}%")).all()
-        teacher_id_list = [row[0] for row in teacher_id_query]
-        team_id_query = db.query(Lesson.team_id).filter(Lesson.teacher_id.in_(teacher_id_list)).distinct().all()
-        team_id_list = [row[0] for row in team_id_query]
-        response = db.query(Team.id, Team.name).filter(Team.id.in_(team_id_list)).distinct().all()
-        db.close()
-        return response
+        response = await db.execute(f"""
+            select
+                distinct t.id,
+                t.name
+            from
+                team t
+            where
+                t.id in (
+                select
+                    distinct l.team_id
+                from
+                    lesson l
+                where
+                    l.teacher_id in (
+                    select
+                        distinct t.id
+                    from
+                        teacher t
+                    where
+                        t.name ilike '%{user_fio}%'))
+            """)
+        return response.fetchall()
     else:
-        db.close()
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
 
 
 async def get_teams_for_user_private_without_lect(token: str, db):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
-    start_time = time.time()
     user = await get_current_user_dev(token)
     user_fio = user.fio
     if user.iscurator or user.isadmin:
-        response = db.query(Team.id, Team.name).distinct().all()
-        print(len(response))
-        true_response = [item for item in response if 'Л' not in item[1]]
-        print(len(true_response))
-        db.close()
-        return true_response
+        response = await db.execute("""
+            select
+                distinct t.id,
+                t."name"
+            from
+                team t
+            where
+                t."name" not ilike '%л%'
+        """)
+        return response.fetchall()
     elif user.isteacher:
         # todo вот эту строчку поменять шо она будет искать подстроку user_fio в Teacher.name
-        teacher_id_query = db.query(Teacher.id).filter(Teacher.name.like(f"%{user_fio}%")).all()
-        teacher_id_list = [row[0] for row in teacher_id_query]
-        team_id_query = db.query(Lesson.team_id).filter(Lesson.teacher_id.in_(teacher_id_list)).distinct().all()
-        team_id_list = [row[0] for row in team_id_query]
-        response = db.query(Team.id, Team.name).filter(Team.id.in_(team_id_list)).distinct().all()
-        true_response = [item for item in response if 'Л' not in item[1]]
-        db.close()
-        return true_response
+        response = await db.execute(f"""
+                    select
+                        distinct t.id,
+                        t.name
+                    from
+                        team t
+                    where
+                        t.id in (
+                        select
+                            distinct l.team_id
+                        from
+                            lesson l
+                        where
+                            l.teacher_id in (
+                            select
+                                distinct t.id
+                            from
+                                teacher t
+                            where
+                                t.name ilike '%{user_fio}%'))
+                        and t.name not ilike '%л%'
+                    """)
+        return response.fetchall()
     else:
-        db.close()
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
 
@@ -369,31 +422,46 @@ async def get_teams_for_user_private_without_lect(token: str, db):
                         "name": "ПиОА П-07.03"
                       },
             """)
-async def get_teams_for_user_without_lect(token: str, db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
-    start_time = time.time()
+async def get_teams_for_user_without_lect(token: str, db: AsyncSession = Depends(connect_db_data)):
     user = await get_current_user_dev(token)
     user_fio = user.fio
     if user.iscurator or user.isadmin:
-        response = db.query(Team.id, Team.name).distinct().all()
-        print(len(response))
-        true_response = [item for item in response if 'Л' not in item[1]]
-        print(len(true_response))
-        db.close()
-        return true_response
+        response = await db.execute("""
+                select
+                    distinct t.id,
+                    t."name"
+                from
+                    team t
+                where
+                    t."name" not ilike '%л%'
+            """)
+        return response.fetchall()
     elif user.isteacher:
         # todo вот эту строчку поменять шо она будет искать подстроку user_fio в Teacher.name
-        teacher_id_query = db.query(Teacher.id).filter(Teacher.name.like(f"%{user_fio}%")).all()
-        teacher_id_list = [row[0] for row in teacher_id_query]
-        team_id_query = db.query(Lesson.team_id).filter(Lesson.teacher_id.in_(teacher_id_list)).distinct().all()
-        team_id_list = [row[0] for row in team_id_query]
-        response = db.query(Team.id, Team.name).filter(Team.id.in_(team_id_list)).distinct().all()
-        true_response = [item for item in response if 'Л' not in item[1]]
-        db.close()
-        return true_response
+        response = await db.execute(f"""
+                        select
+                            distinct t.id,
+                            t.name
+                        from
+                            team t
+                        where
+                            t.id in (
+                            select
+                                distinct l.team_id
+                            from
+                                lesson l
+                            where
+                                l.teacher_id in (
+                                select
+                                    distinct t.id
+                                from
+                                    teacher t
+                                where
+                                    t.name ilike '%{user_fio}%'))
+                            and t.name not ilike '%л%'
+                        """)
+        return response.fetchall()
     else:
-        db.close()
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
 
@@ -412,11 +480,16 @@ async def get_teams_for_user_without_lect(token: str, db=Depends(connect_db_data
           "name": "bcd765d44ffc513ca68a954f119ea527407c413e3486c7029ff0c5522343810a"
         }
 """)
-async def get_student(id_stud: int, db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
-    all_users = db.query(Stud).filter(Stud.id == id_stud).first()
-    return all_users
+async def get_student(id_stud: int, db: AsyncSession = Depends(connect_db_data)):
+    all_users = await db.execute(f"""
+        select
+            *
+        from
+            stud s
+        where
+            s.id = {id_stud}
+	""")
+    return all_users.fetchall()
 
 
 @router.get('/api/get_all_specialities', name='Stud:get_all_specialities', status_code=status.HTTP_200_OK,
@@ -437,29 +510,41 @@ async def get_student(id_stud: int, db=Depends(connect_db_data)):
                         "speciality": "35.03.10 Ландшафтная архитектура"
                       },
             """)
-async def get_all_specialities(token: str, db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
-    start_time = time.time()
+async def get_all_specialities(token: str, db: AsyncSession = Depends(connect_db_data)):
     user = await get_current_user_dev(token)
     user_fio = user.fio
     if user.iscurator or user.isadmin:
-        response = db.query(Stud.speciality).distinct().all()
-        db.close()
-        print(len(response))
-        return response
+        response = await db.execute("""
+            select distinct
+                s.speciality 
+            from
+                stud s 
+        """)
+        return response.fetchall()
     elif user.isteacher:
         # todo вот эту строчку поменять шо она будет искать подстроку user_fio в Teacher.name
-        teacher_id_query = db.query(Teacher.id).filter(Teacher.name.like(f"%{user_fio}%")).all()
-        teacher_id_list = [row[0] for row in teacher_id_query]
-        stud_id_query = db.query(Lesson.stud_id).filter(Lesson.teacher_id.in_(teacher_id_list)).distinct().all()
-        stud_id_list = [row[0] for row in stud_id_query]
-        response = db.query(Stud.speciality).filter(Stud.id.in_(stud_id_list)).distinct().all()
-        print(len(response))
-        db.close()
-        return response
+        response = await db.execute(f"""
+            select distinct
+                s.speciality 
+            from
+                stud s
+            where
+                s.id in (
+                select
+                    distinct l.stud_id
+                from
+                    lesson l
+                where
+                    l.teacher_id in (
+                    select
+                        distinct t.id
+                    from
+                        teacher t
+                    where
+                        t.name ilike '%{user_fio}%'))
+        """)
+        return response.fetchall()
     else:
-        db.close()
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
 
@@ -481,11 +566,16 @@ async def get_all_specialities(token: str, db=Depends(connect_db_data)):
           }
         ]
 """)
-async def get_all_kr(db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
-    all_users = db.query(Lesson.name).filter(Lesson.test >= 0.0).distinct().all()
-    return all_users
+async def get_all_kr(db: AsyncSession = Depends(connect_db_data)):
+    all_users = await db.execute("""
+        select distinct 
+            l.name
+        from
+            lesson l
+        where
+            l.test >= 0.0
+    """)
+    return all_users.fetchall()
 
 
 @router.get('/api/get_all_teachers_unique', name='Stud:get_all_teachers', status_code=status.HTTP_200_OK,
@@ -509,25 +599,33 @@ async def get_all_kr(db=Depends(connect_db_data)):
                         "name": "Павлова Елена Александровна"
                       },
             """)
-async def get_all_teachers_unique(token: str, db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
-    start_time = time.time()
+async def get_all_teachers_unique(token: str, db: AsyncSession = Depends(connect_db_data)):
     user = await get_current_user_dev(token)
     user_fio = user.fio
     if user.iscurator or user.isadmin:
-        response = db.query(Teacher.id, Teacher.name).distinct().all()
-        true_response = [item for item in response if ',' not in item[1]]
-        db.close()
-        return true_response
+        response = await db.execute("""
+            select distinct
+                t.id,
+                t."name"
+            from
+                teacher t
+            where 
+                t.name not ilike '%,%'
+        """)
+        return response.fetchall()
     elif user.isteacher:
         # todo вот эту строчку поменять шо она будет искать подстроку user_fio в Teacher.name
-        teacher_id_query = db.query(Teacher.id, Teacher.name).filter(and_(Teacher.name.like(f"%{user_fio}%"))).all()
-        true_response = [item for item in teacher_id_query if ',' not in item[1]]
-        db.close()
-        return true_response
+        response = await db.execute(f"""
+            select distinct
+                t.id,
+                t."name"
+            from
+                teacher t
+            where
+                t.name = '{user_fio}'
+        """)
+        return response.fetchall()
     else:
-        db.close()
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
 
@@ -553,23 +651,31 @@ async def get_all_teachers_unique(token: str, db=Depends(connect_db_data)):
                         "name": "Павлова Елена Александровна"
                       },
             """)
-async def get_all_teachers(token: str, db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
-    start_time = time.time()
+async def get_all_teachers(token: str, db: AsyncSession = Depends(connect_db_data)):
     user = await get_current_user_dev(token)
     user_fio = user.fio
     if user.iscurator or user.isadmin:
-        response = db.query(Teacher.id, Teacher.name).distinct().all()
-        db.close()
-        return response
+        response = await db.execute("""
+                select distinct
+                    t.id,
+                    t."name"
+                from
+                    teacher t
+            """)
+        return response.fetchall()
     elif user.isteacher:
         # todo вот эту строчку поменять шо она будет искать подстроку user_fio в Teacher.name
-        teacher_id_query = db.query(Teacher.id, Teacher.name).filter(and_(Teacher.name.like(f"%{user_fio}%"))).all()
-        db.close()
-        return teacher_id_query
+        response = await db.execute(f"""
+            select distinct
+                t.id,
+                t."name"
+            from
+                teacher t
+            where
+                t.name ilike '%{user_fio}%'
+        """)
+        return response.fetchall()
     else:
-        db.close()
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
 
@@ -595,25 +701,20 @@ async def get_all_teachers(token: str, db=Depends(connect_db_data)):
                         "Посещаемость": 0.5
                       },
             """)
-async def attendance_per_stud_for_team(id_team: int, db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
+async def attendance_per_stud_for_team(id_team: int, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
-
-    result_query = (
-        db.query(
-            Stud.name,
-            Stud.id,
-            (cast(func.count(case([(Lesson.arrival == 'П', 1)], else_=None)), Float) / func.count(
-                Lesson.arrival)).label("Посещаемость"),
-        )
-            .filter(Lesson.team_id == id_team).join(Stud, Stud.id == Lesson.stud_id)
-            .group_by(Stud.name, Stud.id)
-            .all()
-    )
-    db.close()
+    result_query = await db.execute(f"""
+        select distinct
+            (select s.name from stud s where s.id=l.stud_id) as "stud_name",
+            (select s.id from stud s where s.id=l.stud_id) as "stud_id",
+            ROUND(count(id) filter (where l.arrival ='П') over (partition by stud_id) / count(id) over (partition by stud_id)::DECIMAL, 2) as "Посещаемость"
+        from
+            lesson l
+        where
+            l.team_id = {id_team}
+    """)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_query
+    return result_query.fetchall()
 
 
 @router.get('/api/total_points_attendance_per_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -648,42 +749,24 @@ async def attendance_per_stud_for_team(id_team: int, db=Depends(connect_db_data)
                         "arrival_avg": 77.8787878787879
                       }
             """)
-async def total_points_attendance_per_stud_for_team(id_team: int, db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
+async def total_points_attendance_per_stud_for_team(id_team: int, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
-
-    result_query = (
-        db.query(
-            Stud.name,
-            Stud.id,
-            (func.sum(Lesson.mark_for_work) + func.sum(Lesson.test)).label("Успеваемость"),
-            ((cast(func.count(case([(Lesson.arrival == 'П', 1)], else_=None)), Float) / func.count(
-                Lesson.arrival)) * 100).label("Посещаемость"),
-
-        )
-            .filter(Lesson.team_id == id_team).join(Stud, Stud.id == Lesson.stud_id)
-            .group_by(Stud.name, Stud.id)
-            .all()
-    )
-    db.close()
-    df_list = []
-    total_points_sum = 0.0
-    arrival_sum = 0.0
-    for row in result_query:
-        df_list.append({'Stud_name': row[0], 'Stud_id': row[1], 'Успеваемость': row[2] if row[2] >= 0 else 0,
-                        'Посещаемость': row[3]})
-        total_points_sum += row[2]
-        arrival_sum += row[3]
-    df_list.append({'total_points_avg': total_points_sum / len(df_list), 'arrival_avg': arrival_sum / len(df_list)})
+    result_query = await db.execute(f"""
+        select *, avg(sub.Успеваемость) over (partition by Посещаемость_средняя) as "Успеваемость_средняя"
+        from
+        (select distinct
+            (select s.name from stud s where s.id=l.stud_id) as "stud_name",
+            (select s.id from stud s where s.id=l.stud_id) as "stud_id",
+            ROUND(count(id) filter (where l.arrival ='П') over (partition by stud_id) / count(id) over (partition by stud_id)::DECIMAL, 2) as "Посещаемость",
+            ROUND((sum(l.mark_for_work) over (partition by stud_id) + sum(l.test) over (partition by stud_id))::DECIMAL, 2) as "Успеваемость",
+            ROUND(count(id) filter (where l.arrival ='П') over (partition by team_id) / count(id) over (partition by team_id)::DECIMAL, 2) as "Посещаемость_средняя"
+        from
+            lesson l
+        where
+            l.team_id = {id_team}) as sub
+    """)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    # print(result_query)
-    # response_list = []
-    # for row in result_query:
-    #     response_list.append({
-    #         "Итоговые баллы": row[0],
-    #         "ФИО студента": row[1]})
-    return df_list
+    return result_query.fetchall()
 
 
 @router.get('/api/total_points_per_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -705,24 +788,20 @@ async def total_points_attendance_per_stud_for_team(id_team: int, db=Depends(con
                         "Успеваемость": 5.93
                       },
             """)
-async def total_points_per_stud_for_team(id_team: int, db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
+async def total_points_per_stud_for_team(id_team: int, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
-
-    result_query = (
-        db.query(
-            Stud.name,
-            Stud.id,
-            (func.sum(Lesson.mark_for_work) + func.sum(Lesson.test)).label("Успеваемость")
-        )
-            .filter(Lesson.team_id == id_team).join(Stud, Stud.id == Lesson.stud_id)
-            .group_by(Stud.name, Stud.id)
-            .all()
-    )
-    db.close()
+    result_query = await db.execute(f"""
+            select distinct
+                (select s.name from stud s where s.id=l.stud_id) as "stud_name",
+                (select s.id from stud s where s.id=l.stud_id) as "stud_id",
+                ROUND((sum(l.mark_for_work) over (partition by stud_id) + sum(l.test) over (partition by stud_id))::DECIMAL, 2) as "Успеваемость"
+            from
+                lesson l
+            where
+                l.team_id = {id_team}
+        """)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_query
+    return result_query.fetchall()
 
 
 @router.get('/api/total_marks_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -756,46 +835,41 @@ async def total_points_per_stud_for_team(id_team: int, db=Depends(connect_db_dat
                       }
                     ]
             """)
-async def total_marks_for_team(id_team: int, db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
+async def total_marks_for_team(id_team: int, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
-
-    result_query = (
-        db.query(
-            Stud.name,
-            Stud.id,
-            (func.sum(Lesson.mark_for_work) + func.sum(Lesson.test)).label("Успеваемость")
-        )
-            .filter(Lesson.team_id == id_team).join(Stud, Stud.id == Lesson.stud_id)
-            .group_by(Stud.name, Stud.id)
-            .all()
-    )
-    db.close()
-    df_2 = []
-    df_3 = []
-    df_4 = []
-    df_5 = []
-    for row in result_query:
-        if row[2] < 61:
-            df_2.append({'Stud_name': row[0], 'Stud_id': row[1], 'Успеваемость': row[2], 'mark': "неудовл."})
-        elif 60 < row[2] < 76:
-            df_3.append({'Stud_name': row[0], 'Stud_id': row[1], 'Успеваемость': row[2], 'mark': "удовл."})
-        elif 75 < row[2] < 91:
-            df_4.append({'Stud_name': row[0], 'Stud_id': row[1], 'Успеваемость': row[2], 'mark': "хор."})
-        else:
-            df_5.append({'Stud_name': row[0], 'Stud_id': row[1], 'Успеваемость': row[2], 'mark': "отл."})
-
-    df_list = [df_2, df_3, df_4, df_5]
-    print(df_list)
-    response = []
-    for list_of_mark in df_list:
-        marks = [item["Успеваемость"] for item in list_of_mark]
-        if len(marks) > 0:
-            response.append({'avg_total_points': sum(marks) / len(marks), 'mark': list_of_mark[0]['mark'],
-                             'percent': len(list_of_mark) / len(result_query)})
+    result_query = await db.execute(f"""
+        SELECT
+            CASE
+                WHEN Успеваемость > 60 AND Успеваемость < 76 THEN 'удовл.'
+                WHEN Успеваемость > 75 AND Успеваемость < 91 THEN 'хор.'
+                WHEN Успеваемость > 90 THEN 'отл.'
+                ELSE 'неудовл.'
+            END AS mark,
+            ROUND(COUNT(*) / count_all::DECIMAL, 2) AS percent,
+            ROUND(AVG(Успеваемость)::DECIMAL, 2) AS avg_total_points
+        FROM
+            (
+            SELECT DISTINCT
+                (SELECT s.name FROM stud s WHERE s.id = l.stud_id) AS stud_name,
+                (SELECT s.id FROM stud s WHERE s.id = l.stud_id) AS stud_id,
+                ROUND((SUM(l.mark_for_work) + SUM(l.test))::DECIMAL, 0) AS Успеваемость,
+                (
+                SELECT COUNT(DISTINCT stud_id) AS count_all 
+                FROM lesson l
+                WHERE l.team_id = {id_team}
+                ) AS count_all
+            FROM
+                lesson l
+            WHERE
+                l.team_id = {id_team}
+            GROUP BY 
+                stud_id
+            ) AS sub
+        GROUP BY 
+            mark, count_all;
+    """)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return response
+    return result_query.fetchall()
 
 
 @router.get('/api/attendance_num_for_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -825,50 +899,22 @@ async def total_marks_for_team(id_team: int, db=Depends(connect_db_data)):
                         "arrival": 24
                       },
             """)
-async def attendance_num_for_stud_for_team(id_team: int, db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
+async def attendance_num_for_stud_for_team(id_team: int, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
-
-    sub_query = (
-        db.query(
-            Lesson.stud_id,
-        )
-            .filter(and_(Lesson.team_id == id_team))
-            .distinct()
-            .all()
-    )
-    stud_id_list = [row[0] for row in sub_query]
-    sub_query = (
-        db.query(
-            Lesson.name,
-            (cast(func.count(case([(Lesson.arrival == 'П', 1)], else_=None)), Float)).label("arrival"),
-        )
-            .filter(and_(Lesson.team_id == id_team, Lesson.stud_id.in_(stud_id_list)))
-            .group_by(Lesson.name)
-            .all()
-    )
-    df_list = []
-    fix_sort = (
-        db.query(
-            Lesson.name
-        )
-            .filter(and_(Lesson.team_id == id_team, Lesson.stud_id == stud_id_list[0]))
-            .all()
-    )
-
-    for row in sub_query:
-        df_list.append({'name': row[0], 'arrival': row[1]})
-    df_true = []
-    for fixed_row in fix_sort:
-        for i in range(len(df_list)):
-            if fixed_row[0] in df_list[i]['name']:
-                df_true.append(df_list[i])
-                break
-
-    db.close()
+    result_query = await db.execute(f"""
+        select 
+            l.name,
+            l.id,
+            count(id) filter (where l.arrival ='П') over (partition by l.name) as "Посещаемость"
+        from
+            lesson l
+        where
+            l.team_id = {id_team}
+        order by id
+        limit 22
+        """)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return df_true
+    return result_query.fetchall()
 
 
 @router.get('/api/attendance_num_for_stud_for_team_stat_table', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -892,60 +938,28 @@ async def attendance_num_for_stud_for_team(id_team: int, db=Depends(connect_db_d
                         "Посещаемость": 26.666666666666668
                       },
             """)
-async def attendance_num_for_stud_for_team_stat_table(id_team: int, name_of_lesson: str, db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
+async def attendance_num_for_stud_for_team_stat_table(id_team: int, name_of_lesson: str, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
-
-    find_missing_studs = (
-        db.query(
-            Lesson.name.label("lesson_name"),
-            Stud.name,
-            Stud.id,
-            Lesson.id.label("Lesson_id"),
-        )
-            .filter(Lesson.team_id == id_team, Lesson.name == name_of_lesson, Lesson.arrival != 'П')
-            .join(Stud, Stud.id == Lesson.stud_id)
-            .group_by(Stud.name, Stud.id, Lesson.name, Lesson.id)
-            .all()
-    )
-    stud_id_list = [item[2] for item in find_missing_studs]
-    result_query = (
-        db.query(
-            Stud.name.label('stud_name'),
-            Stud.id,
-            Lesson.name,
-            Lesson.test,
-            Lesson.mark_for_work,
-            Lesson.arrival,
-            Lesson.date_of_add,
-        )
-            .filter(and_(Lesson.team_id == id_team, Lesson.stud_id.in_(stud_id_list)))
-            .join(Stud, Stud.id == Lesson.stud_id)
-            .all()
-    )
-    dict_stud = {}
-    for row in result_query:
-        if row[1] not in dict_stud:
-            dict_stud[row[1]] = []
-        if not any(d['name'] == name_of_lesson for d in dict_stud[row[1]]):
-            dict_stud[row[1]].append(
-                {'stud_name': row[0], 'id': row[1], 'name': row[2], 'test': row[3], 'mark_for_work': row[4],
-                 'arrival': row[5], 'date_of_add': row[6]})
-    response_list = []
-    for key in dict_stud.keys():
-        total_points_temp = (sum(d['test'] for d in dict_stud[key]) + sum(
-            d['mark_for_work'] for d in dict_stud[key]))
-
-        response_list.append({
-            'stud_name': dict_stud[key][0]['stud_name'],
-            'id': dict_stud[key][0]['id'],
-            'Успеваемость': total_points_temp if total_points_temp >= 0 else 0,
-            'Посещаемость': sum(1 for d in dict_stud[key] if d['arrival'] == 'П') / len(dict_stud[key]) * 100,
-        })
-    db.close()
+    result_query = await db.execute(f"""
+        SELECT sub.stud_name, sub.id, sub.Посещаемость, sub.Успеваемость
+        FROM (
+          SELECT
+            (SELECT s.name FROM stud s WHERE s.id = l.stud_id) AS stud_name,
+            (SELECT s.id FROM stud s WHERE s.id = l.stud_id) AS id,
+            l.name,
+            ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / COUNT(id) OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::DECIMAL, 2) AS Посещаемость,
+            ROUND((SUM(l.mark_for_work) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) + SUM(l.test) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW))::DECIMAL, 2) AS Успеваемость,
+            l.arrival
+          FROM
+            lesson l
+          WHERE
+            l.team_id = {id_team}
+        ) AS sub
+        WHERE
+          sub.name = '{name_of_lesson}' AND sub.arrival = 'Н';
+            """)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return response_list
+    return result_query.fetchall()
 
 
 # endregion
@@ -985,8 +999,8 @@ async def cum_sum_points_for_stud_for_team(id_team: int, id_stud: int, db=Depend
             Lesson.mark_for_work,
             Lesson.date_of_add,
         )
-            .filter(and_(Lesson.team_id == id_team, Lesson.stud_id == id_stud))
-            .all()
+        .filter(and_(Lesson.team_id == id_team, Lesson.stud_id == id_stud))
+        .all()
     )
     df_list = []
     counter = 1
@@ -1042,8 +1056,8 @@ async def attendance_dynamical_for_stud_for_team(id_team: int, id_stud: int, db=
             Lesson.name,
             Lesson.arrival,
         )
-            .filter(and_(Lesson.team_id == id_team, Lesson.stud_id == id_stud))
-            .all()
+        .filter(and_(Lesson.team_id == id_team, Lesson.stud_id == id_stud))
+        .all()
     )
     df_list = []
     for row in result_query:
@@ -1098,8 +1112,8 @@ async def attendance_static_for_stud_for_team(id_team: int, id_stud: int, db=Dep
             Lesson.name,
             Lesson.arrival,
         )
-            .filter(and_(Lesson.team_id == id_team, Lesson.stud_id == id_stud))
-            .all()
+        .filter(and_(Lesson.team_id == id_team, Lesson.stud_id == id_stud))
+        .all()
     )
     df_list = []
     for row in result_query:
@@ -1177,11 +1191,11 @@ async def attendance_static_stud_for_teams(id_team1: int, id_team2: int, db=Depe
                 Lesson.arrival)).label("arrival"),
             Team.id.label("team_id"),
         )
-            .filter(or_(Lesson.team_id == id_team1, Lesson.team_id == id_team2)).join(Stud,
-                                                                                      Stud.id == Lesson.stud_id).join(
+        .filter(or_(Lesson.team_id == id_team1, Lesson.team_id == id_team2)).join(Stud,
+                                                                                  Stud.id == Lesson.stud_id).join(
             Team, Team.id == Lesson.team_id)
-            .group_by(Stud.name, Stud.id, Team.name, Team.id)
-            .all()
+        .group_by(Stud.name, Stud.id, Team.name, Team.id)
+        .all()
     )
     df_list = []
     team_a = []
@@ -1262,11 +1276,11 @@ async def total_points_stud_for_teams(id_team1: int, id_team2: int, db=Depends(c
             (func.sum(Lesson.mark_for_work) + func.sum(Lesson.test)).label("total_points"),
             Team.id.label("team_id"),
         )
-            .filter(or_(Lesson.team_id == id_team1, Lesson.team_id == id_team2)).join(Stud,
-                                                                                      Stud.id == Lesson.stud_id).join(
+        .filter(or_(Lesson.team_id == id_team1, Lesson.team_id == id_team2)).join(Stud,
+                                                                                  Stud.id == Lesson.stud_id).join(
             Team, Team.id == Lesson.team_id)
-            .group_by(Stud.name, Stud.id, Team.name, Team.id)
-            .all()
+        .group_by(Stud.name, Stud.id, Team.name, Team.id)
+        .all()
     )
     df_list = []
     team_a = []
@@ -1333,11 +1347,11 @@ async def attendance_static_stud_for_all_teams(token: str, db=Depends(connect_db
             Teacher.id.label("teacher_id"),
             Teacher.name.label("teacher_name")
         ).filter(Team.name.in_(teams_true))
-            .join(Stud, Stud.id == Lesson.stud_id)
-            .join(Team, Team.id == Lesson.team_id)
-            .join(Teacher, Teacher.id == Lesson.teacher_id)
-            .group_by(Team.name, Team.id, Teacher.id, Teacher.name)
-            .all()
+        .join(Stud, Stud.id == Lesson.stud_id)
+        .join(Team, Team.id == Lesson.team_id)
+        .join(Teacher, Teacher.id == Lesson.teacher_id)
+        .group_by(Team.name, Team.id, Teacher.id, Teacher.name)
+        .all()
     )
     df_list = []
     for row in sub_query:
@@ -1386,13 +1400,13 @@ async def total_points_studs_for_all_teams(token: str, db=Depends(connect_db_dat
             Teacher.id.label("teacher_id"),
             Teacher.name.label("teacher_name"),
         )
-            .filter(Team.name.in_(teams_true))
-            .join(Stud, Stud.id == Lesson.stud_id)
-            .join(Team, Team.id == Lesson.team_id)
-            .join(Teacher, Teacher.id == Lesson.teacher_id)
+        .filter(Team.name.in_(teams_true))
+        .join(Stud, Stud.id == Lesson.stud_id)
+        .join(Team, Team.id == Lesson.team_id)
+        .join(Teacher, Teacher.id == Lesson.teacher_id)
 
-            .group_by(Team.name, Team.id, Teacher.id, Teacher.name)
-            .all()
+        .group_by(Team.name, Team.id, Teacher.id, Teacher.name)
+        .all()
     )
     df_list = []
     for row in sub_query:
@@ -1447,11 +1461,11 @@ async def attendance_static_for_specialities(token: str, speciality1: str, speci
             Stud.speciality,
             Stud.id,
         ).filter(Team.name.in_(teams_true), or_(Stud.speciality == speciality1, Stud.speciality == speciality2))
-            .join(Stud, Stud.id == Lesson.stud_id)
-            .join(Team, Team.id == Lesson.team_id)
-            .join(Teacher, Teacher.id == Lesson.teacher_id)
-            .group_by(Stud.speciality, Stud.id)
-            .all()
+        .join(Stud, Stud.id == Lesson.stud_id)
+        .join(Team, Team.id == Lesson.team_id)
+        .join(Teacher, Teacher.id == Lesson.teacher_id)
+        .group_by(Stud.speciality, Stud.id)
+        .all()
     )
     df_list = []
     team_a = []
@@ -1523,11 +1537,11 @@ async def total_points_for_specialities(token: str, speciality1: str, speciality
             Stud.speciality,
             Stud.id,
         ).filter(Team.name.in_(teams_true), or_(Stud.speciality == speciality1, Stud.speciality == speciality2))
-            .join(Stud, Stud.id == Lesson.stud_id)
-            .join(Team, Team.id == Lesson.team_id)
-            .join(Teacher, Teacher.id == Lesson.teacher_id)
-            .group_by(Stud.speciality, Stud.id)
-            .all()
+        .join(Stud, Stud.id == Lesson.stud_id)
+        .join(Team, Team.id == Lesson.team_id)
+        .join(Teacher, Teacher.id == Lesson.teacher_id)
+        .group_by(Stud.speciality, Stud.id)
+        .all()
     )
     df_list = []
     team_a = []
@@ -1594,11 +1608,11 @@ async def attendance_static_stud_for_all_specialities(token: str, lect: bool, db
             Stud.speciality,
             func.count(distinct(Stud.id)).label("studs_in_speciality"),
         ).filter(Team.name.in_(teams_true))
-            .join(Stud, Stud.id == Lesson.stud_id)
-            .join(Team, Team.id == Lesson.team_id)
-            .join(Teacher, Teacher.id == Lesson.teacher_id)
-            .group_by(Stud.speciality)
-            .all()
+        .join(Stud, Stud.id == Lesson.stud_id)
+        .join(Team, Team.id == Lesson.team_id)
+        .join(Teacher, Teacher.id == Lesson.teacher_id)
+        .group_by(Stud.speciality)
+        .all()
     )
     df_list = []
     for row in sub_query:
@@ -1643,12 +1657,12 @@ async def total_points_studs_for_all_specialities(token: str, lect: bool, db=Dep
             func.count(distinct(Stud.id)).label("studs_in_speciality"),
             (func.sum(Lesson.mark_for_work) + func.sum(Lesson.test)).label("total_points_sum"),
         )
-            .filter(Team.name.in_(teams_true))
-            .join(Stud, Stud.id == Lesson.stud_id)
-            .join(Team, Team.id == Lesson.team_id)
-            .join(Teacher, Teacher.id == Lesson.teacher_id)
-            .group_by(Stud.speciality)
-            .all()
+        .filter(Team.name.in_(teams_true))
+        .join(Stud, Stud.id == Lesson.stud_id)
+        .join(Team, Team.id == Lesson.team_id)
+        .join(Teacher, Teacher.id == Lesson.teacher_id)
+        .group_by(Stud.speciality)
+        .all()
     )
     df_list = []
     for row in sub_query:
@@ -1703,10 +1717,10 @@ async def kr_analyse_simple(token: str, type: int, kr: str,
                 ).filter(Team.name.in_(teams_true), Lesson.name == kr
                          # , Teacher.name.in_(teachers_true)
                          )
-                    .join(Stud, Stud.id == Lesson.stud_id)
-                    .join(Team, Team.id == Lesson.team_id)
-                    .join(Teacher, Teacher.id == Lesson.teacher_id)
-                    .all()
+                .join(Stud, Stud.id == Lesson.stud_id)
+                .join(Team, Team.id == Lesson.team_id)
+                .join(Teacher, Teacher.id == Lesson.teacher_id)
+                .all()
             )
         case 1:
             print("Группировка по направлениям")
@@ -1718,10 +1732,10 @@ async def kr_analyse_simple(token: str, type: int, kr: str,
                 ).filter(Team.name.in_(teams_true), Lesson.name == kr
                          # , Teacher.name.in_(teachers_true)
                          )
-                    .join(Stud, Stud.id == Lesson.stud_id)
-                    .join(Team, Team.id == Lesson.team_id)
-                    .join(Teacher, Teacher.id == Lesson.teacher_id)
-                    .all()
+                .join(Stud, Stud.id == Lesson.stud_id)
+                .join(Team, Team.id == Lesson.team_id)
+                .join(Teacher, Teacher.id == Lesson.teacher_id)
+                .all()
             )
         case 2:
             print("Группировка по преподавателям")
@@ -1733,10 +1747,10 @@ async def kr_analyse_simple(token: str, type: int, kr: str,
                 ).filter(Team.name.in_(teams_true), Lesson.name == kr
                          # , Teacher.name.in_(teachers_true)
                          )
-                    .join(Stud, Stud.id == Lesson.stud_id)
-                    .join(Team, Team.id == Lesson.team_id)
-                    .join(Teacher, Teacher.id == Lesson.teacher_id)
-                    .all()
+                .join(Stud, Stud.id == Lesson.stud_id)
+                .join(Team, Team.id == Lesson.team_id)
+                .join(Teacher, Teacher.id == Lesson.teacher_id)
+                .all()
             )
         case _:
             db.close()
@@ -1801,10 +1815,10 @@ async def kr_analyse_with_filters(token: str, kr: str, type_select: int, teacher
             Teacher.name.label("ФИО преподавателя"),
             Stud.speciality.label("Название направления обучения"),
         ).filter(Team.name.in_(teams), Lesson.name == kr, Teacher.name.in_(teachers), Stud.speciality.in_(specialities))
-            .join(Stud, Stud.id == Lesson.stud_id)
-            .join(Team, Team.id == Lesson.team_id)
-            .join(Teacher, Teacher.id == Lesson.teacher_id)
-            .all()
+        .join(Stud, Stud.id == Lesson.stud_id)
+        .join(Team, Team.id == Lesson.team_id)
+        .join(Teacher, Teacher.id == Lesson.teacher_id)
+        .all()
     )
     print(len(sub_query))
     dict_of_teams = {}

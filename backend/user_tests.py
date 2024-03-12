@@ -13,6 +13,7 @@ class UserTests(unittest.TestCase):
         self.client = TestClient(self.app)
 
     def test_a_registration_standard_a_success(self):
+        delete_test_user()
         # Test case for successful registration
         user_data = {
             "FIO": "string",
@@ -126,7 +127,6 @@ class UserTests(unittest.TestCase):
         response = self.client.get(f"/api/get_teams_for_user?token=token")
         self.assertEqual(response.status_code, 409)
 
-
     def test_get_student(self):
         student_id = 2
         response = self.client.get(f'/api/get_student?id_stud={student_id}')
@@ -149,7 +149,6 @@ class UserTests(unittest.TestCase):
         self.assertIsNone(response.json()["email"])
         self.assertIsNone(response.json()["date_of_add"])
         self.assertIsNone(response.json()["name"])
-
 
     def test_login_standard_success(self):
         # Test case for successful login
@@ -178,7 +177,7 @@ class UserTests(unittest.TestCase):
         self.assertEqual(response.status_code, 409)
         self.assertIn("Нельзя войти в несуществующий аккаунт/Неправильно введены данные", response.text)
 
+
 if __name__ == '__main__':
     # Create a TestSuite and add the desired tests in the desired order
-    print(delete_test_user())
     unittest.main()
