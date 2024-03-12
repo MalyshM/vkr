@@ -3,7 +3,7 @@ import unittest
 import aiohttp as aiohttp
 from handlers import delete_test_user
 
-
+asdasdasd
 class UserTests(unittest.TestCase):
     def setUp(self):
         self.base_url = 'http://localhost:8090'
