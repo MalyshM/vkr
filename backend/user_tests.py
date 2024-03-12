@@ -4,6 +4,8 @@ from fastapi.testclient import TestClient
 from handlers import delete_test_user
 from main import get_application
 
+import math
+
 
 class UserTests(unittest.TestCase):
     def setUp(self):
@@ -78,43 +80,54 @@ class UserTests(unittest.TestCase):
         self.assertIsInstance(response.json(), list)
 
         for user in response.json():
-            self.assertIn("id", user)
-            self.assertIn("isadmin", user)
-            self.assertIn("iscurator", user)
-            self.assertIn("email", user)
-            self.assertIn("fio", user)
-            self.assertIn("username", user)
-            self.assertIn("isteacher", user)
-            self.assertIn("date_of_add", user)
+            self.assertEqual(type(user["id"]), int)
+            self.assertEqual(type(user["isadmin"]), bool)
+            self.assertEqual(type(user["iscurator"]), bool)
+            self.assertEqual(type(user["email"]), str)
+            self.assertEqual(type(user["fio"]), str)
+            self.assertEqual(type(user["username"]), str)
+            self.assertEqual(type(user["isteacher"]), bool)
+            self.assertEqual(type(user["date_of_add"]), str)
 
+            # Проверка на none
+            self.assertIsNone(ser["id"])
+            self.assertIsNone(user["isadmin"])
+            self.assertIsNone(user["iscurator"])
+            self.assertIsNone(user["email"])
+            self.assertIsNone(user["fio"])
+            self.assertIsNone(user["username"])
+            self.assertIsNone(user["isteacher"])
+            self.assertIsNone(user["date_of_add"])
 
-    def test_get_teams_for_user(self):
-        response = self.client.get('/api/get_teams_for_user')
+    def test_get_teams_for_user_by_true_token(self):
+
+        login_data = {
+            "FIO": "string",
+            "username": "string",
+            "password": "string",
+            "email": "string"
+        }
+        response = self.client.post("/api/login_standard", json=login_data)
+        token = response.json()['access_token']
+
+        response = self.client.get(f"/api/get_teams_for_user?token={token}")
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers['content-type'], 'application/json')
 
-        data = response.json()
-        self.assertIsInstance(data, list)
+        self.assertIsInstance(response.json(), list)
+        for team in response.json():
+            self.assertEqual(type(team["id"]), int)
+            self.assertEqual(type(team["name"]), str)
 
-        # todo: Replace the expected_data with the actual expected data you want to test against
-        '''
-        expected_data = [
-            {
-                "id": 17,
-                "name": "ПиОА П-06.02"
-            },
-            {
-                "id": 39,
-                "name": "ПиОА П-07.03"
-            }
-        ]
+            self.assertIsNone(response.json()["id"])
+            self.assertIsNone(response.json()["name"])
 
-        self.assertEqual(data, expected_data)
-        '''
+    def test_get_teams_for_user_by_false_token(self):
+        response = self.client.get(f"/api/get_teams_for_user?token=token")
+        self.assertEqual(response.status_code, 409)
 
     def test_get_student(self):
-        # todo: Replace the student_id with the actual student ID you want to test
         student_id = 2
         response = self.client.get(f'/api/get_student?id_stud={student_id}')
 
@@ -124,16 +137,18 @@ class UserTests(unittest.TestCase):
         data = response.json()
         self.assertIsInstance(data, dict)
 
-        # todo: Replace the expected_data with the actual expected data you want to test against
-        expected_data = {
-            "speciality": "10.05.03 Информационная безопасность автоматизированных систем",
-            "id": 2,
-            "email": "stud0000278787@study.utmn.ru",
-            "date_of_add": "2024-01-13T00:00:00",
-            "name": "bcd765d44ffc513ca68a954f119ea527407c413e3486c7029ff0c5522343810a"
-        }
+        self.assertEqual(type(response.json()["speciality"]), str)
+        self.assertEqual(type(response.json()["id"]), int)
+        self.assertEqual(type(response.json()["email"]), str)
+        self.assertEqual(type(response.json()["date_of_add"]), str)
+        self.assertEqual(type(response.json()["name"]), str)
 
-        self.assertEqual(data, expected_data)
+        # Проверка на none
+        self.assertIsNone(response.json()["speciality"])
+        self.assertIsNone(response.json()["id"])
+        self.assertIsNone(response.json()["email"])
+        self.assertIsNone(response.json()["date_of_add"])
+        self.assertIsNone(response.json()["name"])
 
     def test_login_standard_success(self):
         # Test case for successful login
