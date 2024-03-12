@@ -988,40 +988,24 @@ async def attendance_num_for_stud_for_team_stat_table(id_team: int, name_of_less
                         "isTest": false
                       },
             """)
-async def cum_sum_points_for_stud_for_team(id_team: int, id_stud: int, db=Depends(connect_db_data)):
-    await asyncio.sleep(0)
+async def cum_sum_points_for_stud_for_team(id_team: int, id_stud: int, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
-
-    result_query = (
-        db.query(
-            Lesson.name,
-            Lesson.test,
-            Lesson.mark_for_work,
-            Lesson.date_of_add,
-        )
-        .filter(and_(Lesson.team_id == id_team, Lesson.stud_id == id_stud))
-        .all()
-    )
-    df_list = []
-    counter = 1
-    for row in result_query:
-        df_list.append(
-            {'name': row[0], 'test': row[1], 'mark_for_work': row[2], 'date_of_add': row[3], 'counter': counter})
-        counter += 1
-    df = pd.DataFrame(df_list)
-    print(df.head())
-    cum_sum = []
-    cum_sum.append(0.0)
-    response_list = []
-    for index, row in df.iterrows():
-        cum_sum.append(float(cum_sum[-1]) + float(row['mark_for_work']) + float(row['test']))
-        temp = True if row['test'] > 0.0 else False
-        response_list.append(
-            {'name': row['name'], 'cum_sum': cum_sum[-1] if cum_sum[-1] >= 0 else 0, 'counter': row['counter'],
-             'isTest': temp})
-    db.close()
+    result_query = await db.execute(f"""
+            SELECT
+                l.name,
+                ROUND((SUM(l.mark_for_work) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) + SUM(l.test) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW))::DECIMAL, 2) AS cum_sum,
+                row_number() over (PARTITION BY stud_id) as counter,
+                CASE
+                    WHEN l.test  >= 0 THEN false
+                    ELSE true
+                END AS test
+              FROM
+                lesson l
+              WHERE
+                l.team_id = {id_team} and l.stud_id = {id_stud}
+                    """)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return response_list
+    return result_query.fetchall()
 
 
 @router.get('/api/attendance_dynamical_for_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -1046,38 +1030,19 @@ async def cum_sum_points_for_stud_for_team(id_team: int, id_stud: int, db=Depend
                         "dynamical_arrival": 100
                       },
             """)
-async def attendance_dynamical_for_stud_for_team(id_team: int, id_stud: int, db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
+async def attendance_dynamical_for_stud_for_team(id_team: int, id_stud: int, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
-
-    result_query = (
-        db.query(
-            Lesson.name,
-            Lesson.arrival,
-        )
-        .filter(and_(Lesson.team_id == id_team, Lesson.stud_id == id_stud))
-        .all()
-    )
-    df_list = []
-    for row in result_query:
-        df_list.append({'name': row[0], 'arrival': row[1]})
-    df = pd.DataFrame(df_list)
-    # print(df.head())
-    dynamical_arrival = []
-    response_list = []
-    counter_all = 0
-    counter_arrived = 0
-    for index, row in df.iterrows():
-        if row['arrival'] == "П":
-            counter_arrived += 1
-        counter_all += 1
-        dynamical_arrival.append(float(counter_arrived / counter_all))
-        response_list.append({'name': row['name'], 'dynamical_arrival': dynamical_arrival[-1] * 100})
-
-    db.close()
+    result_query = await db.execute(f"""
+            SELECT
+                l.name,
+                ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / COUNT(id) OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::DECIMAL, 2) AS dynamical_arrival
+              FROM
+                lesson l
+              WHERE
+                l.team_id = {id_team} and l.stud_id = {id_stud}
+                    """)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return response_list
+    return result_query.fetchall()
 
 
 @router.get('/api/attendance_static_for_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -1102,39 +1067,62 @@ async def attendance_dynamical_for_stud_for_team(id_team: int, id_stud: int, db=
                         "static_arrival": 13.636363636363635
                       },
             """)
-async def attendance_static_for_stud_for_team(id_team: int, id_stud: int, db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
+async def attendance_static_for_stud_for_team(id_team: int, id_stud: int, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
-
-    result_query = (
-        db.query(
-            Lesson.name,
-            Lesson.arrival,
-        )
-        .filter(and_(Lesson.team_id == id_team, Lesson.stud_id == id_stud))
-        .all()
-    )
-    df_list = []
-    for row in result_query:
-        df_list.append({'name': row[0], 'arrival': row[1]})
-    df = pd.DataFrame(df_list)
-    # print(df.head())
-    static_arrival = []
-    response_list = []
-    counter_all = len(df_list)
-    counter_arrived = 0
-    for index, row in df.iterrows():
-        if row['arrival'] == "П":
-            counter_arrived += 1
-        static_arrival.append(float(counter_arrived / counter_all))
-        response_list.append({'name': row['name'], 'static_arrival': static_arrival[-1] * 100})
-
-    db.close()
+    result_query = await db.execute(f"""
+            SELECT
+                l.name,
+                ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / COUNT(id) OVER (PARTITION BY l.stud_id)::DECIMAL, 2) AS static_arrival
+              FROM
+                lesson l
+              WHERE
+                l.team_id = {id_team} and l.stud_id = {id_stud}
+                    """)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return response_list
+    return result_query.fetchall()
 
-
+@router.get('/api/all_in_one_for_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
+            tags=["Student page"], description=
+            """
+                    Получает id_team: int, id_stud: int
+                    Returns:
+                        response_list = []
+                        response_list.append({'name': row['name'], 'static_arrival': static_arrival[-1] * 100})
+                    \n
+                    [
+                      {
+                        "name": "Основные принципы организации Языка Python. Базовые элементы программирования и типы данных",
+                        "static_arrival": 4.545454545454546
+                      },
+                      {
+                        "name": "Основные принципы организации Языка Python. Базовые элементы программирования и типы данных1",
+                        "static_arrival": 9.090909090909092
+                      },
+                      {
+                        "name": "Основные принципы организации Языка Python. Базовые элементы программирования и типы данных2",
+                        "static_arrival": 13.636363636363635
+                      },
+            """)
+async def all_in_one_for_stud_for_team(id_team: int, id_stud: int, db: AsyncSession = Depends(connect_db_data)):
+    start_time = time.time()
+    result_query = await db.execute(f"""
+        SELECT
+            l.name,
+            ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / COUNT(id) OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::DECIMAL, 2) AS dynamical_arrival,
+            ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / COUNT(id) OVER (PARTITION BY l.stud_id)::DECIMAL, 2) AS static_arrival,
+            ROUND((SUM(l.mark_for_work) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) + SUM(l.test) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW))::DECIMAL, 2) AS cum_sum,
+            row_number() over (PARTITION BY stud_id) as counter,
+            CASE
+                WHEN l.test  >= 0 THEN false
+                ELSE true
+            END AS test
+          FROM
+            lesson l
+          WHERE
+            l.team_id = {id_team} and l.stud_id = {id_stud}
+                """)
+    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+    return result_query.fetchall()
 # endregion
 
 # Group comparison page
@@ -1176,52 +1164,37 @@ async def attendance_static_for_stud_for_team(id_team: int, id_stud: int, db=Dep
                         "team_id": 4
                       },
             """)
-async def attendance_static_stud_for_teams(id_team1: int, id_team2: int, db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
+async def attendance_static_stud_for_teams(id_team1: int, id_team2: int, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
-
-    sub_query = (
-        db.query(
-            Stud.name,
-            Stud.id,
-
-            Team.name.label("team_name"),
-            (cast(func.count(case([(Lesson.arrival == 'П', 1)], else_=None)), Float) / func.count(
-                Lesson.arrival)).label("arrival"),
-            Team.id.label("team_id"),
-        )
-        .filter(or_(Lesson.team_id == id_team1, Lesson.team_id == id_team2)).join(Stud,
-                                                                                  Stud.id == Lesson.stud_id).join(
-            Team, Team.id == Lesson.team_id)
-        .group_by(Stud.name, Stud.id, Team.name, Team.id)
-        .all()
-    )
+    res = await db.execute(f"""
+        SELECT DISTINCT
+            (SELECT s.name FROM stud s WHERE s.id = l.stud_id) AS name,
+            (SELECT s.id FROM stud s WHERE s.id = l.stud_id) AS id,
+            (SELECT t.name FROM team t WHERE t.id = l.team_id) AS team_name,
+            ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id) / COUNT(id) OVER (PARTITION BY l.stud_id)::DECIMAL, 2) AS static_arrival,
+            (SELECT t.id FROM team t WHERE t.id = l.team_id) AS team_id
+        FROM
+            lesson l
+        WHERE
+            l.team_id = {id_team1} OR l.team_id = {id_team2}
+        order by static_arrival desc
+    """)
+    mas = res.fetchall()
     df_list = []
     team_a = []
     team_b = []
     dict_team = {}
-    counter = 0
-    for row in sub_query:
-        if row[2] not in dict_team:
-            dict_team[row[2]] = counter
-            counter += 1
-        if dict_team[row[2]] == 0:
-            team_a.append({'name': row[0], 'id': row[1], 'team_name': row[2], 'arrival': row[3], 'team_id': row[4]})
-        elif dict_team[row[2]] == 1:
-            team_b.append({'name': row[0], 'id': row[1], 'team_name': row[2], 'arrival': row[3], 'team_id': row[4]})
-    team_a.sort(key=lambda x: x['arrival'], reverse=True)
-    team_b.sort(key=lambda x: x['arrival'], reverse=True)
-    # print(len(team_a))
-    # print(len(team_b))
-
+    for row in mas:
+        team_id = row[2]
+        if team_id not in dict_team:
+            dict_team[team_id] = len(dict_team)
+        team = team_a if dict_team[team_id] == 0 else team_b
+        team.append({'name': row[0], 'id': row[1], 'team_name': row[2], 'arrival': row[3], 'team_id': row[4]})
     for i in range(max(len(team_a), len(team_b))):
         if i < len(team_a):
             df_list.append(team_a[i])
         if i < len(team_b):
             df_list.append(team_b[i])
-    db.close()
-    # print(len(df_list))
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
     return df_list
 
@@ -1263,48 +1236,37 @@ async def attendance_static_stud_for_teams(id_team1: int, id_team2: int, db=Depe
                         "team_id": 4
                       },
             """)
-async def total_points_stud_for_teams(id_team1: int, id_team2: int, db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
+async def total_points_stud_for_teams(id_team1: int, id_team2: int, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
-
-    sub_query = (
-        db.query(
-            Stud.name,
-            Stud.id,
-            Team.name.label("team_name"),
-            (func.sum(Lesson.mark_for_work) + func.sum(Lesson.test)).label("total_points"),
-            Team.id.label("team_id"),
-        )
-        .filter(or_(Lesson.team_id == id_team1, Lesson.team_id == id_team2)).join(Stud,
-                                                                                  Stud.id == Lesson.stud_id).join(
-            Team, Team.id == Lesson.team_id)
-        .group_by(Stud.name, Stud.id, Team.name, Team.id)
-        .all()
-    )
+    res = await db.execute(f"""
+            SELECT DISTINCT
+                (SELECT s.name FROM stud s WHERE s.id = l.stud_id) AS name,
+                (SELECT s.id FROM stud s WHERE s.id = l.stud_id) AS id,
+                (SELECT t.name FROM team t WHERE t.id = l.team_id) AS team_name,
+                ROUND((SUM(l.mark_for_work) OVER (PARTITION BY stud_id) + SUM(l.test) OVER (PARTITION BY stud_id))::DECIMAL, 2) AS cum_sum,
+                (SELECT t.id FROM team t WHERE t.id = l.team_id) AS team_id
+            FROM
+                lesson l
+            WHERE
+                l.team_id = {id_team1} OR l.team_id = {id_team2}
+            order by cum_sum desc
+        """)
+    mas = res.fetchall()
     df_list = []
     team_a = []
     team_b = []
     dict_team = {}
-    counter = 0
-    for row in sub_query:
-        if row[2] not in dict_team:
-            dict_team[row[2]] = counter
-            counter += 1
-        if dict_team[row[2]] == 0:
-            team_a.append(
-                {'name': row[0], 'id': row[1], 'team_name': row[2], 'total_points': row[3], 'team_id': row[4]})
-        elif dict_team[row[2]] == 1:
-            team_b.append(
-                {'name': row[0], 'id': row[1], 'team_name': row[2], 'total_points': row[3], 'team_id': row[4]})
-    team_a.sort(key=lambda x: x['total_points'], reverse=True)
-    team_b.sort(key=lambda x: x['total_points'], reverse=True)
+    for row in mas:
+        team_id = row[2]
+        if team_id not in dict_team:
+            dict_team[team_id] = len(dict_team)
+        team = team_a if dict_team[team_id] == 0 else team_b
+        team.append({'name': row[0], 'id': row[1], 'team_name': row[2], 'total_points': row[3], 'team_id': row[4]})
     for i in range(max(len(team_a), len(team_b))):
         if i < len(team_a):
             df_list.append(team_a[i])
         if i < len(team_b):
             df_list.append(team_b[i])
-    db.close()
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
     return df_list
 
@@ -1332,34 +1294,25 @@ async def total_points_stud_for_teams(id_team1: int, id_team2: int, db=Depends(c
                         "teacher_name": "Трефилин Иван Андреевич"
                       },
             """)
-async def attendance_static_stud_for_all_teams(token: str, db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
+async def attendance_static_stud_for_all_teams(token: str, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
     teams = await get_teams_for_user_private(token, db)
-    teams_true = [team[1] for team in teams]
-    sub_query = (
-        db.query(
-            Team.name.label("team_name"),
-            (cast(func.count(case([(Lesson.arrival == 'П', 1)], else_=None)), Float) / func.count(
-                Lesson.arrival) * 100).label("arrival"),
-            Team.id.label("team_id"),
-            Teacher.id.label("teacher_id"),
-            Teacher.name.label("teacher_name")
-        ).filter(Team.name.in_(teams_true))
-        .join(Stud, Stud.id == Lesson.stud_id)
-        .join(Team, Team.id == Lesson.team_id)
-        .join(Teacher, Teacher.id == Lesson.teacher_id)
-        .group_by(Team.name, Team.id, Teacher.id, Teacher.name)
-        .all()
-    )
-    df_list = []
-    for row in sub_query:
-        df_list.append(
-            {'team_name': row[0], 'arrival': row[1], 'team_id': row[2], 'teacher_id': row[3], 'teacher_name': row[4]})
-    db.close()
+    teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    res = await db.execute(f"""
+        SELECT distinct
+            (SELECT t.name FROM team t WHERE t.id = l.team_id) AS team_name,
+            ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.team_id) / COUNT(id) OVER (PARTITION BY l.team_id)::DECIMAL, 2) AS arrival,
+            (SELECT t.id FROM team t WHERE t.id = l.team_id) AS team_id,
+            (SELECT t.id FROM teacher t WHERE t.id = l.teacher_id) AS teacher_id,
+            (SELECT t.name FROM teacher t WHERE t.id = l.teacher_id) AS teacher_name
+        FROM
+            lesson l
+        where
+            l.team_id in ({teams_true})
+        order by arrival desc
+    """)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return df_list
+    return res.fetchall()
 
 
 @router.get('/api/total_points_studs_for_all_teams', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -1385,7 +1338,25 @@ async def attendance_static_stud_for_all_teams(token: str, db=Depends(connect_db
                         "teacher_name": "Трефилин Иван Андреевич"
                       },
             """)
-async def total_points_studs_for_all_teams(token: str, db=Depends(connect_db_data)):
+async def total_points_studs_for_all_teams(token: str, db: AsyncSession = Depends(connect_db_data)):
+    start_time = time.time()
+    teams = await get_teams_for_user_private(token, db)
+    teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    res = await db.execute(f"""
+            SELECT distinct
+                (SELECT t.name FROM team t WHERE t.id = l.team_id) AS team_name,
+                ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.team_id) / COUNT(id) OVER (PARTITION BY l.team_id)::DECIMAL, 2) AS arrival,
+                (SELECT t.id FROM team t WHERE t.id = l.team_id) AS team_id,
+                (SELECT t.id FROM teacher t WHERE t.id = l.teacher_id) AS teacher_id,
+                (SELECT t.name FROM teacher t WHERE t.id = l.teacher_id) AS teacher_name
+            FROM
+                lesson l
+            where
+                l.team_id in ({teams_true})
+            order by arrival desc
+        """)
+    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+    return res.fetchall()
     # Create your plot using Plotly
     await asyncio.sleep(0)
     start_time = time.time()
