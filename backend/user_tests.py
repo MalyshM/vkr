@@ -1,20 +1,36 @@
+import asyncio
 import unittest
-from fastapi.testclient import TestClient
-
+import aiohttp as aiohttp
 from handlers import delete_test_user
-from main import get_application
-
-import math
 
 
 class UserTests(unittest.TestCase):
     def setUp(self):
-        self.app = get_application()
-        self.client = TestClient(self.app)
+        self.base_url = 'http://localhost:8090'
+        self.loop = asyncio.get_event_loop()
+
+    async def post_request(self, url: str, user_data_to_json: dict | None = None, token: str | None = None) -> dict:
+        async with aiohttp.ClientSession(trust_env=True) as session:
+            if token is None:
+                res = await session.post(self.base_url + url, json=user_data_to_json)
+            else:
+                res = await session.post(self.base_url + url + f"?token={token}")
+            return {'status': res.status, 'response_json': await res.json(), 'response_text': await res.text(),
+                    'headers': res.headers}
+
+    async def get_request(self, url: str, **params) -> dict:
+        async with aiohttp.ClientSession(trust_env=True) as session:
+            temp_str = '?'
+            for key, value in params.items():
+                temp_str += key + '=' + str(value) + '&'
+            if temp_str[-1] == '&': temp_str = temp_str[:-1]
+            if len(temp_str) == 1: temp_str = ''
+            res = await session.get(self.base_url + url + temp_str)
+            return {'status': res.status, 'response_json': await res.json(), 'response_text': await res.text(),
+                    'headers': res.headers}
 
     def test_a_registration_standard_a_success(self):
-        delete_test_user()
-        # Test case for successful registration
+        self.loop.run_until_complete(delete_test_user())
         user_data = {
             "FIO": "string",
             "username": "string",
@@ -24,11 +40,11 @@ class UserTests(unittest.TestCase):
             "isTeacher": True,
             "isCurator": True
         }
-
-        response = self.client.post("/api/registration_standard", json=user_data)
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("access_token", response.json())
-        self.assertEqual(response.json()["token_type"], "bearer")
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=user_data, url="/api/registration_standard"))
+        self.assertEqual(response['status'], 200)
+        self.assertIn("access_token", response['response_json'])
+        self.assertEqual(response['response_json']["token_type"], "bearer")
 
     def test_registration_standard_z_conflict(self):
         # Test case for registration with conflicting user data
@@ -41,15 +57,16 @@ class UserTests(unittest.TestCase):
             "isTeacher": False,
             "isCurator": False
         }
-
-        response = self.client.post("/api/registration_standard", json=user_data)
-        self.assertEqual(response.status_code, 409)
-        self.assertIn("Пользователь с такими данными уже существует", response.text)
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=user_data, url="/api/registration_standard"))
+        self.assertEqual(response['status'], 409)
+        self.assertIn("Пользователь с такими данными уже существует", response['response_text'])
 
     def test_z_get_user_by_false_token(self):
         # Test case for registration with conflicting user data
-        response = self.client.post("/api/get_current_user_dev?token=token")
-        self.assertEqual(response.status_code, 401)
+        response = self.loop.run_until_complete(
+            self.post_request(token="token", url="/api/get_current_user_dev"))
+        self.assertEqual(response['status'], 401)
 
     def test_z_get_user_by_true_token(self):
         # Test case for registration with conflicting user data
@@ -59,45 +76,47 @@ class UserTests(unittest.TestCase):
             "password": "string",
             "email": "string"
         }
-        response = self.client.post("/api/login_standard", json=login_data)
-        token = response.json()['access_token']
-        response = self.client.post(f"/api/get_current_user_dev?token={token}")
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["username"], "string")
-        self.assertEqual(response.json()["isadmin"], True)
-        self.assertEqual(response.json()["iscurator"], True)
-        self.assertEqual(response.json()["email"], "string")
-        self.assertEqual(response.json()["fio"], "string")
-        self.assertEqual(response.json()["isteacher"], True)
-        self.assertTrue(type(response.json()["date_of_add"]), str)
-        self.assertEqual(len(response.json()), 9)
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        token = response['response_json']['access_token']
+        response = self.loop.run_until_complete(
+            self.post_request(token=token, url="/api/get_current_user_dev"))
+        self.assertEqual(response['status'], 200)
+        self.assertEqual(response['response_json']["username"], "string")
+        self.assertEqual(response['response_json']["isadmin"], True)
+        self.assertEqual(response['response_json']["iscurator"], True)
+        self.assertEqual(response['response_json']["email"], "string")
+        self.assertEqual(response['response_json']["fio"], "string")
+        self.assertEqual(response['response_json']["isteacher"], True)
+        self.assertTrue(type(response['response_json']["date_of_add"]), str)
+        self.assertEqual(len(response['response_json']), 9)
 
     def test_get_all_users(self):
-        response = self.client.get('/api/get_all_users')
+        response = self.loop.run_until_complete(
+            self.get_request(url='/api/get_all_users'))
+        self.assertEqual(response['status'], 200)
 
-        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response['response_json'], list)
 
-        self.assertIsInstance(response.json(), list)
-
-        for user in response.json():
-            self.assertEqual(type(user["id"]), int)
-            self.assertEqual(type(user["isadmin"]), bool)
-            self.assertEqual(type(user["iscurator"]), bool)
-            self.assertEqual(type(user["email"]), str)
-            self.assertEqual(type(user["fio"]), str)
-            self.assertEqual(type(user["username"]), str)
-            self.assertEqual(type(user["isteacher"]), bool)
-            self.assertEqual(type(user["date_of_add"]), str)
+        for user in response['response_json']:
+            self.assertIsInstance(user["id"], int)
+            self.assertIsInstance(user["isadmin"], bool)
+            self.assertIsInstance(user["iscurator"], bool)
+            self.assertIsInstance(user["email"], str)
+            self.assertIsInstance(user["fio"], str)
+            self.assertIsInstance(user["username"], str)
+            self.assertIsInstance(user["isteacher"], bool)
+            self.assertIsInstance(user["date_of_add"], str)
 
             # Проверка на none
-            self.assertIsNone(ser["id"])
-            self.assertIsNone(user["isadmin"])
-            self.assertIsNone(user["iscurator"])
-            self.assertIsNone(user["email"])
-            self.assertIsNone(user["fio"])
-            self.assertIsNone(user["username"])
-            self.assertIsNone(user["isteacher"])
-            self.assertIsNone(user["date_of_add"])
+            self.assertIsNotNone(user["id"])
+            self.assertIsNotNone(user["isadmin"])
+            self.assertIsNotNone(user["iscurator"])
+            self.assertIsNotNone(user["email"])
+            self.assertIsNotNone(user["fio"])
+            self.assertIsNotNone(user["username"])
+            self.assertIsNotNone(user["isteacher"])
+            self.assertIsNotNone(user["date_of_add"])
 
     def test_get_teams_for_user_by_true_token(self):
 
@@ -107,48 +126,49 @@ class UserTests(unittest.TestCase):
             "password": "string",
             "email": "string"
         }
-        response = self.client.post("/api/login_standard", json=login_data)
-        token = response.json()['access_token']
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        params = {'token': response['response_json']['access_token']}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/get_teams_for_user", **params))
 
-        response = self.client.get(f"/api/get_teams_for_user?token={token}")
+        self.assertEqual(response['status'], 200)
+        self.assertEqual(response['headers']['content-type'], 'application/json')
 
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.headers['content-type'], 'application/json')
-
-        self.assertIsInstance(response.json(), list)
-        for team in response.json():
-            self.assertEqual(type(team["id"]), int)
-            self.assertEqual(type(team["name"]), str)
-
-            self.assertIsNone(response.json()["id"])
-            self.assertIsNone(response.json()["name"])
+        self.assertIsInstance(response['response_json'], list)
+        for team in response['response_json']:
+            self.assertIsInstance(team["id"], int)
+            self.assertIsInstance(team["name"], str)
+            self.assertIsNotNone(team["id"])
+            self.assertIsNotNone(team["name"])
 
     def test_get_teams_for_user_by_false_token(self):
-        response = self.client.get(f"/api/get_teams_for_user?token=token")
-        self.assertEqual(response.status_code, 409)
+        params = {'token': 'token'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/get_teams_for_user", **params))
+        self.assertEqual(response['status'], 401)
 
     def test_get_student(self):
-        student_id = 2
-        response = self.client.get(f'/api/get_student?id_stud={student_id}')
+        params = {'id_stud': 2}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/get_student", **params))
+        self.assertEqual(response['status'], 200)
+        self.assertEqual(response['headers']['content-type'], 'application/json')
 
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.headers['content-type'], 'application/json')
-
-        data = response.json()
+        data = response['response_json'][0]
         self.assertIsInstance(data, dict)
 
-        self.assertEqual(type(response.json()["speciality"]), str)
-        self.assertEqual(type(response.json()["id"]), int)
-        self.assertEqual(type(response.json()["email"]), str)
-        self.assertEqual(type(response.json()["date_of_add"]), str)
-        self.assertEqual(type(response.json()["name"]), str)
-
+        self.assertIsInstance(data["speciality"], str)
+        self.assertIsInstance(data["id"], int)
+        self.assertIsInstance(data["email"], str)
+        self.assertIsInstance(data["date_of_add"], str)
+        self.assertIsInstance(data["name"], str)
         # Проверка на none
-        self.assertIsNone(response.json()["speciality"])
-        self.assertIsNone(response.json()["id"])
-        self.assertIsNone(response.json()["email"])
-        self.assertIsNone(response.json()["date_of_add"])
-        self.assertIsNone(response.json()["name"])
+        self.assertIsNotNone(data["speciality"])
+        self.assertIsNotNone(data["id"])
+        self.assertIsNotNone(data["email"])
+        self.assertIsNotNone(data["date_of_add"])
+        self.assertIsNotNone(data["name"])
 
     def test_login_standard_success(self):
         # Test case for successful login
@@ -158,11 +178,11 @@ class UserTests(unittest.TestCase):
             "password": "string",
             "email": "string"
         }
-
-        response = self.client.post("/api/login_standard", json=user_data)
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("access_token", response.json())
-        self.assertEqual(response.json()["token_type"], "bearer")
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=user_data, url="/api/login_standard"))
+        self.assertEqual(response['status'], 200)
+        self.assertIn("access_token", response['response_json'])
+        self.assertEqual(response['response_json']["token_type"], "bearer")
 
     def test_login_standard_invalid_user(self):
         # Test case for login with invalid user data
@@ -173,11 +193,11 @@ class UserTests(unittest.TestCase):
             "email": "invalid"
         }
 
-        response = self.client.post("/api/login_standard", json=user_data)
-        self.assertEqual(response.status_code, 409)
-        self.assertIn("Нельзя войти в несуществующий аккаунт/Неправильно введены данные", response.text)
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=user_data, url="/api/login_standard"))
+        self.assertEqual(response['status'], 409)
+        self.assertIn("Нельзя войти в несуществующий аккаунт/Неправильно введены данные", response['response_text'])
 
 
 if __name__ == '__main__':
-    # Create a TestSuite and add the desired tests in the desired order
     unittest.main()

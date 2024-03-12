@@ -29,7 +29,12 @@ async def connect_db_users() -> AsyncSession:
     async with async_session_users() as session:
         yield session
 
-
+def connect_db_data_old():
+    DATABASE_URL = "postgresql://postgres:admin@localhost/vkr_db"
+    engine = create_engine(DATABASE_URL)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    return session
 class Rmup(Base):
     __tablename__ = 'rmup'
 
