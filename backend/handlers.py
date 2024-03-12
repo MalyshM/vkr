@@ -202,14 +202,15 @@ async def delete_all_users(db: AsyncSession = Depends(connect_db_users)):
     return {"message": "All users deleted successfully"}
 
 
-async def delete_test_user(db: AsyncSession = Depends(connect_db_users)):
-    await db.execute("""
-        DELETE FROM users u
-         where u.username = 'string' and 
-         u.email = 'string' and 
-         u.fio = 'string'
-     """)
-    await db.commit()
+async def delete_test_user():
+    async with async_session_users() as db:
+        await db.execute("""
+            DELETE FROM users u
+             where u.username = 'string' and 
+             u.email = 'string' and 
+             u.fio = 'string'
+         """)
+        await db.commit()
     return {"message": "test user deleted successfully"}
 
 
@@ -1340,55 +1341,26 @@ async def attendance_static_stud_for_all_teams(token: str, db: AsyncSession = De
             """)
 async def total_points_studs_for_all_teams(token: str, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
-    teams = await get_teams_for_user_private(token, db)
+    teams = await get_teams_for_user_private_without_lect(token, db)
     teams_true = ', '.join([f"'{team[0]}'" for team in teams])
     res = await db.execute(f"""
-            SELECT distinct
-                (SELECT t.name FROM team t WHERE t.id = l.team_id) AS team_name,
-                ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.team_id) / COUNT(id) OVER (PARTITION BY l.team_id)::DECIMAL, 2) AS arrival,
-                (SELECT t.id FROM team t WHERE t.id = l.team_id) AS team_id,
-                (SELECT t.id FROM teacher t WHERE t.id = l.teacher_id) AS teacher_id,
-                (SELECT t.name FROM teacher t WHERE t.id = l.teacher_id) AS teacher_name
-            FROM
-                lesson l
-            where
-                l.team_id in ({teams_true})
-            order by arrival desc
+        SELECT
+            (SELECT t.name FROM team t WHERE t.id = l.team_id) AS team_name,
+            ROUND(((SUM(l.mark_for_work) + SUM(l.test))/COUNT(DISTINCT stud_id))::DECIMAL, 2) AS avg_total_points,
+            (SELECT t.id FROM team t WHERE t.id = l.team_id) AS team_id,
+            (SELECT t.id FROM teacher t WHERE t.id = l.teacher_id) AS teacher_id,
+            (SELECT t.name FROM teacher t WHERE t.id = l.teacher_id) AS teacher_name
+        FROM
+            lesson l
+        WHERE
+            l.team_id IN ({teams_true})
+        GROUP BY
+            team_id, teacher_id, teacher_name, team_name
+        ORDER BY
+            avg_total_points DESC;
         """)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
     return res.fetchall()
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
-    start_time = time.time()
-    teams = await get_teams_for_user_private_without_lect(token, db)
-    teams_true = [team[1] for team in teams]
-    sub_query = (
-        db.query(
-            Team.name.label("team_name"),
-            func.count(distinct(Stud.id)).label("studs_in_team"),
-            ((func.sum(Lesson.mark_for_work) + func.sum(Lesson.test))).label("total_points_sum"),
-            Team.id.label("team_id"),
-            Teacher.id.label("teacher_id"),
-            Teacher.name.label("teacher_name"),
-        )
-        .filter(Team.name.in_(teams_true))
-        .join(Stud, Stud.id == Lesson.stud_id)
-        .join(Team, Team.id == Lesson.team_id)
-        .join(Teacher, Teacher.id == Lesson.teacher_id)
-
-        .group_by(Team.name, Team.id, Teacher.id, Teacher.name)
-        .all()
-    )
-    df_list = []
-    for row in sub_query:
-        # print(row[2])
-        # print(row[1])
-        df_list.append(
-            {'team_name': row[0], 'avg_total_points': row[2] / row[1], 'team_id': row[3], 'teacher_id': row[4],
-             'teacher_name': row[5]})
-    db.close()
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return df_list
 
 
 # endregion
