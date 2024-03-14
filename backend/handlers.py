@@ -1,21 +1,16 @@
-import asyncio
 import logging
 import time
 from datetime import datetime, timedelta
 from typing import Optional
 
-import matplotlib.pyplot as plt
 import jwt
-import pandas as pd
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy import func, Float
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql.expression import and_, case, cast, or_, distinct
 from starlette import status
 from starlette.exceptions import HTTPException
 
-from models import connect_db_data, connect_db_users, Lesson, Team, User, Stud, Teacher, async_session_users
+from models import connect_db_data, connect_db_users, User, async_session_users
 from schemas import UserRegistration, TokenData, UserLogin
 from util import Hasher
 
@@ -52,7 +47,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
                          isCurator: bool
                      (по сути просто словарь с ключами FIO, username и тд)
                      Raises:
-                         Если юзер есть, то  raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Пользователь с такими данными уже существует(юзернейм, емейл)")
+                         Если юзер есть, то  raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Пользователь с такими данными уже существует(юзернейм, е-мейл)")
  
                      Returns:
                          {"access_token": access_token, "token_type": "bearer"}
@@ -372,7 +367,6 @@ async def get_teams_for_user_private_without_lect(token: str, db):
         """)
         return response.fetchall()
     elif user.isteacher:
-        # todo вот эту строчку поменять шо она будет искать подстроку user_fio в Teacher.name
         response = await db.execute(f"""
                     select
                         distinct t.id,
@@ -438,7 +432,6 @@ async def get_teams_for_user_without_lect(token: str, db: AsyncSession = Depends
             """)
         return response.fetchall()
     elif user.isteacher:
-        # todo вот эту строчку поменять шо она будет искать подстроку user_fio в Teacher.name
         response = await db.execute(f"""
                         select
                             distinct t.id,
@@ -523,7 +516,6 @@ async def get_all_specialities(token: str, db: AsyncSession = Depends(connect_db
         """)
         return response.fetchall()
     elif user.isteacher:
-        # todo вот эту строчку поменять шо она будет искать подстроку user_fio в Teacher.name
         response = await db.execute(f"""
             select distinct
                 s.speciality 
@@ -615,7 +607,6 @@ async def get_all_teachers_unique(token: str, db: AsyncSession = Depends(connect
         """)
         return response.fetchall()
     elif user.isteacher:
-        # todo вот эту строчку поменять шо она будет искать подстроку user_fio в Teacher.name
         response = await db.execute(f"""
             select distinct
                 t.id,
@@ -665,7 +656,6 @@ async def get_all_teachers(token: str, db: AsyncSession = Depends(connect_db_dat
             """)
         return response.fetchall()
     elif user.isteacher:
-        # todo вот эту строчку поменять шо она будет искать подстроку user_fio в Teacher.name
         response = await db.execute(f"""
             select distinct
                 t.id,
@@ -1650,12 +1640,12 @@ async def all_for_studs_for_all_specialities(token: str, lect: bool, db: AsyncSe
                         12.3,
                         2,
             """)
-async def kr_analyse_simple(token: str, type: int, kr: str,
+async def kr_analyse_simple(token: str, type_group_by: int, kr: str,
                             db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
     teams = await get_teams_for_user_private_without_lect(token, db)
     teams_true = ', '.join([f"'{team[0]}'" for team in teams])
-    match type:
+    match type_group_by:
         case 0:
             fill_query_str = '(select t.name from team t where t.id = l.team_id)'
             fill_query_str2 = 'group by l.team_id'
@@ -1766,7 +1756,7 @@ async def kr_analyse_with_filters(token: str, kr: str, type_select: int, teacher
         inner join team t1 on t1.id = l.team_id
         inner join stud s on s.id = l.stud_id
         WHERE
-            l.name = 'Организация функций30'
+            l.name = '{kr}'
             and l.team_id IN ({teams})
             and t.id IN ({teachers})
             and s.speciality IN ({specialities})
