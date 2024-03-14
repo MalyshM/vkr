@@ -939,7 +939,8 @@ async def attendance_num_for_stud_for_team(id_team: int, db: AsyncSession = Depe
                         "Посещаемость": 26.666666666666668
                       },
             """)
-async def attendance_num_for_stud_for_team_stat_table(id_team: int, name_of_lesson: str, db: AsyncSession = Depends(connect_db_data)):
+async def attendance_num_for_stud_for_team_stat_table(id_team: int, name_of_lesson: str,
+                                                      db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
     result_query = await db.execute(f"""
         SELECT sub.stud_name, sub.id, sub.Посещаемость, sub.Успеваемость
@@ -1031,7 +1032,8 @@ async def cum_sum_points_for_stud_for_team(id_team: int, id_stud: int, db: Async
                         "dynamical_arrival": 100
                       },
             """)
-async def attendance_dynamical_for_stud_for_team(id_team: int, id_stud: int, db: AsyncSession = Depends(connect_db_data)):
+async def attendance_dynamical_for_stud_for_team(id_team: int, id_stud: int,
+                                                 db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
     result_query = await db.execute(f"""
             SELECT
@@ -1082,6 +1084,7 @@ async def attendance_static_for_stud_for_team(id_team: int, id_stud: int, db: As
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
     return result_query.fetchall()
 
+
 @router.get('/api/all_in_one_for_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
             tags=["Student page"], description=
             """
@@ -1124,6 +1127,8 @@ async def all_in_one_for_stud_for_team(id_team: int, id_stud: int, db: AsyncSess
                 """)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
     return result_query.fetchall()
+
+
 # endregion
 
 # Group comparison page
@@ -1387,54 +1392,42 @@ async def total_points_studs_for_all_teams(token: str, db: AsyncSession = Depend
                       },
             """)
 async def attendance_static_for_specialities(token: str, speciality1: str, speciality2: str, lect: bool,
-                                             db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
+                                             db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
     if lect:
         teams = await get_teams_for_user_private(token, db)
     else:
         teams = await get_teams_for_user_private_without_lect(token, db)
-    teams_true = [team[1] for team in teams]
-    sub_query = (
-        db.query(
-            # Team.name.label("team_name"),
-            (cast(func.count(case([(Lesson.arrival == 'П', 1)], else_=None)), Float) / func.count(
-                Lesson.arrival) * 100).label("arrival"),
-            Stud.speciality,
-            Stud.id,
-        ).filter(Team.name.in_(teams_true), or_(Stud.speciality == speciality1, Stud.speciality == speciality2))
-        .join(Stud, Stud.id == Lesson.stud_id)
-        .join(Team, Team.id == Lesson.team_id)
-        .join(Teacher, Teacher.id == Lesson.teacher_id)
-        .group_by(Stud.speciality, Stud.id)
-        .all()
-    )
+    teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    res = await db.execute(f"""
+        SELECT DISTINCT
+            ROUND(COUNT(l.id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id) / COUNT(l.id) OVER (PARTITION BY l.stud_id)::DECIMAL, 2) AS arrival,
+            s.speciality AS speciality,
+            s.id AS id
+        FROM
+            lesson l
+        inner join stud s on s.id = l.stud_id
+        WHERE
+            l.team_id IN ({teams_true})
+            and (s.speciality = '{speciality1}' or s.speciality = '{speciality2}')
+        order by arrival desc
+        """)
+    mas = res.fetchall()
     df_list = []
     team_a = []
     team_b = []
     dict_team = {}
-    counter = 0
-    for row in sub_query:
-        if row[1] not in dict_team:
-            dict_team[row[1]] = counter
-            counter += 1
-        if dict_team[row[1]] == 0:
-            team_a.append({'arrival': row[0], 'speciality': row[1], 'id': row[2]})
-        elif dict_team[row[1]] == 1:
-            team_b.append({'arrival': row[0], 'speciality': row[1], 'id': row[2]})
-    team_a.sort(key=lambda x: x['arrival'], reverse=True)
-    team_b.sort(key=lambda x: x['arrival'], reverse=True)
-    # print(len(team_a))
-    # print(len(team_b))
-
+    for row in mas:
+        team_id = row[1]
+        if team_id not in dict_team:
+            dict_team[team_id] = len(dict_team)
+        team = team_a if dict_team[team_id] == 0 else team_b
+        team.append({'arrival': row[0], 'speciality': row[1], 'id': row[2]})
     for i in range(max(len(team_a), len(team_b))):
         if i < len(team_a):
             df_list.append(team_a[i])
         if i < len(team_b):
             df_list.append(team_b[i])
-    db.close()
-    # print(len(df_list))
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
     return df_list
 
@@ -1464,53 +1457,42 @@ async def attendance_static_for_specialities(token: str, speciality1: str, speci
                       },
             """)
 async def total_points_for_specialities(token: str, speciality1: str, speciality2: str, lect: bool,
-                                        db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
+                                        db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
     if lect:
         teams = await get_teams_for_user_private(token, db)
     else:
         teams = await get_teams_for_user_private_without_lect(token, db)
-    teams_true = [team[1] for team in teams]
-    sub_query = (
-        db.query(
-            # Team.name.label("team_name"),
-            (func.sum(Lesson.mark_for_work) + func.sum(Lesson.test)).label("total_points"),
-            Stud.speciality,
-            Stud.id,
-        ).filter(Team.name.in_(teams_true), or_(Stud.speciality == speciality1, Stud.speciality == speciality2))
-        .join(Stud, Stud.id == Lesson.stud_id)
-        .join(Team, Team.id == Lesson.team_id)
-        .join(Teacher, Teacher.id == Lesson.teacher_id)
-        .group_by(Stud.speciality, Stud.id)
-        .all()
-    )
+    teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    res = await db.execute(f"""
+            SELECT DISTINCT
+                ROUND((SUM(l.mark_for_work) OVER (PARTITION BY stud_id) + SUM(l.test) OVER (PARTITION BY stud_id))::DECIMAL, 2) AS total_points,
+                s.speciality AS speciality,
+                s.id AS id
+            FROM
+                lesson l
+            inner join stud s on s.id = l.stud_id
+            WHERE
+                l.team_id IN ({teams_true})
+                and (s.speciality = '{speciality1}' or s.speciality = '{speciality2}')
+            order by arrival desc
+            """)
+    mas = res.fetchall()
     df_list = []
     team_a = []
     team_b = []
     dict_team = {}
-    counter = 0
-    for row in sub_query:
-        if row[1] not in dict_team:
-            dict_team[row[1]] = counter
-            counter += 1
-        if dict_team[row[1]] == 0:
-            team_a.append({'total_points': row[0] if row[0] > 0 else 0, 'speciality': row[1], 'id': row[2]})
-        elif dict_team[row[1]] == 1:
-            team_b.append({'total_points': row[0] if row[0] > 0 else 0, 'speciality': row[1], 'id': row[2]})
-    team_a.sort(key=lambda x: x['total_points'], reverse=True)
-    team_b.sort(key=lambda x: x['total_points'], reverse=True)
-    # print(len(team_a))
-    # print(len(team_b))
-
+    for row in mas:
+        team_id = row[1]
+        if team_id not in dict_team:
+            dict_team[team_id] = len(dict_team)
+        team = team_a if dict_team[team_id] == 0 else team_b
+        team.append({'total_points': row[0] if row[0] > 0 else 0, 'speciality': row[1], 'id': row[2]})
     for i in range(max(len(team_a), len(team_b))):
         if i < len(team_a):
             df_list.append(team_a[i])
         if i < len(team_b):
             df_list.append(team_b[i])
-    db.close()
-    # print(len(df_list))
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
     return df_list
 
@@ -1534,36 +1516,29 @@ async def total_points_for_specialities(token: str, speciality1: str, speciality
                         "studs_in_speciality": 23
                       },
             """)
-async def attendance_static_stud_for_all_specialities(token: str, lect: bool, db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
+async def attendance_static_stud_for_all_specialities(token: str, lect: bool,
+                                                      db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
     if lect:
         teams = await get_teams_for_user_private(token, db)
     else:
         teams = await get_teams_for_user_private_without_lect(token, db)
-    teams_true = [team[1] for team in teams]
-    sub_query = (
-        db.query(
-            # Team.name.label("team_name"),
-            (cast(func.count(case([(Lesson.arrival == 'П', 1)], else_=None)), Float) / func.count(
-                Lesson.arrival) * 100).label("arrival"),
-            Stud.speciality,
-            func.count(distinct(Stud.id)).label("studs_in_speciality"),
-        ).filter(Team.name.in_(teams_true))
-        .join(Stud, Stud.id == Lesson.stud_id)
-        .join(Team, Team.id == Lesson.team_id)
-        .join(Teacher, Teacher.id == Lesson.teacher_id)
-        .group_by(Stud.speciality)
-        .all()
-    )
-    df_list = []
-    for row in sub_query:
-        df_list.append(
-            {'arrival': row[0], 'Stud_speciality': row[1], 'studs_in_speciality': row[2]})
-    db.close()
+    teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    res = await db.execute(f"""
+        SELECT
+            ROUND(COUNT(l.id) FILTER (WHERE l.arrival = 'П') / COUNT(l.id)::DECIMAL, 2) AS arrival,
+            s.speciality AS Stud_speciality,
+            count(distinct s.id) AS studs_in_speciality
+        FROM
+            lesson l
+        inner join stud s on s.id = l.stud_id
+        WHERE
+            l.team_id IN ({teams_true})
+        group by s.speciality 
+        order by arrival desc
+                """)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return df_list
+    return res.fetchall()
 
 
 @router.get('/api/total_points_studs_for_all_specialities', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -1585,37 +1560,73 @@ async def attendance_static_stud_for_all_specialities(token: str, lect: bool, db
                         "studs_in_speciality": 23
                       },
             """)
-async def total_points_studs_for_all_specialities(token: str, lect: bool, db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
+async def total_points_studs_for_all_specialities(token: str, lect: bool, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
     if lect:
         teams = await get_teams_for_user_private(token, db)
     else:
         teams = await get_teams_for_user_private_without_lect(token, db)
-    teams_true = [team[1] for team in teams]
-    sub_query = (
-        db.query(
-            Stud.speciality,
-            func.count(distinct(Stud.id)).label("studs_in_speciality"),
-            (func.sum(Lesson.mark_for_work) + func.sum(Lesson.test)).label("total_points_sum"),
-        )
-        .filter(Team.name.in_(teams_true))
-        .join(Stud, Stud.id == Lesson.stud_id)
-        .join(Team, Team.id == Lesson.team_id)
-        .join(Teacher, Teacher.id == Lesson.teacher_id)
-        .group_by(Stud.speciality)
-        .all()
-    )
-    df_list = []
-    for row in sub_query:
-        # print(row[2])
-        # print(row[1])
-        df_list.append(
-            {'Stud_speciality': row[0], 'avg_total_points': row[2] / row[1], 'studs_in_speciality': row[1]})
-    db.close()
+    teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    res = await db.execute(f"""
+            select
+                s.speciality AS Stud_speciality,
+                ROUND(((SUM(l.mark_for_work) + SUM(l.test))/COUNT(DISTINCT stud_id))::DECIMAL, 2) AS avg_total_points,
+                count(distinct s.id) AS studs_in_speciality
+            FROM
+                lesson l
+            inner join stud s on s.id = l.stud_id
+            WHERE
+                l.team_id IN ({teams_true})
+            group by s.speciality 
+            order by avg_total_points desc
+    """)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return df_list
+    return res.fetchall()
+
+
+@router.get('/api/attendance_static_total_points_studs_for_all_specialities', name='Plot:plot',
+            status_code=status.HTTP_200_OK,
+            tags=["Speciality comparison page"], description=
+            """
+                    Получает token: str, lect: bool,
+                    Returns:
+                        [{'Stud_speciality': row[0], 'avg_total_points': row[2] / row[1], 'studs_in_speciality': row[1]},...]
+                    \n
+                    [
+                      {
+                        "Stud_speciality": "01.03.01 Математика",
+                        "avg_total_points": 42.32272727272727,
+                        "studs_in_speciality": 22
+                      },
+                      {
+                        "Stud_speciality": "01.03.03 Механика и математическое моделирование",
+                        "avg_total_points": 56.73652608695652,
+                        "studs_in_speciality": 23
+                      },
+            """)
+async def all_for_studs_for_all_specialities(token: str, lect: bool, db: AsyncSession = Depends(connect_db_data)):
+    start_time = time.time()
+    if lect:
+        teams = await get_teams_for_user_private(token, db)
+    else:
+        teams = await get_teams_for_user_private_without_lect(token, db)
+    teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    res = await db.execute(f"""
+            select
+                s.speciality AS Stud_speciality,
+                ROUND(((SUM(l.mark_for_work) + SUM(l.test))/COUNT(DISTINCT stud_id))::DECIMAL, 2) AS avg_total_points,
+                ROUND(COUNT(l.id) FILTER (WHERE l.arrival = 'П') / COUNT(l.id)::DECIMAL, 2) AS arrival,
+                count(distinct s.id) AS studs_in_speciality
+            FROM
+                lesson l
+            inner join stud s on s.id = l.stud_id
+            WHERE
+                l.team_id IN ({teams_true})
+            group by s.speciality 
+            order by avg_total_points desc
+    """)
+    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+    return res.fetchall()
 
 
 # endregion
@@ -1640,75 +1651,37 @@ async def total_points_studs_for_all_specialities(token: str, lect: bool, db=Dep
                         2,
             """)
 async def kr_analyse_simple(token: str, type: int, kr: str,
-                            db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
+                            db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
     teams = await get_teams_for_user_private_without_lect(token, db)
-    teams_true = [team[1] for team in teams]
-    # teachers = await get_all_teachers(token,db)
-    # teachers_true = [team[1] for team in teachers]
-    # print(teams_true)
+    teams_true = ', '.join([f"'{team[0]}'" for team in teams])
     match type:
         case 0:
-            print("Группировка по командам")
-            sub_query = (
-                db.query(
-                    # Team.name.label("team_name"),
-                    Lesson.test,
-                    Team.name,
-                ).filter(Team.name.in_(teams_true), Lesson.name == kr
-                         # , Teacher.name.in_(teachers_true)
-                         )
-                .join(Stud, Stud.id == Lesson.stud_id)
-                .join(Team, Team.id == Lesson.team_id)
-                .join(Teacher, Teacher.id == Lesson.teacher_id)
-                .all()
-            )
+            fill_query_str = '(select t.name from team t where t.id = l.team_id)'
+            fill_query_str2 = 'group by l.team_id'
         case 1:
-            print("Группировка по направлениям")
-            sub_query = (
-                db.query(
-                    # Team.name.label("team_name"),
-                    Lesson.test,
-                    Stud.speciality,
-                ).filter(Team.name.in_(teams_true), Lesson.name == kr
-                         # , Teacher.name.in_(teachers_true)
-                         )
-                .join(Stud, Stud.id == Lesson.stud_id)
-                .join(Team, Team.id == Lesson.team_id)
-                .join(Teacher, Teacher.id == Lesson.teacher_id)
-                .all()
-            )
+            fill_query_str = '(select s.speciality from stud s where s.id = l.stud_id) as speciality'
+            fill_query_str2 = 'group by speciality'
         case 2:
-            print("Группировка по преподавателям")
-            sub_query = (
-                db.query(
-                    # Team.name.label("team_name"),
-                    Lesson.test,
-                    Teacher.name,
-                ).filter(Team.name.in_(teams_true), Lesson.name == kr
-                         # , Teacher.name.in_(teachers_true)
-                         )
-                .join(Stud, Stud.id == Lesson.stud_id)
-                .join(Team, Team.id == Lesson.team_id)
-                .join(Teacher, Teacher.id == Lesson.teacher_id)
-                .all()
-            )
+            fill_query_str = '(select t.name from teacher t where t.id = l.teacher_id) as teacher_name'
+            fill_query_str2 = 'group by teacher_name'
         case _:
-            db.close()
             raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                                 detail="Неправильно выбран тип 0 - Группировка по командам, 1 - " +
                                        "Группировка по направлениям, 2 - Группировка по преподавателям")
-    print(len(sub_query))
-    dict_of_teams = {}
-    for row in sub_query:
-        if row[1] not in dict_of_teams:
-            dict_of_teams[row[1]] = []
-        dict_of_teams[row[1]].append(row[0])
-    db.close()
+    res = await db.execute(f"""
+        SELECT
+            ARRAY_AGG(l.test) AS test_mark_list,
+            {fill_query_str}
+        FROM
+            lesson l
+        WHERE
+            l.team_id IN ({teams_true})
+            and l.name = '{kr}'
+        {fill_query_str2}
+    """)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return dict_of_teams
+    return res.fetchall()
 
 
 @router.get('/api/kr_analyse_with_filters', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -1731,89 +1704,75 @@ async def kr_analyse_simple(token: str, type: int, kr: str,
             """)
 async def kr_analyse_with_filters(token: str, kr: str, type_select: int, teacher: Optional[str] = None,
                                   speciality: Optional[str] = None, team: Optional[str] = None,
-                                  db=Depends(connect_db_data)):
-    # Create your plot using Plotly
-    await asyncio.sleep(0)
+                                  db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
     if teacher is None:
         teachers = await get_all_teachers(token, db)
-        teachers = [item[1] for item in teachers]
+        teachers = ', '.join([f"'{teacher[0]}'" for teacher in teachers])
     else:
-        teachers = [teacher]
+        teachers = teacher
     if speciality is None:
         specialities = await get_all_specialities(token, db)
-        specialities = [item[0] for item in specialities]
+        specialities = ', '.join([f"'{speciality[0]}'" for speciality in specialities])
     else:
-        specialities = [speciality]
+        specialities = speciality
     if team is None:
         teams = await get_teams_for_user_private_without_lect(token, db)
-        teams = [item[1] for item in teams]
+        teams = ', '.join([f"'{team[0]}'" for team in teams])
     else:
-        teams = [team]
-    sub_query = (
-        db.query(
-            # Team.name.label("team_name"),
-            Lesson.test,
-            Team.name.label("Название команды"),
-            Teacher.name.label("ФИО преподавателя"),
-            Stud.speciality.label("Название направления обучения"),
-        ).filter(Team.name.in_(teams), Lesson.name == kr, Teacher.name.in_(teachers), Stud.speciality.in_(specialities))
-        .join(Stud, Stud.id == Lesson.stud_id)
-        .join(Team, Team.id == Lesson.team_id)
-        .join(Teacher, Teacher.id == Lesson.teacher_id)
-        .all()
-    )
-    print(len(sub_query))
-    dict_of_teams = {}
+        teams = team
+    team_query = ''
+    teacher_query = ''
+    speciality_query = ''
     match type_select:
         case 0:
-            for row in sub_query:
-                key = row[1]
-                if key not in dict_of_teams:
-                    dict_of_teams[key] = []
-                dict_of_teams[key].append(row[0])
+            team_query = 't1.name as team_name'
+            group_by_query = 'group by team_name'
         case 1:
-            for row in sub_query:
-                key = row[2]
-                if key not in dict_of_teams:
-                    dict_of_teams[key] = []
-                dict_of_teams[key].append(row[0])
+            teacher_query = 't.name as teacher_name'
+            group_by_query = 'group by teacher_name'
         case 2:
-            for row in sub_query:
-                key = row[3]
-                if key not in dict_of_teams:
-                    dict_of_teams[key] = []
-                dict_of_teams[key].append(row[0])
+            speciality_query = 's.speciality as speciality'
+            group_by_query = 'group by speciality'
         case 3:
-            for row in sub_query:
-                key = row[1] + ' ' + row[2]
-                if key not in dict_of_teams:
-                    dict_of_teams[key] = []
-                dict_of_teams[key].append(row[0])
+            team_query = 't1.name as team_name'
+            teacher_query = 't.name as teacher_name,'
+            group_by_query = 'group by teacher_name,team_name'
         case 4:
-            for row in sub_query:
-                key = row[1] + ' ' + row[3]
-                if key not in dict_of_teams:
-                    dict_of_teams[key] = []
-                dict_of_teams[key].append(row[0])
+            team_query = 't1.name as team_name,'
+            speciality_query = 's.speciality as speciality'
+            group_by_query = 'group by speciality,team_name'
         case 5:
-            for row in sub_query:
-                key = row[2] + ' ' + row[3]
-                if key not in dict_of_teams:
-                    dict_of_teams[key] = []
-                dict_of_teams[key].append(row[0])
+            teacher_query = 't.name as teacher_name,'
+            speciality_query = 's.speciality as speciality'
+            group_by_query = 'group by speciality,teacher_name'
         case 6:
-            for row in sub_query:
-                key = row[1] + ' ' + row[2] + ' ' + row[3]
-                if key not in dict_of_teams:
-                    dict_of_teams[key] = []
-                dict_of_teams[key].append(row[0])
+            team_query = 't1.name as team_name,'
+            teacher_query = 't.name as teacher_name,'
+            speciality_query = 's.speciality as speciality'
+            group_by_query = 'group by speciality,teacher_name,team_name'
         case _:
-            db.close()
             raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                                 detail="Неправильно выбран тип(всего их 0,1,2,3,4,5,6)")
-
-    db.close()
+    res = await db.execute(f"""
+        SELECT
+            ARRAY_AGG(l.test) AS test_mark_list,
+            {teacher_query}
+            {team_query}
+            {speciality_query}
+        FROM
+            lesson l
+        inner join teacher t on t.id = l.teacher_id
+        inner join team t1 on t1.id = l.team_id
+        inner join stud s on s.id = l.stud_id
+        WHERE
+            l.name = 'Организация функций30'
+            and l.team_id IN ({teams})
+            and t.id IN ({teachers})
+            and s.speciality IN ({specialities})
+        {group_by_query}
+        """)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return dict_of_teams
+    return res.fetchall()
+
 # endregion
