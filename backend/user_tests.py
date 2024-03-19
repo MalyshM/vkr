@@ -148,6 +148,38 @@ class UserTests(unittest.TestCase):
             self.get_request(url="/api/get_teams_for_user", **params))
         self.assertEqual(response['status'], 401)
 
+
+    def test_get_teams_for_user_wo_lect_by_true_token(self):
+
+        login_data = {
+            "FIO": "string",
+            "username": "string",
+            "password": "string",
+            "email": "string"
+        }
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        params = {'token': response['response_json']['access_token']}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/get_teams_for_user_without_lect", **params))
+
+        self.assertEqual(response['status'], 200)
+        self.assertEqual(response['headers']['content-type'], 'application/json')
+
+        self.assertIsInstance(response['response_json'], list)
+        for team in response['response_json']:
+            self.assertIsInstance(team["id"], int)
+            self.assertIsInstance(team["name"], str)
+            self.assertIsNotNone(team["id"])
+            self.assertIsNotNone(team["name"])
+
+    def test_get_teams_for_user_wo_lect_by_false_token(self):
+        params = {'token': 'token'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/get_teams_for_user_without_lect", **params))
+        self.assertEqual(response['status'], 401)
+
+
     def test_get_student(self):
         params = {'id_stud': 2}
         response = self.loop.run_until_complete(
@@ -169,6 +201,76 @@ class UserTests(unittest.TestCase):
         self.assertIsNotNone(data["email"])
         self.assertIsNotNone(data["date_of_add"])
         self.assertIsNotNone(data["name"])
+
+    def test_get_all_specialities_by_true_token(self):
+        login_data = {
+            "FIO": "string",
+            "username": "string",
+            "password": "string",
+            "email": "string"
+        }
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        params = {'token': response['response_json']['access_token']}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/get_all_specialities", **params))
+        self.assertEqual(response['status'], 200)
+
+
+        for speciality in response['response_json']:
+            self.assertIsInstance(speciality["speciality"], str)
+
+            # Проверка на none
+            self.assertIsNotNone(speciality["speciality"])
+
+
+    def test_get_all_specialities_by_false_token(self):
+        params = {'token': 'token'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/get_all_specialities", **params))
+        self.assertEqual(response['status'], 401)
+
+    def get_all_kr(self):
+        response = self.loop.run_until_complete(
+            self.get_request(url='/api/get_all_kr'))
+        self.assertEqual(response['status'], 200)
+
+
+        for kr in response['response_json']:
+            self.assertIsInstance(kr["name"], str)
+
+            # Проверка на none
+            self.assertIsNotNone(kr["name"])
+
+
+    def test_get_all_teachers_unique_by_true_token(self):
+        login_data = {
+            "FIO": "string",
+            "username": "string",
+            "password": "string",
+            "email": "string"
+        }
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        params = {'token': response['response_json']['access_token']}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/get_all_teachers_unique", **params))
+        self.assertEqual(response['status'], 200)
+
+        for teacher in response['response_json']:
+            self.assertIsInstance(teacher["id"], int)
+            self.assertIsInstance(teacher["name"], str)
+
+            # Проверка на none
+            self.assertIsNotNone(teacher["id"])
+            self.assertIsNotNone(teacher["name"])
+
+    def test_get_all_teachers_unique_by_false_token(self):
+        params = {'token': 'token'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/get_all_teachers_unique", **params))
+        self.assertEqual(response['status'], 401)
+
 
     def test_login_standard_success(self):
         # Test case for successful login
