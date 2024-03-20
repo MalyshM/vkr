@@ -6,3 +6,4 @@
 /scripts/*.pkl
 /__pycache__
 /for_eyes
+*.png
