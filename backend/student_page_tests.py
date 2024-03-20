@@ -1,10 +1,9 @@
 import asyncio
 import unittest
 import aiohttp as aiohttp
-from handlers import delete_test_user
 
 
-class UserTests(unittest.TestCase):
+class StudentPageTests(unittest.TestCase):
     def setUp(self):
         self.base_url = 'http://localhost:8090'
         self.loop = asyncio.get_event_loop()
@@ -31,69 +30,69 @@ class UserTests(unittest.TestCase):
 
 
     def test_cum_sum_points_for_stud_for_team(self):
-        params = {'id_stud': 1,
-                  'id_team': 1}
+        params = {'id_stud': 144,
+                  'id_team': 2}
         response = self.loop.run_until_complete(
             self.get_request(url="/api/cum_sum_points_for_stud_for_team", **params))
         self.assertEqual(response['status'], 200)
 
-        for cum_sum in response['response_json']:
-            self.assertIsInstance(cum_sum["name"], str)
-            self.assertIsInstance(cum_sum["cum_sum"], int)
-            self.assertIsInstance(cum_sum["counter"], int)
-            self.assertIsInstance(cum_sum["isTest"], bool)
-
-            # Проверка на none
-            self.assertIsNotNone(cum_sum["name"])
-            self.assertIsNotNone(cum_sum["cum_sum"])
-            self.assertIsNotNone(cum_sum["counter"])
-            self.assertIsNotNone(cum_sum["isTest"])
+        for item in response['response_json']:
+            self.assertIsInstance(item["name"], str)
+            self.assertIsInstance(item["cum_sum"], int)
+            self.assertIsInstance(item["counter"], int)
+            self.assertIsInstance(item["isTest"], bool)
+            self.assertIsNotNone(item["name"])
+            self.assertIsNotNone(item["cum_sum"])
+            self.assertIsNotNone(item["counter"])
+            self.assertIsNotNone(item["isTest"])
 
 
     def test_attendance_dynamical_for_stud_for_team(self):
-        params = {'id_stud': 1,
-                  'id_team': 1}
+        params = {'id_stud': 144,
+                  'id_team': 2}
         response = self.loop.run_until_complete(
             self.get_request(url="/api/attendance_dynamical_for_stud_for_team", **params))
         self.assertEqual(response['status'], 200)
 
-        for dynamical_arrival in response['response_json']:
-            self.assertIsInstance(dynamical_arrival["name"], str)
-            self.assertIsInstance(dynamical_arrival["dynamical_arrival"], int)
-
-            # Проверка на none
-            self.assertIsNotNone(dynamical_arrival["name"])
-            self.assertIsNotNone(dynamical_arrival["dynamical_arrival"])
+        for item in response['response_json']:
+            self.assertIsInstance(item["name"], str)
+            self.assertIsInstance(item["dynamical_arrival"], int)
+            self.assertIsNotNone(item["name"])
+            self.assertIsNotNone(item["dynamical_arrival"])
 
     def test_attendance_static_for_stud_for_team(self):
-        params = {'id_stud': 1,
-                  'id_team': 1}
+        params = {'id_stud': 144,
+                  'id_team': 2}
         response = self.loop.run_until_complete(
             self.get_request(url="/api/attendance_static_for_stud_for_team", **params))
         self.assertEqual(response['status'], 200)
 
-        for static_arrival in response['response_json']:
-            self.assertIsInstance(static_arrival["name"], str)
-            self.assertIsInstance(static_arrival["static_arrival"], float)
-
-            # Проверка на none
-            self.assertIsNotNone(static_arrival["name"])
-            self.assertIsNotNone(static_arrival["static_arrival"])
+        for item in response['response_json']:
+            self.assertIsInstance(item["name"], str)
+            self.assertIsInstance(item["static_arrival"], float)
+            self.assertIsNotNone(item["name"])
+            self.assertIsNotNone(item["static_arrival"])
 
     def test_all_in_one_for_stud_for_team(self):
-        params = {'id_stud': 1,
-                  'id_team': 1}
+        params = {'id_stud': 144,
+                  'id_team': 2}
         response = self.loop.run_until_complete(
             self.get_request(url="/api/all_in_one_for_stud_for_team", **params))
         self.assertEqual(response['status'], 200)
 
-        for static_arrival in response['response_json']:
-            self.assertIsInstance(static_arrival["name"], str)
-            self.assertIsInstance(static_arrival["static_arrival"], float)
-
-            # Проверка на none
-            self.assertIsNotNone(static_arrival["name"])
-            self.assertIsNotNone(static_arrival["static_arrival"])
+        for item in response['response_json']:
+            self.assertIsInstance(item["name"], str)
+            self.assertIsInstance(item["static_arrival"], float)
+            self.assertIsInstance(item["dynamical_arrival"], int)
+            self.assertIsInstance(item["cum_sum"], int)
+            self.assertIsInstance(item["counter"], int)
+            self.assertIsInstance(item["isTest"], bool)
+            self.assertIsNotNone(item["name"])
+            self.assertIsNotNone(item["static_arrival"])
+            self.assertIsNotNone(item["dynamical_arrival"])
+            self.assertIsNotNone(item["cum_sum"])
+            self.assertIsNotNone(item["counter"])
+            self.assertIsNotNone(item["isTest"])
 
 
 

@@ -230,7 +230,7 @@ class UserTests(unittest.TestCase):
             self.get_request(url="/api/get_all_specialities", **params))
         self.assertEqual(response['status'], 401)
 
-    def get_all_kr(self):
+    def test_get_all_kr(self):
         response = self.loop.run_until_complete(
             self.get_request(url='/api/get_all_kr'))
         self.assertEqual(response['status'], 200)
