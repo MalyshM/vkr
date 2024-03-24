@@ -352,6 +352,31 @@ async def get_teams_for_user_private(token: str, db):
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
 
 
+async def get_teams_for_param_private_without_lect(teacher_arr: list, db):
+    return await db.execute(f"""
+                        select
+                            distinct t.id,
+                            t.name
+                        from
+                            team t
+                        where
+                            t.id in (
+                            select
+                                distinct l.team_id
+                            from
+                                lesson l
+                            where
+                                l.teacher_id in (
+                                select
+                                    distinct t.id
+                                from
+                                    teacher t
+                                where
+                                    t.name = ANY(ARRAY{teacher_arr}))
+                            and t.name not ilike '%л%');
+                                """)
+
+
 async def get_teams_for_user_private_without_lect(token: str, db):
     user = await get_current_user_dev(token)
     user_fio = user.fio
@@ -1358,6 +1383,292 @@ async def total_points_studs_for_all_teams(token: str, db: AsyncSession = Depend
     return res.fetchall()
 
 
+# todo добавить такой же роут про посещаемость и сделать то же самое про направления
+# todo высрать teams = await db.execute в отдельную функцию и потом юзать во всех других роутах
+@router.get('/api/team_kr_total_points_attendance_dynamic', name='Plot:plot', status_code=status.HTTP_200_OK,
+            tags=["Group comparison page"], description=
+            """
+                    Получает token: str, group_by_teacher, teacher_list (пример "Павлова Елена Александровна,Павлова Елена Александровна")
+                    
+                    [
+                      {
+                        "team_name": "ПиОА П-01.01 Спорт Прогрм", название команды
+                        "team_id": 35, айди команды
+                        "teacher_id": 4, айди преподавателя
+                        "teacher_name": "Павлова Елена Александровна", название преподавателя
+                        "Успеваемость_средняя": 31.77, средняя успеваемость команды на определенном майлстоуне
+                        "Посещаемость_средняя": 0.94 средняя посещаемость команды на определенном майлстоуне
+                      },
+                      {
+                        "team_name": "ПиОА П-01.01 Спорт Прогрм",
+                        "team_id": 35,
+                        "teacher_id": 4,
+                        "teacher_name": "Павлова Елена Александровна",
+                        "Успеваемость_средняя": 53.28,
+                        "Посещаемость_средняя": 0.94
+                      },
+                      {
+                        "team_name": "ПиОА П-01.01 Спорт Прогрм",
+                        "team_id": 35,
+                        "teacher_id": 4,
+                        "teacher_name": "Павлова Елена Александровна",
+                        "Успеваемость_средняя": 84.11,
+                        "Посещаемость_средняя": 0.93
+                      },
+                      {
+                        "team_name": "ПиОА П-01.01 Спорт Прогрм",
+                        "team_id": 35,
+                        "teacher_id": 4,
+                        "teacher_name": "Павлова Елена Александровна",
+                        "Успеваемость_средняя": 86.43,
+                        "Посещаемость_средняя": 0.89
+                      },
+            """)
+async def team_kr_total_points_attendance_dynamic(token: str, group_by_teacher: bool,
+                                                  teacher_list: Optional[str] = None,
+                                                  db: AsyncSession = Depends(connect_db_data)):
+    start_time = time.time()
+    teams = await get_teams_for_user_private_without_lect(token, db)
+    if teacher_list is not None:
+        teacher_arr = teacher_list.split(',')
+        teams = await get_teams_for_param_private_without_lect(teacher_arr=teacher_arr, db=db)
+    teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    if group_by_teacher:
+        fields = """"""
+        partition_by = "sub.name, sub.teacher_id"
+    else:
+        fields = """sub.team_name,
+                    sub.team_id,"""
+        partition_by = "sub.name, sub.teacher_id, sub.team_id"
+    res = await db.execute(f"""
+        SELECT DISTINCT
+            {fields}
+            sub.teacher_id,
+            sub.teacher_name,
+            ROUND(AVG(sub.Успеваемость) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Успеваемость_средняя,
+            ROUND(AVG(sub.dynamical_arrival) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Посещаемость_средняя
+        FROM
+            (
+                SELECT
+                    (
+                        SELECT t.name FROM team t WHERE t.id = l.team_id
+                    ) AS team_name,
+                    ROUND(
+                        (
+                            SUM(l.mark_for_work) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) +
+                            SUM(l.test) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
+                        )::DECIMAL,
+                        2
+                    ) AS Успеваемость,
+                    ROUND(
+                        COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / 
+                        COUNT(id) OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::DECIMAL,
+                        2
+                    ) AS dynamical_arrival,
+                    (
+                        SELECT t.id FROM team t WHERE t.id = l.team_id
+                    ) AS team_id,
+                    (
+                        SELECT t.id FROM teacher t WHERE t.id = l.teacher_id
+                    ) AS teacher_id,
+                    (
+                        SELECT t.name FROM teacher t WHERE t.id = l.teacher_id
+                    ) AS teacher_name,
+                    l.name
+                FROM
+                    lesson l
+                WHERE
+                    l.team_id IN ({teams_true})
+            ) AS sub
+        WHERE
+            sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
+        """)
+    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+    return res.fetchall()
+
+
+@router.get('/api/team_kr_total_points_dynamic', name='Plot:plot', status_code=status.HTTP_200_OK,
+            tags=["Group comparison page"], description=
+            """
+                    Получает token: str, group_by_teacher, teacher_list (пример "Павлова Елена Александровна,Павлова Елена Александровна")
+                    
+                    [
+                      {
+                        "team_name": "ПиОА П-01.01 Спорт Прогрм", название команды
+                        "team_id": 35, айди команды
+                        "teacher_id": 4, айди преподавателя
+                        "teacher_name": "Павлова Елена Александровна", название преподавателя
+                        "Успеваемость_средняя": 31.77 средняя успеваемость команды на определенном майлстоуне
+                      },
+                      {
+                        "team_name": "ПиОА П-01.01 Спорт Прогрм",
+                        "team_id": 35,
+                        "teacher_id": 4,
+                        "teacher_name": "Павлова Елена Александровна",
+                        "Успеваемость_средняя": 53.28
+                      },
+                      {
+                        "team_name": "ПиОА П-01.01 Спорт Прогрм",
+                        "team_id": 35,
+                        "teacher_id": 4,
+                        "teacher_name": "Павлова Елена Александровна",
+                        "Успеваемость_средняя": 84.11
+                      },
+                      {
+                        "team_name": "ПиОА П-01.01 Спорт Прогрм",
+                        "team_id": 35,
+                        "teacher_id": 4,
+                        "teacher_name": "Павлова Елена Александровна",
+                        "Успеваемость_средняя": 86.43
+                      },
+            """)
+async def team_kr_total_points_dynamic(token: str, group_by_teacher: bool,
+                                       teacher_list: Optional[str] = None,
+                                       db: AsyncSession = Depends(connect_db_data)):
+    start_time = time.time()
+    teams = await get_teams_for_user_private_without_lect(token, db)
+    if teacher_list is not None:
+        teacher_arr = teacher_list.split(',')
+        teams = await get_teams_for_param_private_without_lect(teacher_arr=teacher_arr, db=db)
+    teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    if group_by_teacher:
+        fields = """"""
+        partition_by = "sub.name, sub.teacher_id"
+    else:
+        fields = """sub.team_name,
+                    sub.team_id,"""
+        partition_by = "sub.name, sub.teacher_id, sub.team_id"
+    res = await db.execute(f"""
+        SELECT DISTINCT
+            {fields}
+            sub.teacher_id,
+            sub.teacher_name,
+            ROUND(AVG(sub.Успеваемость) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Успеваемость_средняя
+        FROM
+            (
+                SELECT
+                    (
+                        SELECT t.name FROM team t WHERE t.id = l.team_id
+                    ) AS team_name,
+                    ROUND(
+                        (
+                            SUM(l.mark_for_work) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) +
+                            SUM(l.test) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
+                        )::DECIMAL,
+                        2
+                    ) AS Успеваемость,
+                    (
+                        SELECT t.id FROM team t WHERE t.id = l.team_id
+                    ) AS team_id,
+                    (
+                        SELECT t.id FROM teacher t WHERE t.id = l.teacher_id
+                    ) AS teacher_id,
+                    (
+                        SELECT t.name FROM teacher t WHERE t.id = l.teacher_id
+                    ) AS teacher_name,
+                    l.name
+                FROM
+                    lesson l
+                WHERE
+                    l.team_id IN ({teams_true})
+            ) AS sub
+        WHERE
+            sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
+        """)
+    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+    return res.fetchall()
+
+
+@router.get('/api/team_kr_attendance_dynamic', name='Plot:plot', status_code=status.HTTP_200_OK,
+            tags=["Group comparison page"], description=
+            """
+                    Получает token: str, group_by_teacher, teacher_list (пример "Павлова Елена Александровна,Павлова Елена Александровна")
+                    
+                    [
+                      {
+                        "team_name": "ПиОА П-01.01 Спорт Прогрм", название команды
+                        "team_id": 35, айди команды
+                        "teacher_id": 4, айди преподавателя
+                        "teacher_name": "Павлова Елена Александровна", название преподавателя
+                        "Посещаемость_средняя": 0.94 средняя посещаемость команды на определенном майлстоуне
+                      },
+                      {
+                        "team_name": "ПиОА П-01.01 Спорт Прогрм",
+                        "team_id": 35,
+                        "teacher_id": 4,
+                        "teacher_name": "Павлова Елена Александровна",
+                        "Посещаемость_средняя": 0.94
+                      },
+                      {
+                        "team_name": "ПиОА П-01.01 Спорт Прогрм",
+                        "team_id": 35,
+                        "teacher_id": 4,
+                        "teacher_name": "Павлова Елена Александровна",
+                        "Посещаемость_средняя": 0.93
+                      },
+                      {
+                        "team_name": "ПиОА П-01.01 Спорт Прогрм",
+                        "team_id": 35,
+                        "teacher_id": 4,
+                        "teacher_name": "Павлова Елена Александровна",
+                        "Посещаемость_средняя": 0.89
+                      },
+            """)
+async def team_kr_attendance_dynamic(token: str, group_by_teacher: bool,
+                                     teacher_list: Optional[str] = None,
+                                     db: AsyncSession = Depends(connect_db_data)):
+    start_time = time.time()
+    teams = await get_teams_for_user_private_without_lect(token, db)
+    if teacher_list is not None:
+        teacher_arr = teacher_list.split(',')
+        teams = await get_teams_for_param_private_without_lect(teacher_arr=teacher_arr, db=db)
+    teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    if group_by_teacher:
+        fields = """"""
+        partition_by = "sub.name, sub.teacher_id"
+    else:
+        fields = """sub.team_name,
+                    sub.team_id,"""
+        partition_by = "sub.name, sub.teacher_id, sub.team_id"
+    res = await db.execute(f"""
+        SELECT DISTINCT
+            {fields}
+            sub.teacher_id,
+            sub.teacher_name,
+            ROUND(AVG(sub.dynamical_arrival) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Посещаемость_средняя
+        FROM
+            (
+                SELECT
+                    (
+                        SELECT t.name FROM team t WHERE t.id = l.team_id
+                    ) AS team_name,
+                    ROUND(
+                        COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / 
+                        COUNT(id) OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::DECIMAL,
+                        2
+                    ) AS dynamical_arrival,
+                    (
+                        SELECT t.id FROM team t WHERE t.id = l.team_id
+                    ) AS team_id,
+                    (
+                        SELECT t.id FROM teacher t WHERE t.id = l.teacher_id
+                    ) AS teacher_id,
+                    (
+                        SELECT t.name FROM teacher t WHERE t.id = l.teacher_id
+                    ) AS teacher_name,
+                    l.name
+                FROM
+                    lesson l
+                WHERE
+                    l.team_id IN ({teams_true})
+            ) AS sub
+        WHERE
+            sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
+        """)
+    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+    return res.fetchall()
+
+
 # endregion
 
 # Speciality comparison page
@@ -1615,6 +1926,273 @@ async def all_for_studs_for_all_specialities(token: str, lect: bool, db: AsyncSe
             group by s.speciality 
             order by avg_total_points desc
     """)
+    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+    return res.fetchall()
+
+
+# todo во всех роутах ниже сделать норм доки
+@router.get('/api/speciality_kr_total_points_attendance_dynamic', name='Plot:plot', status_code=status.HTTP_200_OK,
+            tags=["Speciality comparison page"], description=
+            """
+                    Получает token: str, group_by_speciality, teacher_list (пример "Павлова Елена Александровна,Павлова Елена Александровна")
+
+                    [
+                      {
+                        "stud_speciality": "02.03.03 Математическое обеспечение и администрирование информационных систем", направление
+                        "teacher_name": "Плотоненко Юрий Анатольевич", ФИО преподавателя
+                        "teacher_id": 1, айди преподавателя
+                        "Успеваемость_средняя": 18.83,  средняя успеваемость команды на определенном майлстоуне
+                        "Посещаемость_средняя": 0.52 средняя посещаемость команды на определенном майлстоуне
+                      },
+                      {
+                        "stud_speciality": "02.03.03 Математическое обеспечение и администрирование информационных систем",
+                        "teacher_name": "Плотоненко Юрий Анатольевич",
+                        "teacher_id": 1,
+                        "Успеваемость_средняя": 35.5,
+                        "Посещаемость_средняя": 0.51
+                      },
+                      {
+                        "stud_speciality": "02.03.03 Математическое обеспечение и администрирование информационных систем",
+                        "teacher_name": "Плотоненко Юрий Анатольевич",
+                        "teacher_id": 1,
+                        "Успеваемость_средняя": 50.5,
+                        "Посещаемость_средняя": 0.53
+                      },
+                      {
+                        "stud_speciality": "02.03.03 Математическое обеспечение и администрирование информационных систем",
+                        "teacher_name": "Плотоненко Юрий Анатольевич",
+                        "teacher_id": 1,
+                        "Успеваемость_средняя": 53.33,
+                        "Посещаемость_средняя": 0.52
+                      },
+            """)
+async def speciality_kr_total_points_attendance_dynamic(token: str, group_by_speciality: bool,
+                                                        teacher_list: Optional[str] = None,
+                                                        db: AsyncSession = Depends(connect_db_data)):
+    start_time = time.time()
+    teams = await get_teams_for_user_private_without_lect(token, db)
+    if teacher_list is not None:
+        teacher_arr = teacher_list.split(',')
+        teams = await get_teams_for_param_private_without_lect(teacher_arr=teacher_arr, db=db)
+    teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    if group_by_speciality:
+        fields = """"""
+        partition_by = "sub.Stud_speciality, sub.name"
+    else:
+        fields = """sub.teacher_name,
+                    sub.teacher_id,"""
+        partition_by = "sub.Stud_speciality, sub.name, sub.teacher_id"
+    res = await db.execute(f"""
+        SELECT DISTINCT
+            sub.Stud_speciality,
+            {fields}
+            ROUND(AVG(sub.Успеваемость) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Успеваемость_средняя,
+            ROUND(AVG(sub.dynamical_arrival) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Посещаемость_средняя
+        FROM
+            (
+                SELECT
+                    s.speciality AS Stud_speciality,
+                    ROUND(
+                        (
+                            SUM(l.mark_for_work) OVER (PARTITION BY l.stud_id, s.speciality ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) +
+                            SUM(l.test) OVER (PARTITION BY l.stud_id, s.speciality ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
+                        )::DECIMAL,
+                        2
+                    ) AS Успеваемость,
+                    ROUND(
+                        COUNT(l.id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id, s.speciality ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / 
+                        COUNT(l.id) OVER (PARTITION BY l.stud_id, s.speciality ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::DECIMAL,
+                        2
+                    ) AS dynamical_arrival,
+                    (
+                        SELECT t.id FROM team t WHERE t.id = l.team_id
+                    ) AS team_id,
+                    (
+                        SELECT t.id FROM teacher t WHERE t.id = l.teacher_id
+                    ) AS teacher_id,
+                    (
+                        SELECT t.name FROM teacher t WHERE t.id = l.teacher_id
+                    ) AS teacher_name,
+                    l.name
+                FROM
+                    lesson l
+                INNER JOIN stud s ON s.id = l.stud_id
+                WHERE
+                    l.team_id IN ({teams_true})
+            ) AS sub
+        WHERE 
+            sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
+        """)
+    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+    return res.fetchall()
+
+
+@router.get('/api/speciality_kr_attendance_dynamic', name='Plot:plot', status_code=status.HTTP_200_OK,
+            tags=["Speciality comparison page"], description=
+            """
+                    Получает token: str, group_by_speciality, teacher_list (пример "Павлова Елена Александровна,Павлова Елена Александровна")
+
+                    [
+                      {
+                        "stud_speciality": "02.03.03 Математическое обеспечение и администрирование информационных систем", направление
+                        "teacher_name": "Плотоненко Юрий Анатольевич", ФИО преподавателя
+                        "teacher_id": 1, айди преподавателя
+                        "Посещаемость_средняя": 0.52 средняя посещаемость команды на определенном майлстоуне
+                      },
+                      {
+                        "stud_speciality": "02.03.03 Математическое обеспечение и администрирование информационных систем",
+                        "teacher_name": "Плотоненко Юрий Анатольевич",
+                        "teacher_id": 1,
+                        "Посещаемость_средняя": 0.51
+                      },
+                      {
+                        "stud_speciality": "02.03.03 Математическое обеспечение и администрирование информационных систем",
+                        "teacher_name": "Плотоненко Юрий Анатольевич",
+                        "teacher_id": 1,
+                        "Посещаемость_средняя": 0.53
+                      },
+                      {
+                        "stud_speciality": "02.03.03 Математическое обеспечение и администрирование информационных систем",
+                        "teacher_name": "Плотоненко Юрий Анатольевич",
+                        "teacher_id": 1,
+                        "Посещаемость_средняя": 0.52
+                      },
+            """)
+async def speciality_kr_attendance_dynamic(token: str, group_by_speciality: bool,
+                                           teacher_list: Optional[str] = None,
+                                           db: AsyncSession = Depends(connect_db_data)):
+    start_time = time.time()
+    teams = await get_teams_for_user_private_without_lect(token, db)
+    if teacher_list is not None:
+        teacher_arr = teacher_list.split(',')
+        teams = await get_teams_for_param_private_without_lect(teacher_arr=teacher_arr, db=db)
+    teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    if group_by_speciality:
+        fields = """"""
+        partition_by = "sub.Stud_speciality, sub.name"
+    else:
+        fields = """sub.teacher_name,
+                    sub.teacher_id,"""
+        partition_by = "sub.Stud_speciality, sub.name, sub.teacher_id"
+    res = await db.execute(f"""
+        SELECT DISTINCT
+            sub.Stud_speciality,
+            {fields}
+            ROUND(AVG(sub.dynamical_arrival) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Посещаемость_средняя
+        FROM
+            (
+                SELECT
+                    s.speciality AS Stud_speciality,
+                    ROUND(
+                        COUNT(l.id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id, s.speciality ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / 
+                        COUNT(l.id) OVER (PARTITION BY l.stud_id, s.speciality ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::DECIMAL,
+                        2
+                    ) AS dynamical_arrival,
+                    (
+                        SELECT t.id FROM team t WHERE t.id = l.team_id
+                    ) AS team_id,
+                    (
+                        SELECT t.id FROM teacher t WHERE t.id = l.teacher_id
+                    ) AS teacher_id,
+                    (
+                        SELECT t.name FROM teacher t WHERE t.id = l.teacher_id
+                    ) AS teacher_name,
+                    l.name
+                FROM
+                    lesson l
+                INNER JOIN stud s ON s.id = l.stud_id
+                WHERE
+                    l.team_id IN ({teams_true})
+            ) AS sub
+        WHERE 
+            sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
+        """)
+    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+    return res.fetchall()
+
+
+@router.get('/api/speciality_kr_total_points_dynamic', name='Plot:plot', status_code=status.HTTP_200_OK,
+            tags=["Speciality comparison page"], description=
+            """
+                    Получает token: str, group_by_speciality, teacher_list (пример "Павлова Елена Александровна,Павлова Елена Александровна")
+
+                    [
+                      {
+                        "stud_speciality": "02.03.03 Математическое обеспечение и администрирование информационных систем", направление
+                        "teacher_name": "Плотоненко Юрий Анатольевич", ФИО преподавателя
+                        "teacher_id": 1, айди преподавателя
+                        "Успеваемость_средняя": 18.83  средняя успеваемость команды на определенном майлстоуне
+                      },
+                      {
+                        "stud_speciality": "02.03.03 Математическое обеспечение и администрирование информационных систем",
+                        "teacher_name": "Плотоненко Юрий Анатольевич",
+                        "teacher_id": 1,
+                        "Успеваемость_средняя": 35.5
+                      },
+                      {
+                        "stud_speciality": "02.03.03 Математическое обеспечение и администрирование информационных систем",
+                        "teacher_name": "Плотоненко Юрий Анатольевич",
+                        "teacher_id": 1,
+                        "Успеваемость_средняя": 50.5
+                      },
+                      {
+                        "stud_speciality": "02.03.03 Математическое обеспечение и администрирование информационных систем",
+                        "teacher_name": "Плотоненко Юрий Анатольевич",
+                        "teacher_id": 1,
+                        "Успеваемость_средняя": 53.33
+                      },
+            """)
+async def speciality_kr_total_points_dynamic(token: str, group_by_speciality: bool,
+                                             teacher_list: Optional[str] = None,
+                                             db: AsyncSession = Depends(connect_db_data)):
+    start_time = time.time()
+    teams = await get_teams_for_user_private_without_lect(token, db)
+    if teacher_list is not None:
+        teacher_arr = teacher_list.split(',')
+        teams = await get_teams_for_param_private_without_lect(teacher_arr=teacher_arr, db=db)
+    teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    if group_by_speciality:
+        fields = """"""
+        partition_by = "sub.Stud_speciality, sub.name"
+    else:
+        fields = """sub.teacher_name,
+                    sub.teacher_id,"""
+        partition_by = "sub.Stud_speciality, sub.name, sub.teacher_id"
+    res = await db.execute(f"""
+        SELECT DISTINCT
+            sub.Stud_speciality,
+            {fields}
+            ROUND(AVG(sub.Успеваемость) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Успеваемость_средняя
+        FROM
+            (
+                SELECT
+                    s.speciality AS Stud_speciality,
+                    ROUND(
+                        (
+                            SUM(l.mark_for_work) OVER (PARTITION BY l.stud_id, s.speciality ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) +
+                            SUM(l.test) OVER (PARTITION BY l.stud_id, s.speciality ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
+                        )::DECIMAL,
+                        2
+                    ) AS Успеваемость,
+                    (
+                        SELECT t.id FROM team t WHERE t.id = l.team_id
+                    ) AS team_id,
+                    (
+                        SELECT t.id FROM teacher t WHERE t.id = l.teacher_id
+                    ) AS teacher_id,
+                    (
+                        SELECT t.name FROM teacher t WHERE t.id = l.teacher_id
+                    ) AS teacher_name,
+                    l.name
+                FROM
+                    lesson l
+                INNER JOIN stud s ON s.id = l.stud_id
+                WHERE
+                    l.team_id IN ({teams_true})
+            ) AS sub
+        WHERE 
+            sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
+        """)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
     return res.fetchall()
 
