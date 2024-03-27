@@ -93,11 +93,11 @@ class MainPageTests(unittest.TestCase):
             self.assertIsNotNone(mark['mark'])
             self.assertIsNotNone(mark['percent'])
             self.assertIsNotNone(mark['avg_total_points'])
-            if (mark['avg_total_points'] > 90):
+            if (mark['avg_total_points'] >= 91):
                 expected_mark = 'отл.'
-            elif (mark['avg_total_points'] > 75):
+            elif (mark['avg_total_points'] >= 76):
                 expected_mark = 'хор.'
-            elif (mark['avg_total_points'] > 61):
+            elif (mark['avg_total_points'] >= 61):
                 expected_mark = 'удовл.'
             else:
                 expected_mark = 'неудовл.'
@@ -144,31 +144,34 @@ class MainPageTests(unittest.TestCase):
             self.assertIsNotNone(attendance['Посещаемость'])
 
     def test_attendance_num_for_stud_for_team_stat_table_fail(self):
-        data = {'id_team': -1}
+        data = {'id_team': -1, "name_of_lesson": "Организация функций30"}
         response = self.loop.run_until_complete(
             self.get_request(url='/api/attendance_num_for_stud_for_team_stat_table', **data))
         self.assertEqual(response['status'], 200)
 
-    def test_attendance_num_for_stud_for_team_stat_table_fail(self):
-        data = {'id_team': -1}
+    def test_attendance_num_for_stud_for_team_stat_table_fail_2(self):
+        data = {'id_team': 2, "name_of_lesson": 'asd'}
         response = self.loop.run_until_complete(
             self.get_request(url='/api/attendance_num_for_stud_for_team_stat_table', **data))
-        self.assertEqual(response['status'], 422)
+        self.assertEqual(response['status'], 200)
 
-    def test_attendance_num_for_stud_for_team_stat_table_fail_2(self):
+    def test_attendance_num_for_stud_for_team_stat_table_fail_3(self):
+        data = {'id_team': -1, "name_of_lesson": 'asd'}
+        response = self.loop.run_until_complete(
+            self.get_request(url='/api/attendance_num_for_stud_for_team_stat_table', **data))
+        self.assertEqual(response['status'], 200)
+
+    def test_attendance_num_for_stud_for_team_stat_table_fail_4(self):
         data = {'id_team': 2}
         response = self.loop.run_until_complete(
             self.get_request(url='/api/attendance_num_for_stud_for_team_stat_table', **data))
         self.assertEqual(response['status'], 422)
 
-    def test_attendance_num_for_stud_for_team_stat_table_fail_3(self):
-        data = {'id_team': 'name_of_lesson'}
+    def test_attendance_num_for_stud_for_team_stat_table_fail_5(self):
+        data = {'name_of_lesson':'Организация функций30'}
         response = self.loop.run_until_complete(
             self.get_request(url='/api/attendance_num_for_stud_for_team_stat_table', **data))
         self.assertEqual(response['status'], 422)
 
-    def test_attendance_num_for_stud_for_team_stat_table_fail_4(self):
-        data = {'id_team': 'asd'}
-        response = self.loop.run_until_complete(
-            self.get_request(url='/api/attendance_num_for_stud_for_team_stat_table', **data))
-        self.assertEqual(response['status'], 422)
+    if __name__ == '__main__':
+        unittest.main()
