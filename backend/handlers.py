@@ -1,14 +1,17 @@
+import io
 import logging
 import time
 from datetime import datetime, timedelta
 from typing import Optional
 
 import jwt
+import pandas as pd
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 from starlette.exceptions import HTTPException
+from fastapi.responses import StreamingResponse
 
 from models import connect_db_data, connect_db_users, User, async_session_users
 from schemas import UserRegistration, TokenData, UserLogin
@@ -2342,5 +2345,111 @@ async def kr_analyse_with_filters(token: str, kr: str, type_select: int, teacher
         """)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
     return res.fetchall()
+
+
+# endregion
+
+# query builder page
+# region
+@router.post('/api/query_builder_to_csv_dataset', name='Plot:plot', status_code=status.HTTP_200_OK,
+             tags=["Query builder page"], description=
+             """
+                     Получает id_team: int, id_stud: int
+                     Returns:
+                         response_list = []
+                         response_list.append({'name': row['name'], 'cum_sum': cum_sum[-1], 'counter': row['counter'], 'isTest': temp})
+                     \n
+                     [
+                       {
+                         "name": "Основные принципы организации Языка Python. Базовые элементы программирования и типы данных",
+                         "cum_sum": 2,
+                         "counter": 1,
+                         "isTest": false
+                       },
+                       {
+                         "name": "Основные принципы организации Языка Python. Базовые элементы программирования и типы данных1",
+                         "cum_sum": 4,
+                         "counter": 2,
+                         "isTest": false
+                       },
+             """)
+async def query_builder_to_csv_dataset(fields_dict: dict | None, filter_dict: dict | None, distinct: bool,
+                               db: AsyncSession = Depends(connect_db_data)):
+    start_time = time.time()
+    print(fields_dict)
+    # field_params = ['lesson_id', 'lesson_name', 'lesson_mark_for_work', 'lesson_arrival', 'lesson_test',
+    #                 'lesson_result_points', 'lesson_result_mark', 'lesson_stud_id', 'lesson_team_id',
+    #                 'lesson_teacher_id', 'lesson_date_of_add', 'rmup_id', 'rmup_name', 'rmup_link', 'rmup_date_of_add',
+    #                 'stud_id', 'stud_name', 'stud_email', 'stud_speciality', 'stud_date_of_add', 'teacher_id',
+    #                 'teacher_name', 'teacher_lect_or_pract', 'teacher_date_of_add', 'team_id',
+    #                 'team_name', 'team_rmup_id', 'team_date_of_add']
+    field_dict_true = {'lesson_id': "l.id", 'lesson_name': "l.name",
+                       'lesson_mark_for_work': "l.mark_for_work", 'lesson_arrival': "l.arrival",
+                       'lesson_test': "l.test", 'lesson_result_points': "l.result_points",
+                       'lesson_result_mark': "l.result_mark",
+                       'lesson_stud_id': "l.stud_id", 'lesson_team_id': "l.team_id",
+                       'lesson_teacher_id': "l.teacher_id",
+                       'lesson_date_of_add': "l.date_of_add", 'rmup_id': "r.id", 'rmup_name': "r.name",
+                       'rmup_link': "r.link", 'rmup_date_of_add': "r.date_of_add", 'stud_id': "s.id",
+                       'stud_name': "s.name", 'stud_email': "s.email", 'stud_speciality': "s.speciality",
+                       'stud_date_of_add': "s.date_of_add", 'teacher_id': "t.id",
+                       'teacher_name': "t.name",
+                       'teacher_lect_or_pract': "t.lect_or_pract", 'teacher_date_of_add': "t.date_of_add",
+                       'team_id': "t2.id", 'team_name': "t2.name", 'team_rmup_id': "t2.rmup_id",
+                       'team_date_of_add': "t2.date_of_add"}
+    # filter_dict_true = {'teams':"","teachers":"Плотоненко Юрий Анатольевич_Трефилин Иван Андреевич","specialities":""}
+    # filter_dict = filter_dict_true
+    if filter_dict is not None:
+        teams_str = ''
+        teachers_str = ''
+        specialities_str = ''
+        if filter_dict['teams'] != "":
+            teams = filter_dict['teams'].split("_")
+            teams = ', '.join([f"'{team}'" for team in teams])
+            teams_str = f'and t2.name IN ({teams})'
+        if filter_dict['teachers'] != "":
+            teachers = filter_dict['teachers'].split("_")
+            teachers = ', '.join([f"'{teacher}'" for teacher in teachers])
+            teachers_str = f'and t.name IN ({teachers})'
+        if filter_dict['specialities'] != "":
+            specialities = filter_dict['specialities'].split("_")
+            specialities = ', '.join([f"'{speciality}'" for speciality in specialities])
+            specialities_str = f'and s.speciality IN ({specialities})'
+        filter_str = f'where 1=1 {teams_str}{teachers_str}{specialities_str}'
+    else:
+        filter_str = ''
+    field_list_str = ''
+    if fields_dict is not None:
+        for key, value in fields_dict.items():
+            field_list_str += field_dict_true[str(value)] + ','
+        field_list_str = field_list_str[:-1]
+    else:
+        field_list_str = '*'
+    if field_list_str == '':
+        field_list_str = '*'
+    if distinct:
+        distinct_str = ' distinct '
+    else:
+        distinct_str = ''
+    result_query = await db.execute(f"""
+        SELECT {distinct_str}
+            {field_list_str}
+        from lesson l
+        inner join teacher t on t.id = l.teacher_id 
+        inner join team t2 on t2.id  = l.team_id 
+        inner join stud s on s.id = l.stud_id
+        inner join rmup r on r.id = t2.rmup_id
+        {filter_str}
+                    """)
+    df = pd.DataFrame(result_query.fetchall())
+    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+    stream = io.StringIO()
+    df.to_csv(stream, index=False)
+    response = StreamingResponse(iter([stream.getvalue()]),
+                                 media_type="text/csv"
+                                 )
+    response.headers["Content-Disposition"] = "attachment; filename=export.csv"
+    return response
+    # return field_list
 
 # endregion
