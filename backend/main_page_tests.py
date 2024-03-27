@@ -173,5 +173,5 @@ class MainPageTests(unittest.TestCase):
             self.get_request(url='/api/attendance_num_for_stud_for_team_stat_table', **data))
         self.assertEqual(response['status'], 422)
 
-    if __name__ == '__main__':
-        unittest.main()
+if __name__ == '__main__':
+    unittest.main()
