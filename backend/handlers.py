@@ -1,5 +1,8 @@
 import io
 import logging
+import os
+import random
+import string
 import time
 from datetime import datetime, timedelta
 from typing import Optional
@@ -15,7 +18,7 @@ from fastapi.responses import StreamingResponse
 
 from models import connect_db_data, connect_db_users, User, async_session_users
 from schemas import UserRegistration, TokenData, UserLogin
-from util import Hasher
+from util import Hasher, get_urls
 
 router = APIRouter()
 logging.getLogger('passlib').setLevel(logging.ERROR)
@@ -514,7 +517,40 @@ async def get_student(id_stud: int, db: AsyncSession = Depends(connect_db_data))
     return all_users.fetchall()
 
 
-@router.get('/api/get_all_specialities', name='Stud:get_all_specialities', status_code=status.HTTP_200_OK,
+@router.get('/api/get_router_paths', name='Util:Util', status_code=status.HTTP_200_OK,
+            tags=["Util"], description=
+            """
+                    Получает id_team: int, id_stud: int
+                    Returns:
+                        response_list = []
+                        response_list.append({'name': row['name'], 'cum_sum': cum_sum[-1], 'counter': row['counter'], 'isTest': temp})
+                    \n
+                    [
+                      {
+                        "name": "Основные принципы организации Языка Python. Базовые элементы программирования и типы данных",
+                        "cum_sum": 2,
+                        "counter": 1,
+                        "isTest": false
+                      },
+                      {
+                        "name": "Основные принципы организации Языка Python. Базовые элементы программирования и типы данных1",
+                        "cum_sum": 4,
+                        "counter": 2,
+                        "isTest": false
+                      },
+            """)
+async def get_router_paths():
+    router_list = [{"path": route.path, "name": route.name} for route in router.routes]
+    resp = []
+    for item in router_list:
+        if "Registration" not in item['name'] and "User" not in item['name'] \
+                and "Team" not in item['name'] and "Stud" not in item['name'] \
+                and "Reporting system" not in item['name'] and "Util" not in item['name']:
+            resp.append(item['path'])
+    return resp
+
+
+@router.get('/api/get_all_specialities', name='Util:get_all_specialities', status_code=status.HTTP_200_OK,
             tags=["Util"], description=
             """
                     Получает token: str
@@ -570,7 +606,7 @@ async def get_all_specialities(token: str, db: AsyncSession = Depends(connect_db
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
 
 
-@router.get('/api/get_all_kr', name='Stud:get_all_kr', status_code=status.HTTP_200_OK, tags=["Util"], description=
+@router.get('/api/get_all_kr', name='Util:get_all_kr', status_code=status.HTTP_200_OK, tags=["Util"], description=
 """
         Returns:
             все кр
@@ -599,7 +635,7 @@ async def get_all_kr(db: AsyncSession = Depends(connect_db_data)):
     return all_users.fetchall()
 
 
-@router.get('/api/get_all_teachers_unique', name='Stud:get_all_teachers', status_code=status.HTTP_200_OK,
+@router.get('/api/get_all_teachers_unique', name='Util:get_all_teachers', status_code=status.HTTP_200_OK,
             tags=["Util"], description=
             """
                     Получает token: str
@@ -650,7 +686,7 @@ async def get_all_teachers_unique(token: str, db: AsyncSession = Depends(connect
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
 
 
-@router.get('/api/get_all_teachers', name='Stud:get_all_teachers', status_code=status.HTTP_200_OK,
+@router.get('/api/get_all_teachers', name='Util:get_all_teachers', status_code=status.HTTP_200_OK,
             tags=["Util"], description=
             """
                     Получает token: str
@@ -1386,8 +1422,6 @@ async def total_points_studs_for_all_teams(token: str, db: AsyncSession = Depend
     return res.fetchall()
 
 
-# todo добавить такой же роут про посещаемость и сделать то же самое про направления
-# todo высрать teams = await db.execute в отдельную функцию и потом юзать во всех других роутах
 @router.get('/api/team_kr_total_points_attendance_dynamic', name='Plot:plot', status_code=status.HTTP_200_OK,
             tags=["Group comparison page"], description=
             """
@@ -1933,7 +1967,6 @@ async def all_for_studs_for_all_specialities(token: str, lect: bool, db: AsyncSe
     return res.fetchall()
 
 
-# todo во всех роутах ниже сделать норм доки
 @router.get('/api/speciality_kr_total_points_attendance_dynamic', name='Plot:plot', status_code=status.HTTP_200_OK,
             tags=["Speciality comparison page"], description=
             """
@@ -2351,30 +2384,26 @@ async def kr_analyse_with_filters(token: str, kr: str, type_select: int, teacher
 
 # query builder page
 # region
-@router.post('/api/query_builder_to_csv_dataset', name='Plot:plot', status_code=status.HTTP_200_OK,
-             tags=["Query builder page"], description=
+
+
+@router.post('/api/get_dataset', name='Reporting system:Reporting system', status_code=status.HTTP_200_OK,
+             tags=["Reporting system page"], description=
              """
-                     Получает id_team: int, id_stud: int
+                     Получает fields_dict: dict | None, filter_dict: dict | None, distinct: bool,
+                     рабочие параметры fields_dict снизу
+                     field_params = ['lesson_id', 'lesson_name', 'lesson_mark_for_work', 'lesson_arrival', 'lesson_test',
+                     'lesson_result_points', 'lesson_result_mark', 'lesson_stud_id', 'lesson_team_id',
+                     'lesson_teacher_id', 'lesson_date_of_add', 'rmup_id', 'rmup_name', 'rmup_link', 'rmup_date_of_add',
+                     'stud_id', 'stud_name', 'stud_email', 'stud_speciality', 'stud_date_of_add', 'teacher_id',
+                     'teacher_name', 'teacher_lect_or_pract', 'teacher_date_of_add', 'team_id',
+                     'team_name', 'team_rmup_id', 'team_date_of_add']
+                     рабочие параметры filter_dict это строка команд/учителей/направлений разреденных символом '_'
+                     filter_dict_true = {'teams':"","teachers":"Плотоненко Юрий Анатольевич_Трефилин Иван Андреевич","specialities":""}
                      Returns:
-                         response_list = []
-                         response_list.append({'name': row['name'], 'cum_sum': cum_sum[-1], 'counter': row['counter'], 'isTest': temp})
-                     \n
-                     [
-                       {
-                         "name": "Основные принципы организации Языка Python. Базовые элементы программирования и типы данных",
-                         "cum_sum": 2,
-                         "counter": 1,
-                         "isTest": false
-                       },
-                       {
-                         "name": "Основные принципы организации Языка Python. Базовые элементы программирования и типы данных1",
-                         "cum_sum": 4,
-                         "counter": 2,
-                         "isTest": false
-                       },
+                         грубо говоря ссылку на скачивание csv файла
              """)
-async def query_builder_to_csv_dataset(fields_dict: dict | None, filter_dict: dict | None, distinct: bool,
-                               db: AsyncSession = Depends(connect_db_data)):
+async def get_dataset(fields_dict: dict | None, filter_dict: dict | None, distinct: bool,
+                      db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
     print(fields_dict)
     # field_params = ['lesson_id', 'lesson_name', 'lesson_mark_for_work', 'lesson_arrival', 'lesson_test',
@@ -2399,7 +2428,7 @@ async def query_builder_to_csv_dataset(fields_dict: dict | None, filter_dict: di
                        'team_date_of_add': "t2.date_of_add"}
     # filter_dict_true = {'teams':"","teachers":"Плотоненко Юрий Анатольевич_Трефилин Иван Андреевич","specialities":""}
     # filter_dict = filter_dict_true
-    if filter_dict is not None:
+    if len(filter_dict) > 0:
         teams_str = ''
         teachers_str = ''
         specialities_str = ''
@@ -2450,6 +2479,39 @@ async def query_builder_to_csv_dataset(fields_dict: dict | None, filter_dict: di
                                  )
     response.headers["Content-Disposition"] = "attachment; filename=export.csv"
     return response
-    # return field_list
+
+
+@router.post('/api/reporting_system', name='Reporting system:Reporting system', status_code=status.HTTP_200_OK,
+             tags=["Reporting system page"], description=
+             """
+                     Получает hrefs_list: str, name_of_sheet_list: str, as_csv: bool
+                     hrefs_list это, к примеру, http://localhost:8090/api/cum_sum_points_for_stud_for_team?id_team=2&id_stud=1,http://localhost:8090/api/cum_sum_points_for_stud_for_team?id_team=2&id_stud=1
+                     name_of_sheet_list такая же строка с разделителем ',', которая называет страницы csv
+                     Returns:
+                         массив словарей с полями 'response', "url" либо ссылку на скачивает csv файла
+             """)
+async def reporting_system(hrefs_list: str, name_of_sheet_list: str, as_csv: bool):
+    hrefs_list = hrefs_list.split(',')
+    name_of_sheet_list = name_of_sheet_list.split(',')
+    res = await get_urls(hrefs_list, as_csv)
+    if isinstance(res, dict):
+        res = [res]
+    if as_csv:
+        random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=30))
+        file_path = f"trash/{random_string}.xlsx"
+        writer = pd.ExcelWriter(file_path, engine="xlsxwriter")
+        for index, href_resp in enumerate(res, start=0):
+            df = pd.DataFrame(href_resp)
+            df.to_excel(writer, sheet_name=f"{name_of_sheet_list[index]}", index=False)
+        writer.close()
+        with open(file_path, "rb") as file:
+            contents = file.read()
+        response = StreamingResponse(iter([contents]),
+                                     media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response.headers["Content-Disposition"] = "attachment; filename=export.xlsx"
+        os.remove(file_path)
+        return response
+    else:
+        return res
 
 # endregion
