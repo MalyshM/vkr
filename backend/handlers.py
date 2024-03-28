@@ -20,6 +20,7 @@ from models import connect_db_data, connect_db_users, User, async_session_users
 from schemas import UserRegistration, TokenData, UserLogin
 from util import Hasher, get_urls
 
+LOGGER = logging.getLogger(__name__)
 router = APIRouter()
 logging.getLogger('passlib').setLevel(logging.ERROR)
 SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
@@ -180,6 +181,7 @@ async def get_current_user_dev(token: str):
         ]
 """)
 async def get_all_users(db: AsyncSession = Depends(connect_db_users)):
+    LOGGER.info("check logs")
     all_users = await db.execute("""
         Select *
         from users u

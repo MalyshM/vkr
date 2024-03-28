@@ -25,10 +25,13 @@ services:
       - .env
     volumes:
       - ./backend:/backend
+      - ./fastapi-logs:/backend/logs
+      - ./backend/logs:/backend/logs
     environment:
       - PYTHONPATH=/backend
     depends_on:
       - db
+      - elasticsearch
 
   tests:
     build:
@@ -69,3 +72,36 @@ services:
     volumes:
       - ./:/mnt/locust
     command: -f /mnt/locust/locustfile.py --worker --master-host master
+
+  elasticsearch:
+    image: elasticsearch:7.16.1
+    volumes:
+      - ./configs/elasticsearch/config.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+      - ./docker_volumes/elasticsearch/data:/usr/share/elasticsearch/data
+    environment:
+      ES_JAVA_OPTS: "-Xmx512m -Xms512m"
+      ELASTIC_USERNAME: "elastic"
+      ELASTIC_PASSWORD: "MyPw123"
+      discovery.type: single-node
+    ports:
+      - "9200:9200"
+
+  kibana:
+    image: kibana:7.16.1
+    depends_on:
+      - elasticsearch
+    volumes:
+      - ./configs/kibana/config.yml:/usr/share/kibana/config/kibana.yml:ro
+    ports:
+      - "5601:5601"
+
+  filebeat:
+    build:
+      context: ./filebeat
+    container_name: filebeat
+    volumes:
+      - ./fastapi-logs:/backend/logs
+      - ./backend/logs:/backend/logs
+    depends_on:
+      - elasticsearch
+      - kibana

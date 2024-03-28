@@ -4,3 +4,7 @@
 /pgdata
 *.csv
 /__pycache__
+/configs
+/filebeat
+/docker_volumes
+/fastapi-logs
