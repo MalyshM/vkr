@@ -16,6 +16,7 @@ from starlette import status
 from starlette.exceptions import HTTPException
 from fastapi.responses import StreamingResponse
 
+from redis import connect_to_redis_true, check_href, save_resp
 from models import connect_db_data, connect_db_users, User, async_session_users
 from schemas import UserRegistration, TokenData, UserLogin
 from util import Hasher, get_urls
@@ -1165,6 +1166,13 @@ async def attendance_static_for_stud_for_team(id_team: int, id_stud: int, db: As
             """)
 async def all_in_one_for_stud_for_team(id_team: int, id_stud: int, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
+    href = f"all_in_one_for_stud_for_team-{id_team}-{id_stud}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        return res
+    except:
+        pass
     result_query = await db.execute(f"""
         SELECT
             l.name,
@@ -1181,6 +1189,7 @@ async def all_in_one_for_stud_for_team(id_team: int, id_stud: int, db: AsyncSess
           WHERE
             l.team_id = {id_team} and l.stud_id = {id_stud}
                 """)
+    await save_resp(href, result_query)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
     return result_query.fetchall()
 

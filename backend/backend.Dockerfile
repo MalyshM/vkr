@@ -23,4 +23,4 @@ RUN CHROME_VERSION=`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE`
   apt install -y /tmp/chrome.deb && \
   rm /tmp/chrome.deb
 RUN pip install locust
-EXPOSE 8000
+EXPOSE 8090

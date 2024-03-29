@@ -3,6 +3,8 @@ from starlette.middleware.cors import CORSMiddleware
 from handlers import router
 from logger import LoggerSetup
 import logging
+from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.openapi.utils import get_openapi
 
 logger_setup = LoggerSetup()
 LOGGER = logging.getLogger(__name__)
@@ -22,3 +24,13 @@ def get_application() -> FastAPI:
 
 
 app = get_application()
+
+
+@app.get("/api/docs", include_in_schema=False)
+async def custom_swagger_ui_html():
+    return get_swagger_ui_html(openapi_url="/api/openapi.json", title="FastAPI API documentation")
+
+
+@app.get("/api/openapi.json", include_in_schema=False)
+async def get_custom_openapi():
+    return get_openapi(title="FastAPI", version="1.0", routes=app.routes)
