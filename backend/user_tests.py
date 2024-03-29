@@ -303,9 +303,8 @@ class UserTests(unittest.TestCase):
             self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
         params = {'token': response['response_json']['access_token']}
         response = self.loop.run_until_complete(
-            self.get_request(url="/api/get_current_user_dev", **params))
+            self.post_request(url="/api/get_current_user_dev", **params))
         self.assertEqual(response['status'], 200)
-        # todo: выдаёт 405 почему-то
 
         self.assertIsInstance(response['response_json']["password"], str)
         self.assertIsInstance(response['response_json']["id"], int)
@@ -329,9 +328,8 @@ class UserTests(unittest.TestCase):
     def test_get_current_user_dev_by_false_token(self):
         params = {'token': 'token'}
         response = self.loop.run_until_complete(
-            self.get_request(url="/api/get_current_user_dev", **params))
+            self.post_request(url="/api/get_current_user_dev", **params))
         self.assertEqual(response['status'], 401)
-        # todo: выдаёт 405 почему-то
 
     def test_login_standard_success(self):
         # Test case for successful login
