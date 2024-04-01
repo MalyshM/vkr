@@ -180,7 +180,7 @@ class UserTests(unittest.TestCase):
         self.assertEqual(response['status'], 401)
 
 
-    def test_get_student(self):
+    def test_get_student_true(self):
         params = {'id_stud': 2}
         response = self.loop.run_until_complete(
             self.get_request(url="/api/get_student", **params))
@@ -201,6 +201,19 @@ class UserTests(unittest.TestCase):
         self.assertIsNotNone(data["email"])
         self.assertIsNotNone(data["date_of_add"])
         self.assertIsNotNone(data["name"])
+
+    def test_get_student_false_a(self):
+        params = {}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/get_student", **params))
+        self.assertEqual(response['status'], 422)
+
+    def test_get_student_false_b(self):
+        params = {'id_stud': -1}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/get_student", **params))
+        self.assertEqual(response['status'], 200)
+        self.assertEqual(response['headers']['content-type'], 'application/json')
 
     def test_get_all_specialities_by_true_token(self):
         login_data = {
