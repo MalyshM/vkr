@@ -205,16 +205,24 @@ async def delete_all_users(db: AsyncSession = Depends(connect_db_users)):
     await db.commit()
     return {"message": "All users deleted successfully"}
 
-
-async def delete_test_user():
-    async with async_session_users() as db:
-        await db.execute("""
-            DELETE FROM users u
-             where u.username = 'string' and 
-             u.email = 'string' and 
-             u.fio = 'string'
-         """)
-        await db.commit()
+@router.get('/api/delete_test_user', name='User:delete_all_users', status_code=status.HTTP_200_OK, tags=["User"],
+            description=
+            """
+                    Returns:
+                        {"message": "All users deleted successfully"}
+                    \n
+                    {
+                      "message": "All users deleted successfully"
+                    }
+            """)
+async def delete_test_user(db: AsyncSession = Depends(connect_db_users)):
+    await db.execute("""
+        DELETE FROM users u
+         where u.username = 'string' and 
+         u.email = 'string' and 
+         u.fio = 'string'
+     """)
+    await db.commit()
     return {"message": "test user deleted successfully"}
 
 
