@@ -6,7 +6,7 @@ from handlers import delete_test_user
 
 class UserTests(unittest.TestCase):
     def setUp(self):
-        self.base_url = 'http://localhost:8090'
+        self.base_url = 'http://moais-dashboard.ru:8082'
         self.loop = asyncio.get_event_loop()
 
     async def post_request(self, url: str, user_data_to_json: dict | None = None, token: str | None = None) -> dict:
@@ -30,7 +30,7 @@ class UserTests(unittest.TestCase):
                     'headers': res.headers}
 
     def test_a_registration_standard_a_success(self):
-        self.loop.run_until_complete(delete_test_user())
+        self.loop.run_until_complete(self.get_request(url="/api/delete_test_user"))
         user_data = {
             "FIO": "string",
             "username": "string",
@@ -54,8 +54,8 @@ class UserTests(unittest.TestCase):
             "password": "string",
             "email": "string",
             "isAdmin": True,
-            "isTeacher": False,
-            "isCurator": False
+            "isTeacher": True,
+            "isCurator": True
         }
         response = self.loop.run_until_complete(
             self.post_request(user_data_to_json=user_data, url="/api/registration_standard"))

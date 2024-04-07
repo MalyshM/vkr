@@ -4,7 +4,7 @@ import aiohttp as aiohttp
 
 class MainPageTests(unittest.TestCase):
     def setUp(self):
-        self.base_url = 'http://localhost:8090'
+        self.base_url = 'http://moais-dashboard.ru:8082'
         self.loop = asyncio.get_event_loop()
 
     async def get_request(self, url: str, **params) -> dict:
