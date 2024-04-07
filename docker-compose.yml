@@ -11,7 +11,7 @@ services:
     volumes:
       - ./pgdata:/var/lib/postgresql/data
     ports:
-      - '5432:5432'
+      - '127.0.0.1:5432:5432'
 
   backend:
     build:
@@ -52,7 +52,7 @@ services:
     image: node:20.10.0
     container_name: frontend_BLOODY_VLADI
     ports:
-      - '3000:3000'
+      - '127.0.0.1:3000:3000'
     command: bash -c "cd /frontend/for_vlad; npm install ; npm run build ; npm run start"
 #    entrypoint: ["bash", "-c", "cd /frontend/for_vlad; npm install ; npm run build ; npm run start"]
     volumes:
@@ -83,7 +83,7 @@ services:
       ELASTIC_PASSWORD: "MyPw123"
       discovery.type: single-node
     ports:
-      - "9200:9200"
+      - "127.0.0.1:9200:9200"
 
   kibana:
     image: kibana:7.16.1
@@ -117,4 +117,4 @@ services:
   redis:
     image: redis:latest
     ports:
-      - '6379:6379'
+      - '127.0.0.1:6379:6379'
