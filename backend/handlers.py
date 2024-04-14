@@ -1832,7 +1832,7 @@ async def total_points_for_specialities(token: str, speciality1: str, speciality
             WHERE
                 l.team_id IN ({teams_true})
                 and (s.speciality = '{speciality1}' or s.speciality = '{speciality2}')
-            order by arrival desc
+            order by total_points desc
             """)
     mas = res.fetchall()
     df_list = []
