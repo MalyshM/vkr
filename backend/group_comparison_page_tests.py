@@ -173,6 +173,7 @@ class GroupComparisonPageTests(unittest.TestCase):
         data = {'token': 'token'}
         response = self.loop.run_until_complete(
             self.get_request(url="/api/total_points_studs_for_all_teams", **data))
+        self.assertEqual(response['status'], 401)
 
     def test_team_kr_total_points_attendance_dynamic(self):
         login_data = {
@@ -211,10 +212,14 @@ class GroupComparisonPageTests(unittest.TestCase):
             self.get_request(url="/api/team_kr_total_points_attendance_dynamic", **data))
         self.assertEqual(response['status'], 200)
         for total_points in response['response_json']:
+            self.assertIsInstance(total_points["team_name"], str)
+            self.assertIsInstance(total_points["team_id"], int)
             self.assertIsInstance(total_points['teacher_id'], int)
             self.assertIsInstance(total_points['teacher_name'], str)
             self.assertIsInstance(total_points['Успеваемость_средняя'], float)
             self.assertIsInstance(total_points['Посещаемость_средняя'], float)
+            self.assertIsNotNone(total_points['team_name'])
+            self.assertIsNotNone(total_points['team_id'])
             self.assertIsNotNone(total_points['teacher_id'])
             self.assertIsNotNone(total_points['teacher_name'])
             self.assertIsNotNone(total_points['Успеваемость_средняя'])
@@ -229,16 +234,20 @@ class GroupComparisonPageTests(unittest.TestCase):
         }
         response = self.loop.run_until_complete(
             self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
-        data = {'token': response['response_json']['access_token'],'group_by_teacher': 'false',
-                'teacher_list': 'asd.asd'}
+        data = {'token': response['response_json']['access_token'],
+                'group_by_teacher': 'false', 'teacher_list':'Павлова Елена Александровна,Плотоненко Юрий Анатольевич'}
         response = self.loop.run_until_complete(
             self.get_request(url="/api/team_kr_total_points_attendance_dynamic", **data))
         self.assertEqual(response['status'], 200)
         for total_points in response['response_json']:
+            self.assertIsInstance(total_points["team_name"], str)
+            self.assertIsInstance(total_points["team_id"], int)
             self.assertIsInstance(total_points['teacher_id'], int)
             self.assertIsInstance(total_points['teacher_name'], str)
             self.assertIsInstance(total_points['Успеваемость_средняя'], float)
             self.assertIsInstance(total_points['Посещаемость_средняя'], float)
+            self.assertIsNotNone(total_points['team_name'])
+            self.assertIsNotNone(total_points['team_id'])
             self.assertIsNotNone(total_points['teacher_id'])
             self.assertIsNotNone(total_points['teacher_name'])
             self.assertIsNotNone(total_points['Успеваемость_средняя'])
@@ -253,8 +262,8 @@ class GroupComparisonPageTests(unittest.TestCase):
         }
         response = self.loop.run_until_complete(
             self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
-        data = {'token': response['response_json']['access_token'],
-                'group_by_teacher': 'false', 'teacher_list':'Павлова Елена Александровна,Плотоненко Юрий Анатольевич'}
+        data = {'token': response['response_json']['access_token'], 'group_by_teacher': 'true',
+                'teacher_list': 'Павлова Елена Александровна,Плотоненко Юрий Анатольевич'}
         response = self.loop.run_until_complete(
             self.get_request(url="/api/team_kr_total_points_attendance_dynamic", **data))
         self.assertEqual(response['status'], 200)
@@ -270,15 +279,14 @@ class GroupComparisonPageTests(unittest.TestCase):
 
     def test_team_kr_total_points_attendance_dynamic5(self):
         login_data = {
-            "FIO": "string",
-            "username": "string",
-            "password": "string",
-            "email": "string"
+            "FIO": "Павлова Елена Александровна",
+            "username": "Павлова Елена Александровна",
+            "password": "Павлова Елена Александровна",
+            "email": "Павлова Елена Александровна"
         }
         response = self.loop.run_until_complete(
             self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
-        data = {'token': response['response_json']['access_token'], 'group_by_teacher': 'false',
-                'teacher_list': 'Павлова Елена Александровна,Плотоненко Юрий Анатольевич'}
+        data = {'token': response['response_json']['access_token'], 'group_by_teacher': 'true'}
         response = self.loop.run_until_complete(
             self.get_request(url="/api/team_kr_total_points_attendance_dynamic", **data))
         self.assertEqual(response['status'], 200)
@@ -287,6 +295,33 @@ class GroupComparisonPageTests(unittest.TestCase):
             self.assertIsInstance(total_points['teacher_name'], str)
             self.assertIsInstance(total_points['Успеваемость_средняя'], float)
             self.assertIsInstance(total_points['Посещаемость_средняя'], float)
+            self.assertIsNotNone(total_points['teacher_id'])
+            self.assertIsNotNone(total_points['teacher_name'])
+            self.assertIsNotNone(total_points['Успеваемость_средняя'])
+            self.assertIsNotNone(total_points['Посещаемость_средняя'])
+
+    def test_team_kr_total_points_attendance_dynamic6(self):
+        login_data = {
+            "FIO": "Павлова Елена Александровна",
+            "username": "Павлова Елена Александровна",
+            "password": "Павлова Елена Александровна",
+            "email": "Павлова Елена Александровна"
+        }
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        data = {'token': response['response_json']['access_token'], 'group_by_teacher': 'false'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/team_kr_total_points_attendance_dynamic", **data))
+        self.assertEqual(response['status'], 200)
+        for total_points in response['response_json']:
+            self.assertIsInstance(total_points["team_name"], str)
+            self.assertIsInstance(total_points["team_id"], int)
+            self.assertIsInstance(total_points['teacher_id'], int)
+            self.assertIsInstance(total_points['teacher_name'], str)
+            self.assertIsInstance(total_points['Успеваемость_средняя'], float)
+            self.assertIsInstance(total_points['Посещаемость_средняя'], float)
+            self.assertIsNotNone(total_points['team_name'])
+            self.assertIsNotNone(total_points['team_id'])
             self.assertIsNotNone(total_points['teacher_id'])
             self.assertIsNotNone(total_points['teacher_name'])
             self.assertIsNotNone(total_points['Успеваемость_средняя'])
@@ -301,10 +336,10 @@ class GroupComparisonPageTests(unittest.TestCase):
         }
         response = self.loop.run_until_complete(
             self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
-        data = {'token': 'token'}
+        data = {'token': 'token', 'group_by_teacher': 'true'}
         response = self.loop.run_until_complete(
             self.get_request(url="/api/team_kr_total_points_attendance_dynamic", **data))
-        self.assertEqual(response['status'], 422)
+        self.assertEqual(response['status'], 401)
 
     def test_team_kr_total_points_attendance_dynamic_fail2(self):
         login_data = {
@@ -315,11 +350,10 @@ class GroupComparisonPageTests(unittest.TestCase):
         }
         response = self.loop.run_until_complete(
             self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
-        data = {'token': 'token','group_by_teacher': 'false',
-                'teacher_list': 'Павлова Елена Александровна,Плотоненко Юрий Анатольевич'}
+        data = {'token': response['response_json']['access_token']}
         response = self.loop.run_until_complete(
             self.get_request(url="/api/team_kr_total_points_attendance_dynamic", **data))
-        self.assertEqual(response['status'], 401)
+        self.assertEqual(response['status'], 422)
 
     def test_team_kr_total_points_attendance_dynamic_fail3(self):
         login_data = {
@@ -330,26 +364,26 @@ class GroupComparisonPageTests(unittest.TestCase):
         }
         response = self.loop.run_until_complete(
             self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
-        data = {'token': 'token','group_by_teacher': 'false',
-                'teacher_list': 'Павлова Елена Александровна,Плотоненко Юрий Анатольевич'}
+        data = {'token': response['response_json']['access_token'],'group_by_teacher': 'true',
+                'teacher_list': 'asd,asd'}
         response = self.loop.run_until_complete(
             self.get_request(url="/api/team_kr_total_points_attendance_dynamic", **data))
         self.assertEqual(response['status'], 401)
 
     def test_team_kr_total_points_attendance_dynamic_fail4(self):
         login_data = {
-            "FIO": "string",
-            "username": "string",
-            "password": "string",
-            "email": "string"
+            "FIO": "Павлова Елена Александровна",
+            "username": "Павлова Елена Александровна",
+            "password": "Павлова Елена Александровна",
+            "email": "Павлова Елена Александровна"
         }
         response = self.loop.run_until_complete(
             self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
-        data = {'token': 'token','group_by_teacher': 'false',
+        data = {'token': response['response_json']['access_token'],'group_by_teacher': 'false',
                 'teacher_list': 'Павлова Елена Александровна,Плотоненко Юрий Анатольевич'}
         response = self.loop.run_until_complete(
             self.get_request(url="/api/team_kr_total_points_attendance_dynamic", **data))
-        self.assertEqual(response['status'], 401)
+        self.assertEqual(response['status'], 200)
 
     def test_team_kr_total_points_dynamic(self):
         login_data = {
@@ -386,9 +420,13 @@ class GroupComparisonPageTests(unittest.TestCase):
             self.get_request(url="/api/team_kr_total_points_dynamic", **data))
         self.assertEqual(response['status'], 200)
         for total_points in response['response_json']:
+            self.assertIsInstance(total_points["team_name"], str)
+            self.assertIsInstance(total_points["team_id"], int)
             self.assertIsInstance(total_points['teacher_id'], int)
             self.assertIsInstance(total_points['teacher_name'], str)
             self.assertIsInstance(total_points['Успеваемость_средняя'], float)
+            self.assertIsNotNone(total_points["team_name"])
+            self.assertIsNotNone(total_points["team_id"])
             self.assertIsNotNone(total_points['teacher_id'])
             self.assertIsNotNone(total_points['teacher_name'])
             self.assertIsNotNone(total_points['Успеваемость_средняя'])
@@ -403,14 +441,18 @@ class GroupComparisonPageTests(unittest.TestCase):
         response = self.loop.run_until_complete(
             self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
         data = {'token': response['response_json']['access_token'],
-                'group_by_teacher': 'true'}
+                'group_by_teacher': 'false', 'teacher_list': 'Павлова Елена Александровна,Плотоненко Юрий Анатольевич'}
         response = self.loop.run_until_complete(
             self.get_request(url="/api/team_kr_total_points_dynamic", **data))
         self.assertEqual(response['status'], 200)
         for total_points in response['response_json']:
+            self.assertIsInstance(total_points["team_name"], str)
+            self.assertIsInstance(total_points["team_id"], int)
             self.assertIsInstance(total_points['teacher_id'], int)
             self.assertIsInstance(total_points['teacher_name'], str)
             self.assertIsInstance(total_points['Успеваемость_средняя'], float)
+            self.assertIsNotNone(total_points["team_name"])
+            self.assertIsNotNone(total_points["team_id"])
             self.assertIsNotNone(total_points['teacher_id'])
             self.assertIsNotNone(total_points['teacher_name'])
             self.assertIsNotNone(total_points['Успеваемость_средняя'])
@@ -425,7 +467,7 @@ class GroupComparisonPageTests(unittest.TestCase):
         response = self.loop.run_until_complete(
             self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
         data = {'token': response['response_json']['access_token'],
-                'group_by_teacher': 'false'}
+                'group_by_teacher': 'true', 'teacher_list': 'Павлова Елена Александровна,Плотоненко Юрий Анатольевич'}
         response = self.loop.run_until_complete(
             self.get_request(url="/api/team_kr_total_points_dynamic", **data))
         self.assertEqual(response['status'], 200)
@@ -439,15 +481,14 @@ class GroupComparisonPageTests(unittest.TestCase):
 
     def test_team_kr_total_points_dynamic5(self):
         login_data = {
-            "FIO": "string",
-            "username": "string",
-            "password": "string",
-            "email": "string"
+            "FIO": "Павлова Елена Александровна",
+            "username": "Павлова Елена Александровна",
+            "password": "Павлова Елена Александровна",
+            "email": "Павлова Елена Александровна"
         }
         response = self.loop.run_until_complete(
             self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
-        data = {'token': response['response_json']['access_token'], 'group_by_teacher': 'true',
-                'teacher_list': 'Павлова Елена Александровна,Плотоненко Юрий Анатольевич'}
+        data = {'token': response['response_json']['access_token'], 'group_by_teacher': 'true'}
         response = self.loop.run_until_complete(
             self.get_request(url="/api/team_kr_total_points_dynamic", **data))
         self.assertEqual(response['status'], 200)
@@ -455,6 +496,31 @@ class GroupComparisonPageTests(unittest.TestCase):
             self.assertIsInstance(total_points['teacher_id'], int)
             self.assertIsInstance(total_points['teacher_name'], str)
             self.assertIsInstance(total_points['Успеваемость_средняя'], float)
+            self.assertIsNotNone(total_points['teacher_id'])
+            self.assertIsNotNone(total_points['teacher_name'])
+            self.assertIsNotNone(total_points['Успеваемость_средняя'])
+
+    def test_team_kr_total_points_dynamic6(self):
+        login_data = {
+            "FIO": "Павлова Елена Александровна",
+            "username": "Павлова Елена Александровна",
+            "password": "Павлова Елена Александровна",
+            "email": "Павлова Елена Александровна"
+        }
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        data = {'token': response['response_json']['access_token'], 'group_by_teacher': 'false'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/team_kr_total_points_dynamic", **data))
+        self.assertEqual(response['status'], 200)
+        for total_points in response['response_json']:
+            self.assertIsInstance(total_points["team_name"], str)
+            self.assertIsInstance(total_points["team_id"], int)
+            self.assertIsInstance(total_points['teacher_id'], int)
+            self.assertIsInstance(total_points['teacher_name'], str)
+            self.assertIsInstance(total_points['Успеваемость_средняя'], float)
+            self.assertIsNotNone(total_points["team_name"])
+            self.assertIsNotNone(total_points["team_id"])
             self.assertIsNotNone(total_points['teacher_id'])
             self.assertIsNotNone(total_points['teacher_name'])
             self.assertIsNotNone(total_points['Успеваемость_средняя'])
@@ -468,8 +534,7 @@ class GroupComparisonPageTests(unittest.TestCase):
         }
         response = self.loop.run_until_complete(
             self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
-        data = {'token': 'token', 'group_by_teacher': 'true',
-                'teacher_list': 'Павлова Елена Александровна,Плотоненко Юрий Анатольевич'}
+        data = {'token': 'token', 'group_by_teacher': 'true'}
         response = self.loop.run_until_complete(
             self.get_request(url="/api/team_kr_total_points_dynamic", **data))
         self.assertEqual(response['status'], 401)
@@ -506,10 +571,10 @@ class GroupComparisonPageTests(unittest.TestCase):
 
     def test_team_kr_total_points_dynamic_fail4(self):
         login_data = {
-            "FIO": "string",
-            "username": "string",
-            "password": "string",
-            "email": "string"
+            "FIO": "Павлова Елена Александровна",
+            "username": "Павлова Елена Александровна",
+            "password": "Павлова Елена Александровна",
+            "email": "Павлова Елена Александровна"
         }
         response = self.loop.run_until_complete(
             self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
@@ -549,14 +614,18 @@ class GroupComparisonPageTests(unittest.TestCase):
         }
         response = self.loop.run_until_complete(
             self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
-        data = {'token': response['response_json']['access_token'], 'group_by_teacher': 'true'}
+        data = {'token': response['response_json']['access_token'], 'group_by_teacher': 'false'}
         response = self.loop.run_until_complete(
             self.get_request(url="/api/team_kr_attendance_dynamic", **data))
         self.assertEqual(response['status'], 200)
         for attendance_dynamic in response['response_json']:
+            self.assertIsInstance(attendance_dynamic["team_name"], str)
+            self.assertIsInstance(attendance_dynamic["team_id"], int)
             self.assertIsInstance(attendance_dynamic['teacher_id'], int)
             self.assertIsInstance(attendance_dynamic['teacher_name'], str)
             self.assertIsInstance(attendance_dynamic['Посещаемость_средняя'], float)
+            self.assertIsNotNone(attendance_dynamic["team_name"])
+            self.assertIsNotNone(attendance_dynamic["team_id"])
             self.assertIsNotNone(attendance_dynamic['teacher_id'])
             self.assertIsNotNone(attendance_dynamic['teacher_name'])
             self.assertIsNotNone(attendance_dynamic['Посещаемость_средняя'])
@@ -571,14 +640,18 @@ class GroupComparisonPageTests(unittest.TestCase):
         response = self.loop.run_until_complete(
             self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
         data = {'token': response['response_json']['access_token'],
-                'group_by_teacher': 'true'}
+                'group_by_teacher': 'false', 'teacher_list': 'Павлова Елена Александровна,Плотоненко Юрий Анатольевич'}
         response = self.loop.run_until_complete(
             self.get_request(url="/api/team_kr_attendance_dynamic", **data))
         self.assertEqual(response['status'], 200)
         for attendance_dynamic in response['response_json']:
+            self.assertIsInstance(attendance_dynamic["team_name"], str)
+            self.assertIsInstance(attendance_dynamic["team_id"], int)
             self.assertIsInstance(attendance_dynamic['teacher_id'], int)
             self.assertIsInstance(attendance_dynamic['teacher_name'], str)
             self.assertIsInstance(attendance_dynamic['Посещаемость_средняя'], float)
+            self.assertIsNotNone(attendance_dynamic["team_name"])
+            self.assertIsNotNone(attendance_dynamic["team_id"])
             self.assertIsNotNone(attendance_dynamic['teacher_id'])
             self.assertIsNotNone(attendance_dynamic['teacher_name'])
             self.assertIsNotNone(attendance_dynamic['Посещаемость_средняя'])
@@ -592,8 +665,8 @@ class GroupComparisonPageTests(unittest.TestCase):
         }
         response = self.loop.run_until_complete(
             self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
-        data = {'token': response['response_json']['access_token'],
-                'group_by_teacher': 'false'}
+        data = {'token': response['response_json']['access_token'], 'group_by_teacher': 'true',
+                'teacher_list': 'Павлова Елена Александровна,Плотоненко Юрий Анатольевич'}
         response = self.loop.run_until_complete(
             self.get_request(url="/api/team_kr_attendance_dynamic", **data))
         self.assertEqual(response['status'], 200)
@@ -607,14 +680,14 @@ class GroupComparisonPageTests(unittest.TestCase):
 
     def test_team_kr_attendance_dynamic5(self):
         login_data = {
-            "FIO": "string",
-            "username": "string",
-            "password": "string",
-            "email": "string"
+            "FIO": "Павлова Елена Александровна",
+            "username": "Павлова Елена Александровна",
+            "password": "Павлова Елена Александровна",
+            "email": "Павлова Елена Александровна"
         }
         response = self.loop.run_until_complete(
             self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
-        data = {'token': response['response_json']['access_token'], 'group_by_teacher': 'false','teacher_list':'Павлова Елена Александровна,Плотоненко Юрий Анатольевич'}
+        data = {'token': response['response_json']['access_token'], 'group_by_teacher': 'true'}
         response = self.loop.run_until_complete(
             self.get_request(url="/api/team_kr_attendance_dynamic", **data))
         self.assertEqual(response['status'], 200)
@@ -626,6 +699,30 @@ class GroupComparisonPageTests(unittest.TestCase):
             self.assertIsNotNone(attendance_dynamic['teacher_name'])
             self.assertIsNotNone(attendance_dynamic['Посещаемость_средняя'])
 
+    def test_team_kr_attendance_dynamic6(self):
+        login_data = {
+            "FIO": "Павлова Елена Александровна",
+            "username": "Павлова Елена Александровна",
+            "password": "Павлова Елена Александровна",
+            "email": "Павлова Елена Александровна"
+        }
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        data = {'token': response['response_json']['access_token'], 'group_by_teacher': 'false'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/team_kr_attendance_dynamic", **data))
+        self.assertEqual(response['status'], 200)
+        for attendance_dynamic in response['response_json']:
+            self.assertIsInstance(attendance_dynamic["team_name"], str)
+            self.assertIsInstance(attendance_dynamic["team_id"], int)
+            self.assertIsInstance(attendance_dynamic['teacher_id'], int)
+            self.assertIsInstance(attendance_dynamic['teacher_name'], str)
+            self.assertIsInstance(attendance_dynamic['Посещаемость_средняя'], float)
+            self.assertIsNotNone(attendance_dynamic["team_name"])
+            self.assertIsNotNone(attendance_dynamic["team_id"])
+            self.assertIsNotNone(attendance_dynamic['teacher_id'])
+            self.assertIsNotNone(attendance_dynamic['teacher_name'])
+            self.assertIsNotNone(attendance_dynamic['Посещаемость_средняя'])
 
     def test_team_kr_attendance_dynamic_fail(self):
         login_data = {
@@ -636,8 +733,7 @@ class GroupComparisonPageTests(unittest.TestCase):
         }
         response = self.loop.run_until_complete(
             self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
-        data = {'token': 'token', 'group_by_teacher': 'true',
-                'teacher_list': 'Павлова Елена Александровна,Плотоненко Юрий Анатольевич'}
+        data = {'token': 'token', 'group_by_teacher': 'true'}
         response = self.loop.run_until_complete(
             self.get_request(url="/api/team_kr_attendance_dynamic", **data))
         self.assertEqual(response['status'], 401)
@@ -674,10 +770,10 @@ class GroupComparisonPageTests(unittest.TestCase):
 
     def test_team_kr_attendance_dynamic_fail4(self):
         login_data = {
-            "FIO": "string",
-            "username": "string",
-            "password": "string",
-            "email": "string"
+            "FIO": "Павлова Елена Александровна",
+            "username": "Павлова Елена Александровна",
+            "password": "Павлова Елена Александровна",
+            "email": "Павлова Елена Александровна"
         }
         response = self.loop.run_until_complete(
             self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
