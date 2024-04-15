@@ -364,7 +364,7 @@ class GroupComparisonPageTests(unittest.TestCase):
         }
         response = self.loop.run_until_complete(
             self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
-        data = {'token': response['response_json']['access_token'],'group_by_teacher': 'true',
+        data = {'token': response['response_json']['access_token'],'group_by_teacher': 'false',
                 'teacher_list': 'asd,asd'}
         response = self.loop.run_until_complete(
             self.get_request(url="/api/team_kr_total_points_attendance_dynamic", **data))
@@ -763,7 +763,7 @@ class GroupComparisonPageTests(unittest.TestCase):
         response = self.loop.run_until_complete(
             self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
         data = {'token': response['response_json']['access_token'],'group_by_teacher': 'false',
-                'teacher_list': 'asd.asd'}
+                'teacher_list': 'asd,asd'}
         response = self.loop.run_until_complete(
             self.get_request(url="/api/team_kr_attendance_dynamic", **data))
         self.assertEqual(response['status'], 405)
