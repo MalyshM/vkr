@@ -252,6 +252,7 @@ class GroupComparisonPageTests(unittest.TestCase):
             self.assertIsNotNone(total_points['teacher_name'])
             self.assertIsNotNone(total_points['Успеваемость_средняя'])
             self.assertIsNotNone(total_points['Посещаемость_средняя'])
+            self.assertIn(total_points['teacher_name'], "Павлова Елена Александровна, Плотоненко Юрий Анатольевич")
 
     def test_team_kr_total_points_attendance_dynamic4(self):
         login_data = {
@@ -276,6 +277,7 @@ class GroupComparisonPageTests(unittest.TestCase):
             self.assertIsNotNone(total_points['teacher_name'])
             self.assertIsNotNone(total_points['Успеваемость_средняя'])
             self.assertIsNotNone(total_points['Посещаемость_средняя'])
+            self.assertIn(total_points['teacher_name'], "Павлова Елена Александровна, Плотоненко Юрий Анатольевич")
 
     def test_team_kr_total_points_attendance_dynamic5(self):
         login_data = {
@@ -299,6 +301,7 @@ class GroupComparisonPageTests(unittest.TestCase):
             self.assertIsNotNone(total_points['teacher_name'])
             self.assertIsNotNone(total_points['Успеваемость_средняя'])
             self.assertIsNotNone(total_points['Посещаемость_средняя'])
+            self.assertIn(total_points['teacher_name'], "Павлова Елена Александровна")
 
     def test_team_kr_total_points_attendance_dynamic6(self):
         login_data = {
@@ -326,6 +329,7 @@ class GroupComparisonPageTests(unittest.TestCase):
             self.assertIsNotNone(total_points['teacher_name'])
             self.assertIsNotNone(total_points['Успеваемость_средняя'])
             self.assertIsNotNone(total_points['Посещаемость_средняя'])
+            self.assertIn(total_points['teacher_name'], "Павлова Елена Александровна")
 
     def test_team_kr_total_points_attendance_dynamic_fail(self):
         login_data = {
@@ -380,10 +384,12 @@ class GroupComparisonPageTests(unittest.TestCase):
         response = self.loop.run_until_complete(
             self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
         data = {'token': response['response_json']['access_token'],'group_by_teacher': 'false',
-                'teacher_list': 'Павлова Елена Александровна,Плотоненко Юрий Анатольевич'}
+                'teacher_list': 'Плотоненко Юрий Анатольевич'}
         response = self.loop.run_until_complete(
             self.get_request(url="/api/team_kr_total_points_attendance_dynamic", **data))
         self.assertEqual(response['status'], 200)
+        for total_points in response['response_json']:
+            self.assertIn(total_points['teacher_name'], 'Павлова Елена Александровна,Плотоненко Юрий Анатольевич')
 
     def test_team_kr_total_points_dynamic(self):
         login_data = {
@@ -456,6 +462,7 @@ class GroupComparisonPageTests(unittest.TestCase):
             self.assertIsNotNone(total_points['teacher_id'])
             self.assertIsNotNone(total_points['teacher_name'])
             self.assertIsNotNone(total_points['Успеваемость_средняя'])
+            self.assertIn(total_points['teacher_name'],'Павлова Елена Александровна,Плотоненко Юрий Анатольевич')
 
     def test_team_kr_total_points_dynamic4(self):
         login_data = {
@@ -478,6 +485,7 @@ class GroupComparisonPageTests(unittest.TestCase):
             self.assertIsNotNone(total_points['teacher_id'])
             self.assertIsNotNone(total_points['teacher_name'])
             self.assertIsNotNone(total_points['Успеваемость_средняя'])
+            self.assertIn(total_points['teacher_name'],'Павлова Елена Александровна,Плотоненко Юрий Анатольевич')
 
     def test_team_kr_total_points_dynamic5(self):
         login_data = {
@@ -499,6 +507,7 @@ class GroupComparisonPageTests(unittest.TestCase):
             self.assertIsNotNone(total_points['teacher_id'])
             self.assertIsNotNone(total_points['teacher_name'])
             self.assertIsNotNone(total_points['Успеваемость_средняя'])
+            self.assertIn(total_points['teacher_name'],'Павлова Елена Александровна')
 
     def test_team_kr_total_points_dynamic6(self):
         login_data = {
@@ -524,6 +533,7 @@ class GroupComparisonPageTests(unittest.TestCase):
             self.assertIsNotNone(total_points['teacher_id'])
             self.assertIsNotNone(total_points['teacher_name'])
             self.assertIsNotNone(total_points['Успеваемость_средняя'])
+            self.assertIn(total_points['teacher_name'],'Павлова Елена Александровна')
 
     def test_team_kr_total_points_dynamic_fail(self):
         login_data = {
@@ -583,6 +593,8 @@ class GroupComparisonPageTests(unittest.TestCase):
         response = self.loop.run_until_complete(
             self.get_request(url="/api/team_kr_total_points_dynamic", **data))
         self.assertEqual(response['status'], 200)
+        for total_points in response['response_json']:
+            self.assertIn(total_points['teacher_name'],'Павлова Елена Александровна,Плотоненко Юрий Анатольевич')
 
     def test_team_kr_attendance_dynamic(self):
         login_data = {
@@ -655,6 +667,7 @@ class GroupComparisonPageTests(unittest.TestCase):
             self.assertIsNotNone(attendance_dynamic['teacher_id'])
             self.assertIsNotNone(attendance_dynamic['teacher_name'])
             self.assertIsNotNone(attendance_dynamic['Посещаемость_средняя'])
+            self.assertIn(attendance_dynamic['teacher_name'],'Павлова Елена Александровна,Плотоненко Юрий Анатольевич')
 
     def test_team_kr_attendance_dynamic4(self):
         login_data = {
@@ -677,6 +690,7 @@ class GroupComparisonPageTests(unittest.TestCase):
             self.assertIsNotNone(attendance_dynamic['teacher_id'])
             self.assertIsNotNone(attendance_dynamic['teacher_name'])
             self.assertIsNotNone(attendance_dynamic['Посещаемость_средняя'])
+            self.assertIn(attendance_dynamic['teacher_name'],"Павлова Елена Александровна, Плотоненко Юрий Анатольевич")
 
     def test_team_kr_attendance_dynamic5(self):
         login_data = {
@@ -698,6 +712,7 @@ class GroupComparisonPageTests(unittest.TestCase):
             self.assertIsNotNone(attendance_dynamic['teacher_id'])
             self.assertIsNotNone(attendance_dynamic['teacher_name'])
             self.assertIsNotNone(attendance_dynamic['Посещаемость_средняя'])
+            self.assertIn(attendance_dynamic['teacher_name'], "Павлова Елена Александровна")
 
     def test_team_kr_attendance_dynamic6(self):
         login_data = {
@@ -723,6 +738,7 @@ class GroupComparisonPageTests(unittest.TestCase):
             self.assertIsNotNone(attendance_dynamic['teacher_id'])
             self.assertIsNotNone(attendance_dynamic['teacher_name'])
             self.assertIsNotNone(attendance_dynamic['Посещаемость_средняя'])
+            self.assertIn(attendance_dynamic['teacher_name'], "Павлова Елена Александровна, Плотоненко Юрий Анатольевич")
 
     def test_team_kr_attendance_dynamic_fail(self):
         login_data = {
@@ -782,6 +798,8 @@ class GroupComparisonPageTests(unittest.TestCase):
         response = self.loop.run_until_complete(
             self.get_request(url="/api/team_kr_attendance_dynamic", **data))
         self.assertEqual(response['status'], 200)
+        for attendance_dynamic in response['response_json']:
+            self.assertIn(attendance_dynamic['teacher_name'], "Павлова Елена Александровна, Плотоненко Юрий Анатольевич")
 
 if __name__ == '__main__':
     unittest.main()
