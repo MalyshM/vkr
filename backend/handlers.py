@@ -6,7 +6,7 @@ import string
 import time
 from datetime import datetime, timedelta
 from typing import Optional
-
+from decimal import Decimal
 import jwt
 import pandas as pd
 from fastapi import APIRouter, Depends
@@ -56,7 +56,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
                      (по сути просто словарь с ключами FIO, username и тд)
                      Raises:
                          Если юзер есть, то  raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Пользователь с такими данными уже существует(юзернейм, е-мейл)")
- 
+
                      Returns:
                          {"access_token": access_token, "token_type": "bearer"}
                     \n
@@ -110,10 +110,10 @@ async def get_user(username, email):
              tags=["User"], description=
              """
                      Получает token юзера(строка)
-                     
+
                      Raises:
                          Если юзера нет, то  raise credentials_exception
-                         
+
                      Returns:
                          User
                      \n
@@ -204,6 +204,7 @@ async def delete_all_users(db: AsyncSession = Depends(connect_db_users)):
     await db.execute("""DELETE FROM users""")
     await db.commit()
     return {"message": "All users deleted successfully"}
+
 
 @router.get('/api/delete_test_user', name='User:delete_all_users', status_code=status.HTTP_200_OK, tags=["User"],
             description=
@@ -1177,9 +1178,10 @@ async def all_in_one_for_stud_for_team(id_team: int, id_stud: int, db: AsyncSess
     href = f"all_in_one_for_stud_for_team-{id_team}-{id_stud}"
     try:
         res = await check_href(href)
-        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
         return res
-    except:
+    except Exception as e:
+        print(e)
         pass
     result_query = await db.execute(f"""
         SELECT
@@ -1197,9 +1199,15 @@ async def all_in_one_for_stud_for_team(id_team: int, id_stud: int, db: AsyncSess
           WHERE
             l.team_id = {id_team} and l.stud_id = {id_stud}
                 """)
-    await save_resp(href, result_query)
+    result = result_query.fetchall()
+    result_dicts = [row._asdict() for row in result]
+    for row_dict in result_dicts:
+        for key, value in row_dict.items():
+            if isinstance(value, Decimal):
+                row_dict[key] = float(value)
+    await save_resp(href, result_dicts)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_query.fetchall()
+    return result_dicts
 
 
 # endregion
@@ -1445,7 +1453,7 @@ async def total_points_studs_for_all_teams(token: str, db: AsyncSession = Depend
             tags=["Group comparison page"], description=
             """
                     Получает token: str, group_by_teacher, teacher_list (пример "Павлова Елена Александровна,Павлова Елена Александровна")
-                    
+
                     [
                       {
                         "team_name": "ПиОА П-01.01 Спорт Прогрм", название команды
@@ -1547,7 +1555,7 @@ async def team_kr_total_points_attendance_dynamic(token: str, group_by_teacher: 
             tags=["Group comparison page"], description=
             """
                     Получает token: str, group_by_teacher, teacher_list (пример "Павлова Елена Александровна,Павлова Елена Александровна")
-                    
+
                     [
                       {
                         "team_name": "ПиОА П-01.01 Спорт Прогрм", название команды
@@ -1639,7 +1647,7 @@ async def team_kr_total_points_dynamic(token: str, group_by_teacher: bool,
             tags=["Group comparison page"], description=
             """
                     Получает token: str, group_by_teacher, teacher_list (пример "Павлова Елена Александровна,Павлова Елена Александровна")
-                    
+
                     [
                       {
                         "team_name": "ПиОА П-01.01 Спорт Прогрм", название команды

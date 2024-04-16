@@ -1,5 +1,4 @@
-import ast
-
+import json
 import aioredis
 import asyncio
 
@@ -25,17 +24,18 @@ async def connect_to_redis_true():
 async def check_href(href: str):
     redis = await connect_to_redis_true()
     cached_response = await redis.get(href)
-    res = ast.literal_eval(cached_response)
-    if res is not None:
+    if cached_response is not None:
         await redis.close()
-        return res
+        return json.loads(cached_response)
     else:
+        print("error")
         raise
 
 
 async def save_resp(href: str, resp):
     redis = await connect_to_redis_true()
-    await redis.set(str(href), str(resp), ex=3600)
+
+    await redis.set(name=str(href), value=json.dumps(resp), ex=3600)
 
 
 if __name__ == "__main__":
