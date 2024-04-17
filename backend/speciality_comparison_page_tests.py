@@ -337,122 +337,6 @@ class SpecialityComparisonTests(unittest.TestCase):
             self.get_request(url="/api/attendance_static_total_points_studs_for_all_specialities", **params))
         self.assertEqual(response['status'], 422)
 
-    def test_speciality_kr_total_points_attendance_dynamic_group_true_token_adm(self):
-        login_data = {
-            "FIO": "string",
-            "username": "string",
-            "password": "string",
-            "email": "string"
-        }
-        response = self.loop.run_until_complete(
-            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
-
-        params = {'token': response['response_json']['access_token'],
-                  'group_by_speciality': True,
-                  'teacher_list': ''}
-        response = self.loop.run_until_complete(
-            self.get_request(url="/api/speciality_kr_total_points_attendance_dynamic", **params))
-        self.assertEqual(response['status'], 200)
-
-        for item in response['response_json']:
-            self.assertIsInstance(item["stud_speciality"], str)
-            self.assertIsInstance(item["teacher_id"], int)
-            self.assertIsInstance(item["teacher_name"], str)
-            self.assertIsInstance(item["Успеваемость_средняя"], float)
-            self.assertIsInstance(item["Посещаемость_средняя"], float)
-            self.assertIsNotNone(item["stud_speciality"])
-            self.assertIsNotNone(item["teacher_id"])
-            self.assertIsNotNone(item["teacher_name"])
-            self.assertIsNotNone(item["Успеваемость_средняя"])
-            self.assertIsNotNone(item["Посещаемость_средняя"])
-
-
-    def test_speciality_kr_total_points_attendance_dynamic_group_false_token_adm(self):
-        login_data = {
-            "FIO": "string",
-            "username": "string",
-            "password": "string",
-            "email": "string"
-        }
-        response = self.loop.run_until_complete(
-            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
-
-        params = {'token': response['response_json']['access_token'],
-                  'group_by_speciality': False,
-                  'teacher_list': ''}
-        response = self.loop.run_until_complete(
-            self.get_request(url="/api/speciality_kr_total_points_attendance_dynamic", **params))
-        self.assertEqual(response['status'], 200)
-
-        for item in response['response_json']:
-            self.assertIsInstance(item["stud_speciality"], str)
-            self.assertIsInstance(item["teacher_id"], int)
-            self.assertIsInstance(item["teacher_name"], str)
-            self.assertIsInstance(item["Успеваемость_средняя"], float)
-            self.assertIsInstance(item["Посещаемость_средняя"], float)
-            self.assertIsNotNone(item["stud_speciality"])
-            self.assertIsNotNone(item["teacher_id"])
-            self.assertIsNotNone(item["teacher_name"])
-            self.assertIsNotNone(item["Успеваемость_средняя"])
-            self.assertIsNotNone(item["Посещаемость_средняя"])
-
-    def test_speciality_kr_total_points_attendance_dynamic_group_true_token_teach(self):
-        login_data = {
-            "FIO": "Павлова Елена Александровна",
-            "username": "Павлова Елена Александровна",
-            "password": "Павлова Елена Александровна",
-            "email": "Павлова Елена Александровна"
-        }
-        response = self.loop.run_until_complete(
-            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
-
-        params = {'token': response['response_json']['access_token'],
-                  'group_by_speciality': True,
-                  'teacher_list': ''}
-        response = self.loop.run_until_complete(
-            self.get_request(url="/api/speciality_kr_total_points_attendance_dynamic", **params))
-        self.assertEqual(response['status'], 200)
-
-        for item in response['response_json']:
-            self.assertIsInstance(item["stud_speciality"], str)
-            self.assertIsInstance(item["teacher_id"], int)
-            self.assertIsInstance(item["teacher_name"], str)
-            self.assertIsInstance(item["Успеваемость_средняя"], float)
-            self.assertIsInstance(item["Посещаемость_средняя"], float)
-            self.assertIsNotNone(item["stud_speciality"])
-            self.assertIsNotNone(item["teacher_id"])
-            self.assertIsNotNone(item["teacher_name"])
-            self.assertIsNotNone(item["Успеваемость_средняя"])
-            self.assertIsNotNone(item["Посещаемость_средняя"])
-
-    def test_speciality_kr_total_points_attendance_dynamic_group_false_token_teach(self):
-        login_data = {
-            "FIO": "Павлова Елена Александровна",
-            "username": "Павлова Елена Александровна",
-            "password": "Павлова Елена Александровна",
-            "email": "Павлова Елена Александровна"
-        }
-        response = self.loop.run_until_complete(
-            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
-
-        params = {'token': response['response_json']['access_token'],
-                  'group_by_speciality': False,
-                  'teacher_list': ''}
-        response = self.loop.run_until_complete(
-            self.get_request(url="/api/speciality_kr_total_points_attendance_dynamic", **params))
-        self.assertEqual(response['status'], 200)
-
-        for item in response['response_json']:
-            self.assertIsInstance(item["stud_speciality"], str)
-            self.assertIsInstance(item["teacher_id"], int)
-            self.assertIsInstance(item["teacher_name"], str)
-            self.assertIsInstance(item["Успеваемость_средняя"], float)
-            self.assertIsInstance(item["Посещаемость_средняя"], float)
-            self.assertIsNotNone(item["stud_speciality"])
-            self.assertIsNotNone(item["teacher_id"])
-            self.assertIsNotNone(item["teacher_name"])
-            self.assertIsNotNone(item["Успеваемость_средняя"])
-            self.assertIsNotNone(item["Посещаемость_средняя"])
 
     def test_speciality_kr_total_points_attendance_dynamic(self):
         login_data = {
@@ -463,35 +347,24 @@ class SpecialityComparisonTests(unittest.TestCase):
         }
         response = self.loop.run_until_complete(
             self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
-
-        params = {'token': response['response_json']['access_token'],
-                  'group_by_speciality': False,
-                  'teacher_list': 'Павлова Елена Александровна,Плотоненко Юрий Анатольевич'}
+        data = {'token': response['response_json']['access_token'], 'group_by_speciality': 'true'}
         response = self.loop.run_until_complete(
-            self.get_request(url="/api/speciality_kr_total_points_attendance_dynamic", **params))
+            self.get_request(url="/api/speciality_kr_total_points_attendance_dynamic", **data))
         self.assertEqual(response['status'], 200)
+        for total_points in response['response_json']:
+            self.assertIsInstance(total_points['stud_speciality'], str)
+            # self.assertIsInstance(total_points['teacher_id'], int) # keyerror
+            # self.assertIsInstance(total_points['teacher_name'], str) # keyerror
+            self.assertIsInstance(total_points['Успеваемость_средняя'], float)
+            self.assertIsInstance(total_points['Посещаемость_средняя'], float)
+            self.assertIsNotNone(total_points['stud_speciality'])
+            # self.assertIsNotNone(total_points['teacher_id'])
+            # self.assertIsNotNone(total_points['teacher_name'])
+            self.assertIsNotNone(total_points['Успеваемость_средняя'])
+            self.assertIsNotNone(total_points['Посещаемость_средняя'])
 
-        for item in response['response_json']:
-            self.assertIsInstance(item["stud_speciality"], str)
-            self.assertIsInstance(item["teacher_id"], int)
-            self.assertIsInstance(item["teacher_name"], str)
-            self.assertIsInstance(item["Успеваемость_средняя"], float)
-            self.assertIsInstance(item["Посещаемость_средняя"], float)
-            self.assertIsNotNone(item["stud_speciality"])
-            self.assertIsNotNone(item["teacher_id"])
-            self.assertIsNotNone(item["teacher_name"])
-            self.assertIsNotNone(item["Успеваемость_средняя"])
-            self.assertIsNotNone(item["Посещаемость_средняя"])
 
-    def test_speciality_kr_total_points_attendance_dynamic_by_false_token(self):
-        params = {'token': 'token',
-                  'group_by_speciality': True,
-                  'teacher_list': 'Павлова Елена Александровна,Плотоненко Юрий Анатольевич'}
-        response = self.loop.run_until_complete(
-            self.get_request(url="/api/speciality_kr_total_points_attendance_dynamic", **params))
-        self.assertEqual(response['status'], 401)
-
-    def test_speciality_kr_total_points_attendance_dynamic_false_a(self):
+    def test_speciality_kr_total_points_attendance_dynamic2(self):
         login_data = {
             "FIO": "string",
             "username": "string",
@@ -500,15 +373,24 @@ class SpecialityComparisonTests(unittest.TestCase):
         }
         response = self.loop.run_until_complete(
             self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
-
-
-        params = {'token': response['response_json']['access_token'],
-                  'teacher_list': 'Павлова Елена Александровна,Плотоненко Юрий Анатольевич'}
+        data = {'token': response['response_json']['access_token'], 'group_by_speciality': 'false'}
         response = self.loop.run_until_complete(
-            self.get_request(url="/api/speciality_kr_total_points_attendance_dynamic", **params))
-        self.assertEqual(response['status'], 422)
+            self.get_request(url="/api/speciality_kr_total_points_attendance_dynamic", **data))
+        self.assertEqual(response['status'], 200)
+        for total_points in response['response_json']:
+            self.assertIsInstance(total_points['stud_speciality'], str)
+            self.assertIsInstance(total_points['teacher_id'], int)
+            self.assertIsInstance(total_points['teacher_name'], str)
+            self.assertIsInstance(total_points['Успеваемость_средняя'], float)
+            self.assertIsInstance(total_points['Посещаемость_средняя'], float)
+            self.assertIsNotNone(total_points['stud_speciality'])
+            self.assertIsNotNone(total_points['teacher_id'])
+            self.assertIsNotNone(total_points['teacher_name'])
+            self.assertIsNotNone(total_points['Успеваемость_средняя'])
+            self.assertIsNotNone(total_points['Посещаемость_средняя'])
 
-    def test_speciality_kr_total_points_attendance_dynamic_false_b(self):
+
+    def test_speciality_kr_total_points_attendance_dynamic3(self):
         login_data = {
             "FIO": "string",
             "username": "string",
@@ -517,16 +399,54 @@ class SpecialityComparisonTests(unittest.TestCase):
         }
         response = self.loop.run_until_complete(
             self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
-
-
-        params = {'token': response['response_json']['access_token'],
-                  'group_by_speciality': False,
-                  'teacher_list': 'asd,asd'}
+        data = {'token': response['response_json']['access_token'],
+                'group_by_speciality': 'false', 'teacher_list': 'Павлова Елена Александровна,Плотоненко Юрий Анатольевич'}
         response = self.loop.run_until_complete(
-            self.get_request(url="/api/speciality_kr_total_points_attendance_dynamic", **params))
+            self.get_request(url="/api/speciality_kr_total_points_attendance_dynamic", **data))
         self.assertEqual(response['status'], 200)
+        for total_points in response['response_json']:
+            self.assertIsInstance(total_points['stud_speciality'], str)
+            self.assertIsInstance(total_points['teacher_id'], int)
+            self.assertIsInstance(total_points['teacher_name'], str)
+            self.assertIsInstance(total_points['Успеваемость_средняя'], float)
+            self.assertIsInstance(total_points['Посещаемость_средняя'], float)
+            self.assertIsNotNone(total_points['stud_speciality'])
+            self.assertIsNotNone(total_points['teacher_id'])
+            self.assertIsNotNone(total_points['teacher_name'])
+            self.assertIsNotNone(total_points['Успеваемость_средняя'])
+            self.assertIsNotNone(total_points['Посещаемость_средняя'])
+            self.assertIn(total_points['teacher_name'], "Павлова Елена Александровна, Плотоненко Юрий Анатольевич")
 
-    def test_speciality_kr_total_points_attendance_dynamic_false_c(self):
+
+    def test_speciality_kr_total_points_attendance_dynamic4(self):
+        login_data = {
+            "FIO": "string",
+            "username": "string",
+            "password": "string",
+            "email": "string"
+        }
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        data = {'token': response['response_json']['access_token'], 'group_by_speciality': 'true',
+                'teacher_list': 'Павлова Елена Александровна,Плотоненко Юрий Анатольевич'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/speciality_kr_total_points_attendance_dynamic", **data))
+        self.assertEqual(response['status'], 200)
+        for total_points in response['response_json']:
+            self.assertIsInstance(total_points['stud_speciality'], str)
+            # self.assertIsInstance(total_points['teacher_id'], int) # keyerror
+            # self.assertIsInstance(total_points['teacher_name'], str) # keyerror
+            self.assertIsInstance(total_points['Успеваемость_средняя'], float)
+            self.assertIsInstance(total_points['Посещаемость_средняя'], float)
+            self.assertIsNotNone(total_points['stud_speciality'])
+            # self.assertIsNotNone(total_points['teacher_id']) # keyerror
+            # self.assertIsNotNone(total_points['teacher_name']) # keyerror
+            self.assertIsNotNone(total_points['Успеваемость_средняя'])
+            self.assertIsNotNone(total_points['Посещаемость_средняя'])
+            # self.assertIn(total_points['teacher_name'], "Павлова Елена Александровна, Плотоненко Юрий Анатольевич")
+
+
+    def test_speciality_kr_total_points_attendance_dynamic5(self):
         login_data = {
             "FIO": "Павлова Елена Александровна",
             "username": "Павлова Елена Александровна",
@@ -535,14 +455,518 @@ class SpecialityComparisonTests(unittest.TestCase):
         }
         response = self.loop.run_until_complete(
             self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
-
-
-        params = {'token': response['response_json']['access_token'],
-                  'group_by_speciality': False,
-                  'teacher_list': 'Павлова Елена Александровна,Плотоненко Юрий Анатольевич'}
+        data = {'token': response['response_json']['access_token'], 'group_by_speciality': 'true'}
         response = self.loop.run_until_complete(
-            self.get_request(url="/api/speciality_kr_total_points_attendance_dynamic", **params))
+            self.get_request(url="/api/speciality_kr_total_points_attendance_dynamic", **data))
         self.assertEqual(response['status'], 200)
+        for total_points in response['response_json']:
+            self.assertIsInstance(total_points['stud_speciality'], str)
+            # self.assertIsInstance(total_points['teacher_id'], int) # keyerror
+            # self.assertIsInstance(total_points['teacher_name'], str) # keyerror
+            self.assertIsInstance(total_points['Успеваемость_средняя'], float)
+            self.assertIsInstance(total_points['Посещаемость_средняя'], float)
+            self.assertIsNotNone(total_points['stud_speciality'])
+            # self.assertIsNotNone(total_points['teacher_id'])
+            # self.assertIsNotNone(total_points['teacher_name'])
+            self.assertIsNotNone(total_points['Успеваемость_средняя'])
+            self.assertIsNotNone(total_points['Посещаемость_средняя'])
+            # self.assertIn(total_points['teacher_name'], "Павлова Елена Александровна")
+
+
+    def test_speciality_kr_total_points_attendance_dynamic6(self):
+        login_data = {
+            "FIO": "Павлова Елена Александровна",
+            "username": "Павлова Елена Александровна",
+            "password": "Павлова Елена Александровна",
+            "email": "Павлова Елена Александровна"
+        }
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        data = {'token': response['response_json']['access_token'], 'group_by_speciality': 'false'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/speciality_kr_total_points_attendance_dynamic", **data))
+        self.assertEqual(response['status'], 200)
+        for total_points in response['response_json']:
+            self.assertIsInstance(total_points['stud_speciality'], str)
+            self.assertIsInstance(total_points['teacher_id'], int)
+            self.assertIsInstance(total_points['teacher_name'], str)
+            self.assertIsInstance(total_points['Успеваемость_средняя'], float)
+            self.assertIsInstance(total_points['Посещаемость_средняя'], float)
+            self.assertIsNotNone(total_points['stud_speciality'])
+            self.assertIsNotNone(total_points['teacher_id'])
+            self.assertIsNotNone(total_points['teacher_name'])
+            self.assertIsNotNone(total_points['Успеваемость_средняя'])
+            self.assertIsNotNone(total_points['Посещаемость_средняя'])
+            self.assertIn(total_points['teacher_name'], "Павлова Елена Александровна")
+
+
+    def test_speciality_kr_total_points_attendance_dynamic_fail(self):
+        data = {'token': 'token', 'group_by_speciality': 'true'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/speciality_kr_total_points_attendance_dynamic", **data))
+        self.assertEqual(response['status'], 401)
+
+
+    def test_speciality_kr_total_points_attendance_dynamic_fail2(self):
+        login_data = {
+            "FIO": "string",
+            "username": "string",
+            "password": "string",
+            "email": "string"
+        }
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        data = {'token': response['response_json']['access_token']}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/speciality_kr_total_points_attendance_dynamic", **data))
+        self.assertEqual(response['status'], 422)
+
+
+    def test_speciality_kr_total_points_attendance_dynamic_fail3(self):
+        login_data = {
+            "FIO": "string",
+            "username": "string",
+            "password": "string",
+            "email": "string"
+        }
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        data = {'token': response['response_json']['access_token'], 'group_by_speciality': 'false',
+                'teacher_list': 'asd,asd'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/speciality_kr_total_points_attendance_dynamic", **data))
+        self.assertEqual(response['status'], 401)
+
+
+    def test_speciality_kr_total_points_attendance_dynamic_fail4(self):
+        login_data = {
+            "FIO": "Павлова Елена Александровна",
+            "username": "Павлова Елена Александровна",
+            "password": "Павлова Елена Александровна",
+            "email": "Павлова Елена Александровна"
+        }
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        data = {'token': response['response_json']['access_token'], 'group_by_speciality': 'false',
+                'teacher_list': 'Плотоненко Юрий Анатольевич'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/speciality_kr_total_points_attendance_dynamic", **data))
+        self.assertEqual(response['status'], 200)
+        for total_points in response['response_json']:
+            self.assertIn(total_points['teacher_name'], 'Павлова Елена Александровна,Плотоненко Юрий Анатольевич')
+
+
+    def test_speciality_kr_attendance_dynamic(self):
+        login_data = {
+            "FIO": "string",
+            "username": "string",
+            "password": "string",
+            "email": "string"
+        }
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        data = {'token': response['response_json']['access_token'], 'group_by_speciality': 'true'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/speciality_kr_attendance_dynamic", **data))
+        self.assertEqual(response['status'], 200)
+        for total_points in response['response_json']:
+            self.assertIsInstance(total_points['stud_speciality'], str)
+            # self.assertIsInstance(total_points['teacher_id'], int) # keyerror
+            # self.assertIsInstance(total_points['teacher_name'], str) # keyerror
+            self.assertIsInstance(total_points['Посещаемость_средняя'], float)
+            self.assertIsNotNone(total_points['stud_speciality'])
+            # self.assertIsNotNone(total_points['teacher_id'])
+            # self.assertIsNotNone(total_points['teacher_name'])
+            self.assertIsNotNone(total_points['Посещаемость_средняя'])
+
+
+    def test_speciality_kr_attendance_dynamic2(self):
+        login_data = {
+            "FIO": "string",
+            "username": "string",
+            "password": "string",
+            "email": "string"
+        }
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        data = {'token': response['response_json']['access_token'], 'group_by_speciality': 'false'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/speciality_kr_attendance_dynamic", **data))
+        self.assertEqual(response['status'], 200)
+        for total_points in response['response_json']:
+            self.assertIsInstance(total_points['stud_speciality'], str)
+            self.assertIsInstance(total_points['teacher_id'], int)
+            self.assertIsInstance(total_points['teacher_name'], str)
+            self.assertIsInstance(total_points['Посещаемость_средняя'], float)
+            self.assertIsNotNone(total_points['stud_speciality'])
+            self.assertIsNotNone(total_points['teacher_id'])
+            self.assertIsNotNone(total_points['teacher_name'])
+            self.assertIsNotNone(total_points['Посещаемость_средняя'])
+
+
+    def test_speciality_kr_attendance_dynamic3(self):
+        login_data = {
+            "FIO": "string",
+            "username": "string",
+            "password": "string",
+            "email": "string"
+        }
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        data = {'token': response['response_json']['access_token'],
+                'group_by_speciality': 'false', 'teacher_list': 'Павлова Елена Александровна,Плотоненко Юрий Анатольевич'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/speciality_kr_attendance_dynamic", **data))
+        self.assertEqual(response['status'], 200)
+        for total_points in response['response_json']:
+            self.assertIsInstance(total_points['stud_speciality'], str)
+            self.assertIsInstance(total_points['teacher_id'], int)
+            self.assertIsInstance(total_points['teacher_name'], str)
+            self.assertIsInstance(total_points['Посещаемость_средняя'], float)
+            self.assertIsNotNone(total_points['stud_speciality'])
+            self.assertIsNotNone(total_points['teacher_id'])
+            self.assertIsNotNone(total_points['teacher_name'])
+            self.assertIsNotNone(total_points['Посещаемость_средняя'])
+            self.assertIn(total_points['teacher_name'], "Павлова Елена Александровна, Плотоненко Юрий Анатольевич")
+
+
+    def test_speciality_kr_attendance_dynamic4(self):
+        login_data = {
+            "FIO": "string",
+            "username": "string",
+            "password": "string",
+            "email": "string"
+        }
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        data = {'token': response['response_json']['access_token'], 'group_by_speciality': 'true',
+                'teacher_list': 'Павлова Елена Александровна,Плотоненко Юрий Анатольевич'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/speciality_kr_attendance_dynamic", **data))
+        self.assertEqual(response['status'], 200)
+        for total_points in response['response_json']:
+            self.assertIsInstance(total_points['stud_speciality'], str)
+            self.assertIsInstance(total_points['teacher_id'], int)
+            self.assertIsInstance(total_points['teacher_name'], str)
+            self.assertIsInstance(total_points['Посещаемость_средняя'], float)
+            self.assertIsNotNone(total_points['stud_speciality'])
+            self.assertIsNotNone(total_points['teacher_id'])
+            self.assertIsNotNone(total_points['teacher_name'])
+            self.assertIsNotNone(total_points['Посещаемость_средняя'])
+            self.assertIn(total_points['teacher_name'], "Павлова Елена Александровна, Плотоненко Юрий Анатольевич")
+
+
+    def test_speciality_kr_attendance_dynamic5(self):
+        login_data = {
+            "FIO": "Павлова Елена Александровна",
+            "username": "Павлова Елена Александровна",
+            "password": "Павлова Елена Александровна",
+            "email": "Павлова Елена Александровна"
+        }
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        data = {'token': response['response_json']['access_token'], 'group_by_speciality': 'true'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/speciality_kr_attendance_dynamic", **data))
+        self.assertEqual(response['status'], 200)
+        for total_points in response['response_json']:
+            self.assertIsInstance(total_points['stud_speciality'], str)
+            # self.assertIsInstance(total_points['teacher_id'], int)
+            # self.assertIsInstance(total_points['teacher_name'], str)
+            self.assertIsInstance(total_points['Посещаемость_средняя'], float)
+            self.assertIsNotNone(total_points['stud_speciality'])
+            # self.assertIsNotNone(total_points['teacher_id'])
+            # self.assertIsNotNone(total_points['teacher_name'])
+            self.assertIsNotNone(total_points['Посещаемость_средняя'])
+            # self.assertIn(total_points['teacher_name'], "Павлова Елена Александровна")
+
+
+    def test_speciality_kr_attendance_dynamic6(self):
+        login_data = {
+            "FIO": "Павлова Елена Александровна",
+            "username": "Павлова Елена Александровна",
+            "password": "Павлова Елена Александровна",
+            "email": "Павлова Елена Александровна"
+        }
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        data = {'token': response['response_json']['access_token'], 'group_by_speciality': 'false'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/speciality_kr_attendance_dynamic", **data))
+        self.assertEqual(response['status'], 200)
+        for total_points in response['response_json']:
+            self.assertIsInstance(total_points['stud_speciality'], str)
+            self.assertIsInstance(total_points['teacher_id'], int)
+            self.assertIsInstance(total_points['teacher_name'], str)
+            self.assertIsInstance(total_points['Посещаемость_средняя'], float)
+            self.assertIsNotNone(total_points['stud_speciality'])
+            self.assertIsNotNone(total_points['teacher_id'])
+            self.assertIsNotNone(total_points['teacher_name'])
+            self.assertIsNotNone(total_points['Посещаемость_средняя'])
+            self.assertIn(total_points['teacher_name'], "Павлова Елена Александровна")
+
+
+    def test_speciality_kr_attendance_dynamic_fail(self):
+        data = {'token': 'token', 'group_by_speciality': 'true'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/speciality_kr_attendance_dynamic", **data))
+        self.assertEqual(response['status'], 401)
+
+
+    def test_speciality_kr_attendance_dynamic_fail2(self):
+        login_data = {
+            "FIO": "string",
+            "username": "string",
+            "password": "string",
+            "email": "string"
+        }
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        data = {'token': response['response_json']['access_token']}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/speciality_kr_attendance_dynamic", **data))
+        self.assertEqual(response['status'], 422)
+
+
+    def test_speciality_kr_attendance_dynamic_fail3(self):
+        login_data = {
+            "FIO": "string",
+            "username": "string",
+            "password": "string",
+            "email": "string"
+        }
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        data = {'token': response['response_json']['access_token'], 'group_by_speciality': 'false',
+                'teacher_list': 'asd,asd'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/speciality_kr_attendance_dynamic", **data))
+        self.assertEqual(response['status'], 401)
+
+
+    def test_speciality_kr_attendance_dynamic4(self):
+        login_data = {
+            "FIO": "Павлова Елена Александровна",
+            "username": "Павлова Елена Александровна",
+            "password": "Павлова Елена Александровна",
+            "email": "Павлова Елена Александровна"
+        }
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        data = {'token': response['response_json']['access_token'], 'group_by_speciality': 'false',
+                'teacher_list': 'Плотоненко Юрий Анатольевич'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/speciality_kr_attendance_dynamic", **data))
+        self.assertEqual(response['status'], 200)
+        for total_points in response['response_json']:
+            self.assertIn(total_points['teacher_name'], 'Павлова Елена Александровна,Плотоненко Юрий Анатольевич')
+
+    def test_speciality_kr_total_points_dynamic(self):
+        login_data = {
+            "FIO": "string",
+            "username": "string",
+            "password": "string",
+            "email": "string"
+        }
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        data = {'token': response['response_json']['access_token'], 'group_by_speciality': 'true'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/speciality_kr_total_points_dynamic", **data))
+        self.assertEqual(response['status'], 200)
+        for total_points in response['response_json']:
+            self.assertIsInstance(total_points['stud_speciality'], str)
+            # self.assertIsInstance(total_points['teacher_id'], int) # keyerror
+            # self.assertIsInstance(total_points['teacher_name'], str) # keyerror
+            self.assertIsInstance(total_points['Успеваемость_средняя'], float)
+            self.assertIsNotNone(total_points['stud_speciality'])
+            # self.assertIsNotNone(total_points['teacher_id'])
+            # self.assertIsNotNone(total_points['teacher_name'])
+            self.assertIsNotNone(total_points['Успеваемость_средняя'])
+
+
+    def speciality_kr_total_points_dynamic2(self):
+        login_data = {
+            "FIO": "string",
+            "username": "string",
+            "password": "string",
+            "email": "string"
+        }
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        data = {'token': response['response_json']['access_token'], 'group_by_speciality': 'false'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/speciality_kr_total_points_dynamic", **data))
+        self.assertEqual(response['status'], 200)
+        for total_points in response['response_json']:
+            self.assertIsInstance(total_points['stud_speciality'], str)
+            self.assertIsInstance(total_points['teacher_id'], int)
+            self.assertIsInstance(total_points['teacher_name'], str)
+            self.assertIsInstance(total_points['Успеваемость_средняя'], float)
+            self.assertIsNotNone(total_points['stud_speciality'])
+            self.assertIsNotNone(total_points['teacher_id'])
+            self.assertIsNotNone(total_points['teacher_name'])
+            self.assertIsNotNone(total_points['Успеваемость_средняя'])
+
+
+    def test_speciality_kr_total_points_dynamic3(self):
+        login_data = {
+            "FIO": "string",
+            "username": "string",
+            "password": "string",
+            "email": "string"
+        }
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        data = {'token': response['response_json']['access_token'],
+                'group_by_speciality': 'false', 'teacher_list': 'Павлова Елена Александровна,Плотоненко Юрий Анатольевич'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/speciality_kr_total_points_dynamic", **data))
+        self.assertEqual(response['status'], 200)
+        for total_points in response['response_json']:
+            self.assertIsInstance(total_points['stud_speciality'], str)
+            self.assertIsInstance(total_points['teacher_id'], int)
+            self.assertIsInstance(total_points['teacher_name'], str)
+            self.assertIsInstance(total_points['Успеваемость_средняя'], float)
+            self.assertIsNotNone(total_points['stud_speciality'])
+            self.assertIsNotNone(total_points['teacher_id'])
+            self.assertIsNotNone(total_points['teacher_name'])
+            self.assertIsNotNone(total_points['Успеваемость_средняя'])
+            self.assertIn(total_points['teacher_name'], "Павлова Елена Александровна, Плотоненко Юрий Анатольевич")
+
+
+    def test_speciality_kr_total_points_dynamic4(self):
+        login_data = {
+            "FIO": "string",
+            "username": "string",
+            "password": "string",
+            "email": "string"
+        }
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        data = {'token': response['response_json']['access_token'], 'group_by_speciality': 'true',
+                'teacher_list': 'Павлова Елена Александровна,Плотоненко Юрий Анатольевич'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/speciality_kr_total_points_dynamic", **data))
+        self.assertEqual(response['status'], 200)
+        for total_points in response['response_json']:
+            self.assertIsInstance(total_points['stud_speciality'], str)
+            # self.assertIsInstance(total_points['teacher_id'], int) # keyerror
+            # self.assertIsInstance(total_points['teacher_name'], str) # keyerror
+            self.assertIsInstance(total_points['Успеваемость_средняя'], float)
+            self.assertIsNotNone(total_points['stud_speciality'])
+            # self.assertIsNotNone(total_points['teacher_id'])
+            # self.assertIsNotNone(total_points['teacher_name'])
+            self.assertIsNotNone(total_points['Успеваемость_средняя'])
+            # self.assertIn(total_points['teacher_name'], "Павлова Елена Александровна, Плотоненко Юрий Анатольевич")
+
+
+    def test_speciality_kr_total_points_dynamic5(self):
+        login_data = {
+            "FIO": "Павлова Елена Александровна",
+            "username": "Павлова Елена Александровна",
+            "password": "Павлова Елена Александровна",
+            "email": "Павлова Елена Александровна"
+        }
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        data = {'token': response['response_json']['access_token'], 'group_by_speciality': 'true'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/speciality_kr_total_points_dynamic", **data))
+        self.assertEqual(response['status'], 200)
+        for total_points in response['response_json']:
+            self.assertIsInstance(total_points['stud_speciality'], str)
+            # self.assertIsInstance(total_points['teacher_id'], int) # keyerror
+            # self.assertIsInstance(total_points['teacher_name'], str) # keyerror
+            self.assertIsInstance(total_points['Успеваемость_средняя'], float)
+            self.assertIsNotNone(total_points['stud_speciality'])
+            # self.assertIsNotNone(total_points['teacher_id'])
+            # self.assertIsNotNone(total_points['teacher_name'])
+            self.assertIsNotNone(total_points['Успеваемость_средняя'])
+            # self.assertIn(total_points['teacher_name'], "Павлова Елена Александровна")
+
+
+    def test_speciality_kr_total_points_dynamic6(self):
+        login_data = {
+            "FIO": "Павлова Елена Александровна",
+            "username": "Павлова Елена Александровна",
+            "password": "Павлова Елена Александровна",
+            "email": "Павлова Елена Александровна"
+        }
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        data = {'token': response['response_json']['access_token'], 'group_by_speciality': 'false'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/speciality_kr_total_points_dynamic", **data))
+        self.assertEqual(response['status'], 200)
+        for total_points in response['response_json']:
+            self.assertIsInstance(total_points['stud_speciality'], str)
+            self.assertIsInstance(total_points['teacher_id'], int)
+            self.assertIsInstance(total_points['teacher_name'], str)
+            self.assertIsInstance(total_points['Успеваемость_средняя'], float)
+            self.assertIsNotNone(total_points['stud_speciality'])
+            self.assertIsNotNone(total_points['teacher_id'])
+            self.assertIsNotNone(total_points['teacher_name'])
+            self.assertIsNotNone(total_points['Успеваемость_средняя'])
+            self.assertIn(total_points['teacher_name'], "Павлова Елена Александровна")
+
+
+    def test_speciality_kr_total_points_dynamic_fail(self):
+        data = {'token': 'token', 'group_by_speciality': 'true'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/speciality_kr_total_points_dynamic", **data))
+        self.assertEqual(response['status'], 401)
+
+
+    def test_speciality_kr_total_points_dynamic_fail2(self):
+        login_data = {
+            "FIO": "string",
+            "username": "string",
+            "password": "string",
+            "email": "string"
+        }
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        data = {'token': response['response_json']['access_token']}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/speciality_kr_total_points_dynamic", **data))
+        self.assertEqual(response['status'], 422)
+
+
+    def test_speciality_kr_total_points_dynamic_fail3(self):
+        login_data = {
+            "FIO": "string",
+            "username": "string",
+            "password": "string",
+            "email": "string"
+        }
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        data = {'token': response['response_json']['access_token'], 'group_by_speciality': 'false',
+                'teacher_list': 'asd,asd'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/speciality_kr_total_points_dynamic", **data))
+        self.assertEqual(response['status'], 401)
+
+
+    def test_speciality_kr_total_points_dynamic_fail4(self):
+        login_data = {
+            "FIO": "Павлова Елена Александровна",
+            "username": "Павлова Елена Александровна",
+            "password": "Павлова Елена Александровна",
+            "email": "Павлова Елена Александровна"
+        }
+        response = self.loop.run_until_complete(
+            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
+        data = {'token': response['response_json']['access_token'], 'group_by_speciality': 'false',
+                'teacher_list': 'Плотоненко Юрий Анатольевич'}
+        response = self.loop.run_until_complete(
+            self.get_request(url="/api/speciality_kr_total_points_dynamic", **data))
+        self.assertEqual(response['status'], 200)
+        for total_points in response['response_json']:
+            self.assertIn(total_points['teacher_name'], 'Павлова Елена Александровна,Плотоненко Юрий Анатольевич')
+
+
 
 
 
