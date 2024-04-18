@@ -1064,8 +1064,8 @@ async def cum_sum_points_for_stud_for_team(id_team: int, id_stud: int, db: Async
                 ROUND((SUM(l.mark_for_work) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) + SUM(l.test) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW))::DECIMAL, 2) AS cum_sum,
                 row_number() over (PARTITION BY stud_id) as counter,
                 CASE
-                    WHEN l.test  >= 0 THEN false
-                    ELSE true
+                    WHEN l.test  >= 0 THEN true
+                    ELSE false
                 END AS test
               FROM
                 lesson l
@@ -1191,8 +1191,8 @@ async def all_in_one_for_stud_for_team(id_team: int, id_stud: int, db: AsyncSess
             ROUND((SUM(l.mark_for_work) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) + SUM(l.test) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW))::DECIMAL, 2) AS cum_sum,
             row_number() over (PARTITION BY stud_id) as counter,
             CASE
-                WHEN l.test  >= 0 THEN false
-                ELSE true
+                WHEN l.test  >= 0 THEN true
+                ELSE false
             END AS test
           FROM
             lesson l
