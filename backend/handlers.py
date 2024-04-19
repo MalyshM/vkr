@@ -2844,7 +2844,7 @@ async def kr_analyse_with_filters(token: str, kr: str, type_select: int, teacher
         teachers = teacher
     if speciality is None:
         specialities = await get_all_specialities(token, db)
-        specialities = ', '.join([f"'{speciality[0]}'" for speciality in specialities])
+        specialities = ', '.join([f"'{speciality['speciality']}'" for speciality in specialities])
     else:
         specialities = speciality
     if team is None:
