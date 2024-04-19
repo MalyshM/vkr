@@ -299,13 +299,30 @@ async def login_standard(user: UserLogin, db: AsyncSession = Depends(connect_db_
                       },
             """)
 async def get_teams_for_user(token: str, db: AsyncSession = Depends(connect_db_data)):
+    start_time = time.time()
     user = await get_current_user_dev(token)
     user_fio = user.fio
+    href = f"get_teams_for_user-{token}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     if user.iscurator or user.isadmin:
         response = await db.execute("""
         select distinct t.id, t.name from team t
         """)
-        return response.fetchall()
+        result = response.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        return result_dicts
     elif user.isteacher:
         response = await db.execute(f"""
             select
@@ -328,7 +345,15 @@ async def get_teams_for_user(token: str, db: AsyncSession = Depends(connect_db_d
                     where
                         t.name ilike '%{user_fio}%'))
         """)
-        return response.fetchall()
+        result = response.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        return result_dicts
     else:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
@@ -364,7 +389,6 @@ async def get_teams_for_user_private(token: str, db):
                     where
                         t.name ilike '%{user_fio}%'))
             """)
-        return response.fetchall()
     else:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
@@ -432,7 +456,6 @@ async def get_teams_for_user_private_without_lect(token: str, db):
                                 t.name ilike '%{user_fio}%'))
                         and t.name not ilike '%л%'
                     """)
-        return response.fetchall()
     else:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
@@ -497,7 +520,6 @@ async def get_teams_for_user_without_lect(token: str, db: AsyncSession = Depends
                                     t.name ilike '%{user_fio}%'))
                             and t.name not ilike '%л%'
                         """)
-        return response.fetchall()
     else:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
@@ -518,6 +540,15 @@ async def get_teams_for_user_without_lect(token: str, db: AsyncSession = Depends
         }
 """)
 async def get_student(id_stud: int, db: AsyncSession = Depends(connect_db_data)):
+    start_time = time.time()
+    href = f"get_student-{id_stud}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     all_users = await db.execute(f"""
         select
             *
@@ -526,7 +557,17 @@ async def get_student(id_stud: int, db: AsyncSession = Depends(connect_db_data))
         where
             s.id = {id_stud}
 	""")
-    return all_users.fetchall()
+    result = all_users.fetchall()
+    result_dicts = [row._asdict() for row in result]
+    for row_dict in result_dicts:
+        for key, value in row_dict.items():
+            if isinstance(value, Decimal):
+                row_dict[key] = float(value)
+            if isinstance(value, datetime):
+                row_dict[key] = value.strftime('%Y-%m-%d %H:%M')
+    await save_resp(href, result_dicts)
+    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+    return result_dicts
 
 
 @router.get('/api/get_router_paths', name='Util:Util', status_code=status.HTTP_200_OK,
@@ -581,8 +622,17 @@ async def get_router_paths():
                       },
             """)
 async def get_all_specialities(token: str, db: AsyncSession = Depends(connect_db_data)):
+    start_time = time.time()
     user = await get_current_user_dev(token)
     user_fio = user.fio
+    href = f"get_all_specialities-{token}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     if user.iscurator or user.isadmin:
         response = await db.execute("""
             select distinct
@@ -590,7 +640,15 @@ async def get_all_specialities(token: str, db: AsyncSession = Depends(connect_db
             from
                 stud s 
         """)
-        return response.fetchall()
+        result = response.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        return result_dicts
     elif user.isteacher:
         response = await db.execute(f"""
             select distinct
@@ -612,7 +670,15 @@ async def get_all_specialities(token: str, db: AsyncSession = Depends(connect_db
                     where
                         t.name ilike '%{user_fio}%'))
         """)
-        return response.fetchall()
+        result = response.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        return result_dicts
     else:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
@@ -636,6 +702,15 @@ async def get_all_specialities(token: str, db: AsyncSession = Depends(connect_db
         ]
 """)
 async def get_all_kr(db: AsyncSession = Depends(connect_db_data)):
+    start_time = time.time()
+    href = f"get_all_kr-{db}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     all_users = await db.execute("""
         select distinct 
             l.name
@@ -644,7 +719,15 @@ async def get_all_kr(db: AsyncSession = Depends(connect_db_data)):
         where
             l.test >= 0.0
     """)
-    return all_users.fetchall()
+    result = all_users.fetchall()
+    result_dicts = [row._asdict() for row in result]
+    for row_dict in result_dicts:
+        for key, value in row_dict.items():
+            if isinstance(value, Decimal):
+                row_dict[key] = float(value)
+    await save_resp(href, result_dicts)
+    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+    return result_dicts
 
 
 @router.get('/api/get_all_teachers_unique', name='Util:get_all_teachers', status_code=status.HTTP_200_OK,
@@ -669,8 +752,17 @@ async def get_all_kr(db: AsyncSession = Depends(connect_db_data)):
                       },
             """)
 async def get_all_teachers_unique(token: str, db: AsyncSession = Depends(connect_db_data)):
+    start_time = time.time()
     user = await get_current_user_dev(token)
     user_fio = user.fio
+    href = f"get_all_teachers_unique-{token}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     if user.iscurator or user.isadmin:
         response = await db.execute("""
             select distinct
@@ -681,7 +773,15 @@ async def get_all_teachers_unique(token: str, db: AsyncSession = Depends(connect
             where 
                 t.name not ilike '%,%'
         """)
-        return response.fetchall()
+        result = response.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        return result_dicts
     elif user.isteacher:
         response = await db.execute(f"""
             select distinct
@@ -692,7 +792,15 @@ async def get_all_teachers_unique(token: str, db: AsyncSession = Depends(connect
             where
                 t.name = '{user_fio}'
         """)
-        return response.fetchall()
+        result = response.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        return result_dicts
     else:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
@@ -720,8 +828,17 @@ async def get_all_teachers_unique(token: str, db: AsyncSession = Depends(connect
                       },
             """)
 async def get_all_teachers(token: str, db: AsyncSession = Depends(connect_db_data)):
+    start_time = time.time()
     user = await get_current_user_dev(token)
     user_fio = user.fio
+    href = f"get_all_teachers-{token}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     if user.iscurator or user.isadmin:
         response = await db.execute("""
                 select distinct
@@ -730,7 +847,15 @@ async def get_all_teachers(token: str, db: AsyncSession = Depends(connect_db_dat
                 from
                     teacher t
             """)
-        return response.fetchall()
+        result = response.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        return result_dicts
     elif user.isteacher:
         response = await db.execute(f"""
             select distinct
@@ -741,7 +866,15 @@ async def get_all_teachers(token: str, db: AsyncSession = Depends(connect_db_dat
             where
                 t.name ilike '%{user_fio}%'
         """)
-        return response.fetchall()
+        result = response.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        return result_dicts
     else:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
@@ -770,6 +903,14 @@ async def get_all_teachers(token: str, db: AsyncSession = Depends(connect_db_dat
             """)
 async def attendance_per_stud_for_team(id_team: int, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
+    href = f"attendance_per_stud_for_team-{id_team}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     result_query = await db.execute(f"""
         select distinct
             (select s.name from stud s where s.id=l.stud_id) as "stud_name",
@@ -780,8 +921,15 @@ async def attendance_per_stud_for_team(id_team: int, db: AsyncSession = Depends(
         where
             l.team_id = {id_team}
     """)
+    result = result_query.fetchall()
+    result_dicts = [row._asdict() for row in result]
+    for row_dict in result_dicts:
+        for key, value in row_dict.items():
+            if isinstance(value, Decimal):
+                row_dict[key] = float(value)
+    await save_resp(href, result_dicts)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_query.fetchall()
+    return result_dicts
 
 
 @router.get('/api/total_points_attendance_per_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -818,6 +966,14 @@ async def attendance_per_stud_for_team(id_team: int, db: AsyncSession = Depends(
             """)
 async def total_points_attendance_per_stud_for_team(id_team: int, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
+    href = f"total_points_attendance_per_stud_for_team-{id_team}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     result_query = await db.execute(f"""
         select *, avg(sub.Успеваемость) over (partition by Посещаемость_средняя) as "Успеваемость_средняя"
         from
@@ -832,8 +988,15 @@ async def total_points_attendance_per_stud_for_team(id_team: int, db: AsyncSessi
         where
             l.team_id = {id_team}) as sub
     """)
+    result = result_query.fetchall()
+    result_dicts = [row._asdict() for row in result]
+    for row_dict in result_dicts:
+        for key, value in row_dict.items():
+            if isinstance(value, Decimal):
+                row_dict[key] = float(value)
+    await save_resp(href, result_dicts)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_query.fetchall()
+    return result_dicts
 
 
 @router.get('/api/total_points_per_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -857,6 +1020,14 @@ async def total_points_attendance_per_stud_for_team(id_team: int, db: AsyncSessi
             """)
 async def total_points_per_stud_for_team(id_team: int, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
+    href = f"total_points_per_stud_for_team-{id_team}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     result_query = await db.execute(f"""
             select distinct
                 (select s.name from stud s where s.id=l.stud_id) as "stud_name",
@@ -867,8 +1038,15 @@ async def total_points_per_stud_for_team(id_team: int, db: AsyncSession = Depend
             where
                 l.team_id = {id_team}
         """)
+    result = result_query.fetchall()
+    result_dicts = [row._asdict() for row in result]
+    for row_dict in result_dicts:
+        for key, value in row_dict.items():
+            if isinstance(value, Decimal):
+                row_dict[key] = float(value)
+    await save_resp(href, result_dicts)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_query.fetchall()
+    return result_dicts
 
 
 @router.get('/api/total_marks_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -904,6 +1082,14 @@ async def total_points_per_stud_for_team(id_team: int, db: AsyncSession = Depend
             """)
 async def total_marks_for_team(id_team: int, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
+    href = f"total_marks_for_team-{id_team}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     result_query = await db.execute(f"""
         SELECT
             CASE
@@ -935,8 +1121,15 @@ async def total_marks_for_team(id_team: int, db: AsyncSession = Depends(connect_
         GROUP BY 
             mark, count_all;
     """)
+    result = result_query.fetchall()
+    result_dicts = [row._asdict() for row in result]
+    for row_dict in result_dicts:
+        for key, value in row_dict.items():
+            if isinstance(value, Decimal):
+                row_dict[key] = float(value)
+    await save_resp(href, result_dicts)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_query.fetchall()
+    return result_dicts
 
 
 @router.get('/api/attendance_num_for_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -968,6 +1161,14 @@ async def total_marks_for_team(id_team: int, db: AsyncSession = Depends(connect_
             """)
 async def attendance_num_for_stud_for_team(id_team: int, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
+    href = f"attendance_num_for_stud_for_team-{id_team}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     result_query = await db.execute(f"""
         select 
             l.name,
@@ -980,8 +1181,15 @@ async def attendance_num_for_stud_for_team(id_team: int, db: AsyncSession = Depe
         order by id
         limit 22
         """)
+    result = result_query.fetchall()
+    result_dicts = [row._asdict() for row in result]
+    for row_dict in result_dicts:
+        for key, value in row_dict.items():
+            if isinstance(value, Decimal):
+                row_dict[key] = float(value)
+    await save_resp(href, result_dicts)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_query.fetchall()
+    return result_dicts
 
 
 @router.get('/api/attendance_num_for_stud_for_team_stat_table', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -1008,6 +1216,14 @@ async def attendance_num_for_stud_for_team(id_team: int, db: AsyncSession = Depe
 async def attendance_num_for_stud_for_team_stat_table(id_team: int, name_of_lesson: str,
                                                       db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
+    href = f"attendance_num_for_stud_for_team_stat_table-{id_team}-{name_of_lesson}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     result_query = await db.execute(f"""
         SELECT sub.stud_name, sub.id, sub.Посещаемость, sub.Успеваемость
         FROM (
@@ -1026,8 +1242,15 @@ async def attendance_num_for_stud_for_team_stat_table(id_team: int, name_of_less
         WHERE
           sub.name = '{name_of_lesson}' AND sub.arrival = 'Н';
             """)
+    result = result_query.fetchall()
+    result_dicts = [row._asdict() for row in result]
+    for row_dict in result_dicts:
+        for key, value in row_dict.items():
+            if isinstance(value, Decimal):
+                row_dict[key] = float(value)
+    await save_resp(href, result_dicts)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_query.fetchall()
+    return result_dicts
 
 
 # endregion
@@ -1058,6 +1281,14 @@ async def attendance_num_for_stud_for_team_stat_table(id_team: int, name_of_less
             """)
 async def cum_sum_points_for_stud_for_team(id_team: int, id_stud: int, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
+    href = f"cum_sum_points_for_stud_for_team-{id_team}-{id_stud}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     result_query = await db.execute(f"""
             SELECT
                 l.name,
@@ -1072,8 +1303,15 @@ async def cum_sum_points_for_stud_for_team(id_team: int, id_stud: int, db: Async
               WHERE
                 l.team_id = {id_team} and l.stud_id = {id_stud}
                     """)
+    result = result_query.fetchall()
+    result_dicts = [row._asdict() for row in result]
+    for row_dict in result_dicts:
+        for key, value in row_dict.items():
+            if isinstance(value, Decimal):
+                row_dict[key] = float(value)
+    await save_resp(href, result_dicts)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_query.fetchall()
+    return result_dicts
 
 
 @router.get('/api/attendance_dynamical_for_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -1101,6 +1339,14 @@ async def cum_sum_points_for_stud_for_team(id_team: int, id_stud: int, db: Async
 async def attendance_dynamical_for_stud_for_team(id_team: int, id_stud: int,
                                                  db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
+    href = f"attendance_dynamical_for_stud_for_team-{id_team}-{id_stud}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     result_query = await db.execute(f"""
             SELECT
                 l.name,
@@ -1110,8 +1356,15 @@ async def attendance_dynamical_for_stud_for_team(id_team: int, id_stud: int,
               WHERE
                 l.team_id = {id_team} and l.stud_id = {id_stud}
                     """)
+    result = result_query.fetchall()
+    result_dicts = [row._asdict() for row in result]
+    for row_dict in result_dicts:
+        for key, value in row_dict.items():
+            if isinstance(value, Decimal):
+                row_dict[key] = float(value)
+    await save_resp(href, result_dicts)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_query.fetchall()
+    return result_dicts
 
 
 @router.get('/api/attendance_static_for_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -1138,6 +1391,14 @@ async def attendance_dynamical_for_stud_for_team(id_team: int, id_stud: int,
             """)
 async def attendance_static_for_stud_for_team(id_team: int, id_stud: int, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
+    href = f"attendance_static_for_stud_for_team-{id_team}-{id_stud}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     result_query = await db.execute(f"""
             SELECT
                 l.name,
@@ -1147,8 +1408,15 @@ async def attendance_static_for_stud_for_team(id_team: int, id_stud: int, db: As
               WHERE
                 l.team_id = {id_team} and l.stud_id = {id_stud}
                     """)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_query.fetchall()
+    result = result_query.fetchall()
+    result_dicts = [row._asdict() for row in result]
+    for row_dict in result_dicts:
+        for key, value in row_dict.items():
+            if isinstance(value, Decimal):
+                row_dict[key] = float(value)
+    await save_resp(href, result_dicts)
+    print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+    return result_dicts
 
 
 @router.get('/api/all_in_one_for_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -1253,6 +1521,14 @@ async def all_in_one_for_stud_for_team(id_team: int, id_stud: int, db: AsyncSess
             """)
 async def attendance_static_stud_for_teams(id_team1: int, id_team2: int, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
+    href = f"attendance_static_stud_for_teams-{id_team1}-{id_team2}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     res = await db.execute(f"""
         SELECT DISTINCT
             (SELECT s.name FROM stud s WHERE s.id = l.stud_id) AS name,
@@ -1282,6 +1558,11 @@ async def attendance_static_stud_for_teams(id_team1: int, id_team2: int, db: Asy
             df_list.append(team_a[i])
         if i < len(team_b):
             df_list.append(team_b[i])
+    for row_dict in df_list:
+        for key, value in row_dict.items():
+            if isinstance(value, Decimal):
+                row_dict[key] = float(value)
+    await save_resp(href, df_list)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
     return df_list
 
@@ -1325,6 +1606,14 @@ async def attendance_static_stud_for_teams(id_team1: int, id_team2: int, db: Asy
             """)
 async def total_points_stud_for_teams(id_team1: int, id_team2: int, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
+    href = f" total_points_stud_for_teams-{id_team1}-{id_team2}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     res = await db.execute(f"""
             SELECT DISTINCT
                 (SELECT s.name FROM stud s WHERE s.id = l.stud_id) AS name,
@@ -1354,6 +1643,11 @@ async def total_points_stud_for_teams(id_team1: int, id_team2: int, db: AsyncSes
             df_list.append(team_a[i])
         if i < len(team_b):
             df_list.append(team_b[i])
+    for row_dict in df_list:
+        for key, value in row_dict.items():
+            if isinstance(value, Decimal):
+                row_dict[key] = float(value)
+    await save_resp(href, df_list)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
     return df_list
 
@@ -1383,6 +1677,14 @@ async def total_points_stud_for_teams(id_team1: int, id_team2: int, db: AsyncSes
             """)
 async def attendance_static_stud_for_all_teams(token: str, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
+    href = f" attendance_static_stud_for_all_teams-{token}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     teams = await get_teams_for_user_private(token, db)
     teams_true = ', '.join([f"'{team[0]}'" for team in teams])
     res = await db.execute(f"""
@@ -1398,8 +1700,15 @@ async def attendance_static_stud_for_all_teams(token: str, db: AsyncSession = De
             l.team_id in ({teams_true})
         order by arrival desc
     """)
+    result = res.fetchall()
+    result_dicts = [row._asdict() for row in result]
+    for row_dict in result_dicts:
+        for key, value in row_dict.items():
+            if isinstance(value, Decimal):
+                row_dict[key] = float(value)
+    await save_resp(href, result_dicts)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return res.fetchall()
+    return result_dicts
 
 
 @router.get('/api/total_points_studs_for_all_teams', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -1429,6 +1738,14 @@ async def total_points_studs_for_all_teams(token: str, db: AsyncSession = Depend
     start_time = time.time()
     teams = await get_teams_for_user_private_without_lect(token, db)
     teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    href = f"total_points_studs_for_all_teams-{token}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     res = await db.execute(f"""
         SELECT
             (SELECT t.name FROM team t WHERE t.id = l.team_id) AS team_name,
@@ -1445,8 +1762,15 @@ async def total_points_studs_for_all_teams(token: str, db: AsyncSession = Depend
         ORDER BY
             avg_total_points DESC;
         """)
+    result = res.fetchall()
+    result_dicts = [row._asdict() for row in result]
+    for row_dict in result_dicts:
+        for key, value in row_dict.items():
+            if isinstance(value, Decimal):
+                row_dict[key] = float(value)
+    await save_resp(href, result_dicts)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return res.fetchall()
+    return result_dicts
 
 
 @router.get('/api/team_kr_total_points_attendance_dynamic', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -1504,6 +1828,14 @@ async def team_kr_total_points_attendance_dynamic(token: str, group_by_teacher: 
         fields = """sub.team_name,
                     sub.team_id,"""
         partition_by = "sub.name, sub.teacher_id, sub.team_id"
+    href = f"team_kr_total_points_attendance_dynamic-{token}-{group_by_teacher}--{teacher_list}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     res = await db.execute(f"""
         SELECT DISTINCT
             {fields}
@@ -1547,8 +1879,15 @@ async def team_kr_total_points_attendance_dynamic(token: str, group_by_teacher: 
         WHERE
             sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
         """)
+    result = res.fetchall()
+    result_dicts = [row._asdict() for row in result]
+    for row_dict in result_dicts:
+        for key, value in row_dict.items():
+            if isinstance(value, Decimal):
+                row_dict[key] = float(value)
+    await save_resp(href, result_dicts)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return res.fetchall()
+    return result_dicts
 
 
 @router.get('/api/team_kr_total_points_dynamic', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -1602,6 +1941,14 @@ async def team_kr_total_points_dynamic(token: str, group_by_teacher: bool,
         fields = """sub.team_name,
                     sub.team_id,"""
         partition_by = "sub.name, sub.teacher_id, sub.team_id"
+    href = f"team_kr_total_points_dynamic-{token}-{group_by_teacher}--{teacher_list}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     res = await db.execute(f"""
         SELECT DISTINCT
             {fields}
@@ -1639,8 +1986,15 @@ async def team_kr_total_points_dynamic(token: str, group_by_teacher: bool,
         WHERE
             sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
         """)
+    result = res.fetchall()
+    result_dicts = [row._asdict() for row in result]
+    for row_dict in result_dicts:
+        for key, value in row_dict.items():
+            if isinstance(value, Decimal):
+                row_dict[key] = float(value)
+    await save_resp(href, result_dicts)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return res.fetchall()
+    return result_dicts
 
 
 @router.get('/api/team_kr_attendance_dynamic', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -1694,6 +2048,14 @@ async def team_kr_attendance_dynamic(token: str, group_by_teacher: bool,
         fields = """sub.team_name,
                     sub.team_id,"""
         partition_by = "sub.name, sub.teacher_id, sub.team_id"
+    href = f"team_kr_attendance_dynamic-{token}-{group_by_teacher}--{teacher_list}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     res = await db.execute(f"""
         SELECT DISTINCT
             {fields}
@@ -1729,8 +2091,15 @@ async def team_kr_attendance_dynamic(token: str, group_by_teacher: bool,
         WHERE
             sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
         """)
+    result = res.fetchall()
+    result_dicts = [row._asdict() for row in result]
+    for row_dict in result_dicts:
+        for key, value in row_dict.items():
+            if isinstance(value, Decimal):
+                row_dict[key] = float(value)
+    await save_resp(href, result_dicts)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return res.fetchall()
+    return result_dicts
 
 
 # endregion
@@ -1764,6 +2133,14 @@ async def attendance_static_for_specialities(token: str, speciality1: str, speci
     else:
         teams = await get_teams_for_user_private_without_lect(token, db)
     teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    href = f"attendance_static_for_specialities-{token}-{speciality1}--{speciality2}--{lect}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     res = await db.execute(f"""
         SELECT DISTINCT
             ROUND(COUNT(l.id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id) / COUNT(l.id) OVER (PARTITION BY l.stud_id)::DECIMAL, 2) AS arrival,
@@ -1793,6 +2170,11 @@ async def attendance_static_for_specialities(token: str, speciality1: str, speci
             df_list.append(team_a[i])
         if i < len(team_b):
             df_list.append(team_b[i])
+    for row_dict in df_list:
+        for key, value in row_dict.items():
+            if isinstance(value, Decimal):
+                row_dict[key] = float(value)
+    await save_resp(href, df_list)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
     return df_list
 
@@ -1829,6 +2211,14 @@ async def total_points_for_specialities(token: str, speciality1: str, speciality
     else:
         teams = await get_teams_for_user_private_without_lect(token, db)
     teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    href = f"total_points_for_specialities-{token}-{speciality1}--{speciality2}--{lect}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     res = await db.execute(f"""
             SELECT DISTINCT
                 ROUND((SUM(l.mark_for_work) OVER (PARTITION BY stud_id) + SUM(l.test) OVER (PARTITION BY stud_id))::DECIMAL, 2) AS total_points,
@@ -1858,6 +2248,11 @@ async def total_points_for_specialities(token: str, speciality1: str, speciality
             df_list.append(team_a[i])
         if i < len(team_b):
             df_list.append(team_b[i])
+    for row_dict in df_list:
+        for key, value in row_dict.items():
+            if isinstance(value, Decimal):
+                row_dict[key] = float(value)
+    await save_resp(href, df_list)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
     return df_list
 
@@ -1889,6 +2284,14 @@ async def attendance_static_stud_for_all_specialities(token: str, lect: bool,
     else:
         teams = await get_teams_for_user_private_without_lect(token, db)
     teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    href = f"attendance_static_stud_for_all_specialities-{token}-{lect}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     res = await db.execute(f"""
         SELECT
             ROUND(COUNT(l.id) FILTER (WHERE l.arrival = 'П') / COUNT(l.id)::DECIMAL, 2) AS arrival,
@@ -1902,8 +2305,15 @@ async def attendance_static_stud_for_all_specialities(token: str, lect: bool,
         group by s.speciality 
         order by arrival desc
                 """)
+    result = res.fetchall()
+    result_dicts = [row._asdict() for row in result]
+    for row_dict in result_dicts:
+        for key, value in row_dict.items():
+            if isinstance(value, Decimal):
+                row_dict[key] = float(value)
+    await save_resp(href, result_dicts)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return res.fetchall()
+    return result_dicts
 
 
 @router.get('/api/total_points_studs_for_all_specialities', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -1932,6 +2342,14 @@ async def total_points_studs_for_all_specialities(token: str, lect: bool, db: As
     else:
         teams = await get_teams_for_user_private_without_lect(token, db)
     teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    href = f"total_points_studs_for_all_specialities-{token}-{lect}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     res = await db.execute(f"""
             select
                 s.speciality AS Stud_speciality,
@@ -1945,8 +2363,15 @@ async def total_points_studs_for_all_specialities(token: str, lect: bool, db: As
             group by s.speciality 
             order by avg_total_points desc
     """)
+    result = res.fetchall()
+    result_dicts = [row._asdict() for row in result]
+    for row_dict in result_dicts:
+        for key, value in row_dict.items():
+            if isinstance(value, Decimal):
+                row_dict[key] = float(value)
+    await save_resp(href, result_dicts)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return res.fetchall()
+    return result_dicts
 
 
 @router.get('/api/attendance_static_total_points_studs_for_all_specialities', name='Plot:plot',
@@ -1976,6 +2401,14 @@ async def all_for_studs_for_all_specialities(token: str, lect: bool, db: AsyncSe
     else:
         teams = await get_teams_for_user_private_without_lect(token, db)
     teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    href = f"all_for_studs_for_all_specialities-{token}-{lect}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     res = await db.execute(f"""
             select
                 s.speciality AS Stud_speciality,
@@ -1990,8 +2423,15 @@ async def all_for_studs_for_all_specialities(token: str, lect: bool, db: AsyncSe
             group by s.speciality 
             order by avg_total_points desc
     """)
+    result = res.fetchall()
+    result_dicts = [row._asdict() for row in result]
+    for row_dict in result_dicts:
+        for key, value in row_dict.items():
+            if isinstance(value, Decimal):
+                row_dict[key] = float(value)
+    await save_resp(href, result_dicts)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return res.fetchall()
+    return result_dicts
 
 
 @router.get('/api/speciality_kr_total_points_attendance_dynamic', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -2045,6 +2485,14 @@ async def speciality_kr_total_points_attendance_dynamic(token: str, group_by_spe
         fields = """sub.teacher_name,
                     sub.teacher_id,"""
         partition_by = "sub.Stud_speciality, sub.name, sub.teacher_id"
+    href = f"speciality_kr_total_points_attendance_dynamic-{token}--{group_by_speciality}--{teacher_list}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     res = await db.execute(f"""
         SELECT DISTINCT
             sub.Stud_speciality,
@@ -2086,8 +2534,15 @@ async def speciality_kr_total_points_attendance_dynamic(token: str, group_by_spe
         WHERE 
             sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
         """)
+    result = res.fetchall()
+    result_dicts = [row._asdict() for row in result]
+    for row_dict in result_dicts:
+        for key, value in row_dict.items():
+            if isinstance(value, Decimal):
+                row_dict[key] = float(value)
+    await save_resp(href, result_dicts)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return res.fetchall()
+    return result_dicts
 
 
 @router.get('/api/speciality_kr_attendance_dynamic', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -2137,6 +2592,14 @@ async def speciality_kr_attendance_dynamic(token: str, group_by_speciality: bool
         fields = """sub.teacher_name,
                     sub.teacher_id,"""
         partition_by = "sub.Stud_speciality, sub.name, sub.teacher_id"
+    href = f"speciality_kr_attendance_dynamic-{token}-{group_by_speciality}-{teacher_list}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     res = await db.execute(f"""
         SELECT DISTINCT
             sub.Stud_speciality,
@@ -2170,8 +2633,15 @@ async def speciality_kr_attendance_dynamic(token: str, group_by_speciality: bool
         WHERE 
             sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
         """)
+    result = res.fetchall()
+    result_dicts = [row._asdict() for row in result]
+    for row_dict in result_dicts:
+        for key, value in row_dict.items():
+            if isinstance(value, Decimal):
+                row_dict[key] = float(value)
+    await save_resp(href, result_dicts)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return res.fetchall()
+    return result_dicts
 
 
 @router.get('/api/speciality_kr_total_points_dynamic', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -2221,6 +2691,14 @@ async def speciality_kr_total_points_dynamic(token: str, group_by_speciality: bo
         fields = """sub.teacher_name,
                     sub.teacher_id,"""
         partition_by = "sub.Stud_speciality, sub.name, sub.teacher_id"
+    href = f"speciality_kr_total_points_dynamic-{token}-{group_by_speciality}-{teacher_list}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     res = await db.execute(f"""
         SELECT DISTINCT
             sub.Stud_speciality,
@@ -2256,8 +2734,15 @@ async def speciality_kr_total_points_dynamic(token: str, group_by_speciality: bo
         WHERE 
             sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
         """)
+    result = res.fetchall()
+    result_dicts = [row._asdict() for row in result]
+    for row_dict in result_dicts:
+        for key, value in row_dict.items():
+            if isinstance(value, Decimal):
+                row_dict[key] = float(value)
+    await save_resp(href, result_dicts)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return res.fetchall()
+    return result_dicts
 
 
 # endregion
@@ -2300,6 +2785,14 @@ async def kr_analyse_simple(token: str, type_group_by: int, kr: str,
             raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                                 detail="Неправильно выбран тип 0 - Группировка по командам, 1 - " +
                                        "Группировка по направлениям, 2 - Группировка по преподавателям")
+    href = f"kr_analyse_simple-{token}-{type_group_by}-{kr}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     res = await db.execute(f"""
         SELECT
             ARRAY_AGG(l.test) AS test_mark_list,
@@ -2311,8 +2804,15 @@ async def kr_analyse_simple(token: str, type_group_by: int, kr: str,
             and l.name = '{kr}'
         {fill_query_str2}
     """)
+    result = res.fetchall()
+    result_dicts = [row._asdict() for row in result]
+    for row_dict in result_dicts:
+        for key, value in row_dict.items():
+            if isinstance(value, Decimal):
+                row_dict[key] = float(value)
+    await save_resp(href, result_dicts)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return res.fetchall()
+    return result_dicts
 
 
 @router.get('/api/kr_analyse_with_filters', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -2339,7 +2839,7 @@ async def kr_analyse_with_filters(token: str, kr: str, type_select: int, teacher
     start_time = time.time()
     if teacher is None:
         teachers = await get_all_teachers(token, db)
-        teachers = ', '.join([f"'{teacher[0]}'" for teacher in teachers])
+        teachers = ', '.join([f"'{teacher['id']}'" for teacher in teachers])
     else:
         teachers = teacher
     if speciality is None:
@@ -2385,6 +2885,14 @@ async def kr_analyse_with_filters(token: str, kr: str, type_select: int, teacher
         case _:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                                 detail="Неправильно выбран тип(всего их 0,1,2,3,4,5,6)")
+    href = f"kr_analyse_with_filters-{token}-{kr}-{type_select}-{teacher}-{speciality}-{team}"
+    try:
+        res = await check_href(href)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        return res
+    except Exception as e:
+        print(e)
+        pass
     res = await db.execute(f"""
         SELECT
             ARRAY_AGG(l.test) AS test_mark_list,
@@ -2403,8 +2911,15 @@ async def kr_analyse_with_filters(token: str, kr: str, type_select: int, teacher
             and s.speciality IN ({specialities})
         {group_by_query}
         """)
+    result = res.fetchall()
+    result_dicts = [row._asdict() for row in result]
+    for row_dict in result_dicts:
+        for key, value in row_dict.items():
+            if isinstance(value, Decimal):
+                row_dict[key] = float(value)
+    await save_resp(href, result_dicts)
     print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return res.fetchall()
+    return result_dicts
 
 
 # endregion
