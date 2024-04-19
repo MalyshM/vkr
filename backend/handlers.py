@@ -1338,33 +1338,41 @@ async def cum_sum_points_for_stud_for_team(id_team: int, id_stud: int, db: Async
             """)
 async def attendance_dynamical_for_stud_for_team(id_team: int, id_stud: int,
                                                  db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"attendance_dynamical_for_stud_for_team-{id_team}-{id_stud} start")
     start_time = time.time()
     href = f"attendance_dynamical_for_stud_for_team-{id_team}-{id_stud}"
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"attendance_dynamical_for_stud_for_team-{id_team}-{id_stud}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"attendance_dynamical_for_stud_for_team-{id_team}-{id_stud} {e}")
         pass
-    result_query = await db.execute(f"""
-            SELECT
-                l.name,
-                ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / COUNT(id) OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::DECIMAL, 2) AS dynamical_arrival
-              FROM
-                lesson l
-              WHERE
-                l.team_id = {id_team} and l.stud_id = {id_stud}
-                    """)
-    result = result_query.fetchall()
-    result_dicts = [row._asdict() for row in result]
-    for row_dict in result_dicts:
-        for key, value in row_dict.items():
-            if isinstance(value, Decimal):
-                row_dict[key] = float(value)
-    await save_resp(href, result_dicts)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_dicts
+    try:
+        result_query = await db.execute(f"""
+                SELECT
+                    l.name,
+                    ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / COUNT(id) OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::DECIMAL, 2) AS dynamical_arrival
+                  FROM
+                    lesson l
+                  WHERE
+                    l.team_id = {id_team} and l.stud_id = {id_stud}
+                        """)
+        result = result_query.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        LOGGER.info(f"attendance_dynamical_for_stud_for_team-{id_team}-{id_stud} finish {(time.time() - start_time)}")
+        return result_dicts
+    except Exception as e:
+        LOGGER.error(f"attendance_dynamical_for_stud_for_team-{id_team}-{id_stud} Error {e}")
 
 
 @router.get('/api/attendance_static_for_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,

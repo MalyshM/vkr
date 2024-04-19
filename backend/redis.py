@@ -28,13 +28,11 @@ async def check_href(href: str):
         await redis.close()
         return json.loads(cached_response)
     else:
-        print("error")
-        raise
+        raise Exception("Cached response from Redis is None")
 
 
 async def save_resp(href: str, resp):
     redis = await connect_to_redis_true()
-
     await redis.set(name=str(href), value=json.dumps(resp), ex=3600)
 
 
