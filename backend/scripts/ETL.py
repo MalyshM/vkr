@@ -238,7 +238,11 @@ for rmup_name, rmup_link, stud_name, team, name_of_lesson, mark, arrival1, test1
     if arrival1 is None:
         arrival = "Н"
     else:
-        arrival = arrival1
+        try:
+            if math.isnan(arrival1):
+                arrival = "Н"
+        except:
+            arrival = arrival1
     if math.isnan(test1):
         test = -0.00000000001
     else:
