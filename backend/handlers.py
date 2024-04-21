@@ -299,6 +299,7 @@ async def login_standard(user: UserLogin, db: AsyncSession = Depends(connect_db_
                       },
             """)
 async def get_teams_for_user(token: str, db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"get_teams_for_user-{token} start")
     start_time = time.time()
     user = await get_current_user_dev(token)
     user_fio = user.fio
@@ -306,9 +307,12 @@ async def get_teams_for_user(token: str, db: AsyncSession = Depends(connect_db_d
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"get_teams_for_user-{token}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"get_teams_for_user-{token} {e}")
         pass
     if user.iscurator or user.isadmin:
         response = await db.execute("""
@@ -345,15 +349,19 @@ async def get_teams_for_user(token: str, db: AsyncSession = Depends(connect_db_d
                     where
                         t.name ilike '%{user_fio}%'))
         """)
-        result = response.fetchall()
-        result_dicts = [row._asdict() for row in result]
-        for row_dict in result_dicts:
-            for key, value in row_dict.items():
-                if isinstance(value, Decimal):
-                    row_dict[key] = float(value)
-        await save_resp(href, result_dicts)
-        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-        return result_dicts
+        try:
+            result = response.fetchall()
+            result_dicts = [row._asdict() for row in result]
+            for row_dict in result_dicts:
+                for key, value in row_dict.items():
+                    if isinstance(value, Decimal):
+                        row_dict[key] = float(value)
+            await save_resp(href, result_dicts)
+            print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+            LOGGER.info(f"get_teams_for_user-{token} finish {(time.time() - start_time)}")
+            return result_dicts
+        except Exception as e:
+            LOGGER.error(f"get_teams_for_user-{token} Error {e}")
     else:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
@@ -540,14 +548,18 @@ async def get_teams_for_user_without_lect(token: str, db: AsyncSession = Depends
         }
 """)
 async def get_student(id_stud: int, db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"get_student-{id_stud} start")
     start_time = time.time()
     href = f"get_student-{id_stud}"
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"get_student-{id_stud}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"get_student-{id_stud} {e}")
         pass
     all_users = await db.execute(f"""
         select
@@ -557,17 +569,21 @@ async def get_student(id_stud: int, db: AsyncSession = Depends(connect_db_data))
         where
             s.id = {id_stud}
 	""")
-    result = all_users.fetchall()
-    result_dicts = [row._asdict() for row in result]
-    for row_dict in result_dicts:
-        for key, value in row_dict.items():
-            if isinstance(value, Decimal):
-                row_dict[key] = float(value)
-            if isinstance(value, datetime):
-                row_dict[key] = value.strftime('%Y-%m-%d %H:%M')
-    await save_resp(href, result_dicts)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_dicts
+    try:
+        result = all_users.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+                if isinstance(value, datetime):
+                    row_dict[key] = value.strftime('%Y-%m-%d %H:%M')
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        LOGGER.info(f"get_student-{id_stud} finish {(time.time() - start_time)}")
+        return result_dicts
+    except Exception as e:
+        LOGGER.error(f"get_student-{id_stud} Error {e}")
 
 
 @router.get('/api/get_router_paths', name='Util:Util', status_code=status.HTTP_200_OK,
@@ -622,6 +638,7 @@ async def get_router_paths():
                       },
             """)
 async def get_all_specialities(token: str, db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"get_all_kr-{db} start")
     start_time = time.time()
     user = await get_current_user_dev(token)
     user_fio = user.fio
@@ -629,9 +646,12 @@ async def get_all_specialities(token: str, db: AsyncSession = Depends(connect_db
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"get_all_kr-{db}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"get_all_kr-{db} {e}")
         pass
     if user.iscurator or user.isadmin:
         response = await db.execute("""
@@ -640,15 +660,19 @@ async def get_all_specialities(token: str, db: AsyncSession = Depends(connect_db
             from
                 stud s 
         """)
-        result = response.fetchall()
-        result_dicts = [row._asdict() for row in result]
-        for row_dict in result_dicts:
-            for key, value in row_dict.items():
-                if isinstance(value, Decimal):
-                    row_dict[key] = float(value)
-        await save_resp(href, result_dicts)
-        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-        return result_dicts
+        try:
+            result = response.fetchall()
+            result_dicts = [row._asdict() for row in result]
+            for row_dict in result_dicts:
+                for key, value in row_dict.items():
+                    if isinstance(value, Decimal):
+                        row_dict[key] = float(value)
+            await save_resp(href, result_dicts)
+            print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+            LOGGER.info(f"get_all_kr-{db} finish {(time.time() - start_time)}")
+            return result_dicts
+        except Exception as e:
+            LOGGER.error(f"get_all_kr-{db} Error {e}")
     elif user.isteacher:
         response = await db.execute(f"""
             select distinct
@@ -670,15 +694,20 @@ async def get_all_specialities(token: str, db: AsyncSession = Depends(connect_db
                     where
                         t.name ilike '%{user_fio}%'))
         """)
-        result = response.fetchall()
-        result_dicts = [row._asdict() for row in result]
-        for row_dict in result_dicts:
-            for key, value in row_dict.items():
-                if isinstance(value, Decimal):
-                    row_dict[key] = float(value)
-        await save_resp(href, result_dicts)
-        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-        return result_dicts
+        try:
+            result = response.fetchall()
+            result_dicts = [row._asdict() for row in result]
+            for row_dict in result_dicts:
+                for key, value in row_dict.items():
+                    if isinstance(value, Decimal):
+                        row_dict[key] = float(value)
+            await save_resp(href, result_dicts)
+            print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+            LOGGER.info(
+                f"get_all_kr-{db} finish {(time.time() - start_time)}")
+            return result_dicts
+        except Exception as e:
+            LOGGER.error(f"get_all_kr-{db} Error {e}")
     else:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
@@ -702,14 +731,18 @@ async def get_all_specialities(token: str, db: AsyncSession = Depends(connect_db
         ]
 """)
 async def get_all_kr(db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"get_all_kr-{db} start")
     start_time = time.time()
     href = f"get_all_kr-{db}"
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"get_all_kr-{db}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"get_all_kr-{db} {e}")
         pass
     all_users = await db.execute("""
         select distinct 
@@ -719,15 +752,19 @@ async def get_all_kr(db: AsyncSession = Depends(connect_db_data)):
         where
             l.test >= 0.0
     """)
-    result = all_users.fetchall()
-    result_dicts = [row._asdict() for row in result]
-    for row_dict in result_dicts:
-        for key, value in row_dict.items():
-            if isinstance(value, Decimal):
-                row_dict[key] = float(value)
-    await save_resp(href, result_dicts)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_dicts
+    try:
+        result = all_users.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        LOGGER.info(f"get_all_kr-{db} finish {(time.time() - start_time)}")
+        return result_dicts
+    except Exception as e:
+        LOGGER.error(f"get_all_kr-{db} Error {e}")
 
 
 @router.get('/api/get_all_teachers_unique', name='Util:get_all_teachers', status_code=status.HTTP_200_OK,
@@ -752,6 +789,7 @@ async def get_all_kr(db: AsyncSession = Depends(connect_db_data)):
                       },
             """)
 async def get_all_teachers_unique(token: str, db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"get_all_teachers_unique-{token} start")
     start_time = time.time()
     user = await get_current_user_dev(token)
     user_fio = user.fio
@@ -759,9 +797,12 @@ async def get_all_teachers_unique(token: str, db: AsyncSession = Depends(connect
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"get_all_teachers_unique-{token}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"get_all_teachers_unique-{token} {e}")
         pass
     if user.iscurator or user.isadmin:
         response = await db.execute("""
@@ -773,15 +814,19 @@ async def get_all_teachers_unique(token: str, db: AsyncSession = Depends(connect
             where 
                 t.name not ilike '%,%'
         """)
-        result = response.fetchall()
-        result_dicts = [row._asdict() for row in result]
-        for row_dict in result_dicts:
-            for key, value in row_dict.items():
-                if isinstance(value, Decimal):
-                    row_dict[key] = float(value)
-        await save_resp(href, result_dicts)
-        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-        return result_dicts
+        try:
+            result = response.fetchall()
+            result_dicts = [row._asdict() for row in result]
+            for row_dict in result_dicts:
+                for key, value in row_dict.items():
+                    if isinstance(value, Decimal):
+                        row_dict[key] = float(value)
+            await save_resp(href, result_dicts)
+            print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+            LOGGER.info(f"get_all_teachers_unique-{token} finish {(time.time() - start_time)}")
+            return result_dicts
+        except Exception as e:
+            LOGGER.error(f"get_all_teachers_unique-{token} Error {e}")
     elif user.isteacher:
         response = await db.execute(f"""
             select distinct
@@ -792,15 +837,19 @@ async def get_all_teachers_unique(token: str, db: AsyncSession = Depends(connect
             where
                 t.name = '{user_fio}'
         """)
-        result = response.fetchall()
-        result_dicts = [row._asdict() for row in result]
-        for row_dict in result_dicts:
-            for key, value in row_dict.items():
-                if isinstance(value, Decimal):
-                    row_dict[key] = float(value)
-        await save_resp(href, result_dicts)
-        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-        return result_dicts
+        try:
+            result = response.fetchall()
+            result_dicts = [row._asdict() for row in result]
+            for row_dict in result_dicts:
+                for key, value in row_dict.items():
+                    if isinstance(value, Decimal):
+                        row_dict[key] = float(value)
+            await save_resp(href, result_dicts)
+            print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+            LOGGER.info(f"get_all_teachers_unique-{token} finish {(time.time() - start_time)}")
+            return result_dicts
+        except Exception as e:
+            LOGGER.error(f"get_all_teachers_unique-{token} Error {e}")
     else:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
@@ -828,6 +877,7 @@ async def get_all_teachers_unique(token: str, db: AsyncSession = Depends(connect
                       },
             """)
 async def get_all_teachers(token: str, db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"get_all_teachers-{token} start")
     start_time = time.time()
     user = await get_current_user_dev(token)
     user_fio = user.fio
@@ -835,9 +885,12 @@ async def get_all_teachers(token: str, db: AsyncSession = Depends(connect_db_dat
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"get_all_teachers-{token}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"get_all_teachers-{token} {e}")
         pass
     if user.iscurator or user.isadmin:
         response = await db.execute("""
@@ -847,15 +900,20 @@ async def get_all_teachers(token: str, db: AsyncSession = Depends(connect_db_dat
                 from
                     teacher t
             """)
-        result = response.fetchall()
-        result_dicts = [row._asdict() for row in result]
-        for row_dict in result_dicts:
-            for key, value in row_dict.items():
-                if isinstance(value, Decimal):
-                    row_dict[key] = float(value)
-        await save_resp(href, result_dicts)
-        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-        return result_dicts
+        try:
+            result = response.fetchall()
+            result_dicts = [row._asdict() for row in result]
+            for row_dict in result_dicts:
+                for key, value in row_dict.items():
+                    if isinstance(value, Decimal):
+                        row_dict[key] = float(value)
+            await save_resp(href, result_dicts)
+            print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+            LOGGER.info(
+                f"get_all_teachers-{token} finish {(time.time() - start_time)}")
+            return result_dicts
+        except Exception as e:
+            LOGGER.error(f"get_all_teachers-{token} Error {e}")
     elif user.isteacher:
         response = await db.execute(f"""
             select distinct
@@ -866,15 +924,20 @@ async def get_all_teachers(token: str, db: AsyncSession = Depends(connect_db_dat
             where
                 t.name ilike '%{user_fio}%'
         """)
-        result = response.fetchall()
-        result_dicts = [row._asdict() for row in result]
-        for row_dict in result_dicts:
-            for key, value in row_dict.items():
-                if isinstance(value, Decimal):
-                    row_dict[key] = float(value)
-        await save_resp(href, result_dicts)
-        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-        return result_dicts
+        try:
+            result = response.fetchall()
+            result_dicts = [row._asdict() for row in result]
+            for row_dict in result_dicts:
+                for key, value in row_dict.items():
+                    if isinstance(value, Decimal):
+                        row_dict[key] = float(value)
+            await save_resp(href, result_dicts)
+            print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+            LOGGER.info(
+                f"get_all_teachers-{token} finish {(time.time() - start_time)}")
+            return result_dicts
+        except Exception as e:
+            LOGGER.error(f"get_all_teachers-{token} Error {e}")
     else:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
@@ -902,14 +965,18 @@ async def get_all_teachers(token: str, db: AsyncSession = Depends(connect_db_dat
                       },
             """)
 async def attendance_per_stud_for_team(id_team: int, db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"attendance_per_stud_for_team-{id_team} start")
     start_time = time.time()
     href = f"attendance_per_stud_for_team-{id_team}"
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"attendance_per_stud_for_team-{id_team}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"attendance_per_stud_for_team-{id_team} {e}")
         pass
     result_query = await db.execute(f"""
         select distinct
@@ -921,15 +988,19 @@ async def attendance_per_stud_for_team(id_team: int, db: AsyncSession = Depends(
         where
             l.team_id = {id_team}
     """)
-    result = result_query.fetchall()
-    result_dicts = [row._asdict() for row in result]
-    for row_dict in result_dicts:
-        for key, value in row_dict.items():
-            if isinstance(value, Decimal):
-                row_dict[key] = float(value)
-    await save_resp(href, result_dicts)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_dicts
+    try:
+        result = result_query.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        LOGGER.info(f"attendance_per_stud_for_team-{id_team} finish {(time.time() - start_time)}")
+        return result_dicts
+    except Exception as e:
+        LOGGER.error(f"attendance_per_stud_for_team-{id_team} Error {e}")
 
 
 @router.get('/api/total_points_attendance_per_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -965,14 +1036,18 @@ async def attendance_per_stud_for_team(id_team: int, db: AsyncSession = Depends(
                       }
             """)
 async def total_points_attendance_per_stud_for_team(id_team: int, db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"total_points_attendance_per_stud_for_team-{id_team} start")
     start_time = time.time()
     href = f"total_points_attendance_per_stud_for_team-{id_team}"
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"total_points_attendance_per_stud_for_team-{id_team}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"total_points_attendance_per_stud_for_team-{id_team} {e}")
         pass
     result_query = await db.execute(f"""
         select *, avg(sub.Успеваемость) over (partition by Посещаемость_средняя) as "Успеваемость_средняя"
@@ -988,15 +1063,19 @@ async def total_points_attendance_per_stud_for_team(id_team: int, db: AsyncSessi
         where
             l.team_id = {id_team}) as sub
     """)
-    result = result_query.fetchall()
-    result_dicts = [row._asdict() for row in result]
-    for row_dict in result_dicts:
-        for key, value in row_dict.items():
-            if isinstance(value, Decimal):
-                row_dict[key] = float(value)
-    await save_resp(href, result_dicts)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_dicts
+    try:
+        result = result_query.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        LOGGER.info(f"total_points_attendance_per_stud_for_team-{id_team} finish {(time.time() - start_time)}")
+        return result_dicts
+    except Exception as e:
+        LOGGER.error(f"total_points_attendance_per_stud_for_team-{id_team} Error {e}")
 
 
 @router.get('/api/total_points_per_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -1019,14 +1098,18 @@ async def total_points_attendance_per_stud_for_team(id_team: int, db: AsyncSessi
                       },
             """)
 async def total_points_per_stud_for_team(id_team: int, db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"total_points_per_stud_for_team-{id_team} start")
     start_time = time.time()
     href = f"total_points_per_stud_for_team-{id_team}"
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"total_points_per_stud_for_team-{id_team}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"total_points_per_stud_for_team-{id_team} {e}")
         pass
     result_query = await db.execute(f"""
             select distinct
@@ -1038,15 +1121,19 @@ async def total_points_per_stud_for_team(id_team: int, db: AsyncSession = Depend
             where
                 l.team_id = {id_team}
         """)
-    result = result_query.fetchall()
-    result_dicts = [row._asdict() for row in result]
-    for row_dict in result_dicts:
-        for key, value in row_dict.items():
-            if isinstance(value, Decimal):
-                row_dict[key] = float(value)
-    await save_resp(href, result_dicts)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_dicts
+    try:
+        result = result_query.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        LOGGER.info(f"total_points_per_stud_for_team-{id_team} finish {(time.time() - start_time)}")
+        return result_dicts
+    except Exception as e:
+        LOGGER.error(f"total_points_per_stud_for_team-{id_team} Error {e}")
 
 
 @router.get('/api/total_marks_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -1081,14 +1168,18 @@ async def total_points_per_stud_for_team(id_team: int, db: AsyncSession = Depend
                     ]
             """)
 async def total_marks_for_team(id_team: int, db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"total_marks_for_team-{id_team} start")
     start_time = time.time()
     href = f"total_marks_for_team-{id_team}"
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"total_marks_for_team-{id_team}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"total_marks_for_team-{id_team} {e}")
         pass
     result_query = await db.execute(f"""
         SELECT
@@ -1121,15 +1212,19 @@ async def total_marks_for_team(id_team: int, db: AsyncSession = Depends(connect_
         GROUP BY 
             mark, count_all;
     """)
-    result = result_query.fetchall()
-    result_dicts = [row._asdict() for row in result]
-    for row_dict in result_dicts:
-        for key, value in row_dict.items():
-            if isinstance(value, Decimal):
-                row_dict[key] = float(value)
-    await save_resp(href, result_dicts)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_dicts
+    try:
+        result = result_query.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        LOGGER.info(f"total_marks_for_team-{id_team} finish {(time.time() - start_time)}")
+        return result_dicts
+    except Exception as e:
+        LOGGER.error(f"total_marks_for_team-{id_team} Error {e}")
 
 
 @router.get('/api/attendance_num_for_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -1160,14 +1255,18 @@ async def total_marks_for_team(id_team: int, db: AsyncSession = Depends(connect_
                       },
             """)
 async def attendance_num_for_stud_for_team(id_team: int, db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"attendance_num_for_stud_for_team-{id_team} start")
     start_time = time.time()
     href = f"attendance_num_for_stud_for_team-{id_team}"
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"attendance_num_for_stud_for_team-{id_team}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"attendance_num_for_stud_for_team-{id_team} {e}")
         pass
     result_query = await db.execute(f"""
         select 
@@ -1181,15 +1280,19 @@ async def attendance_num_for_stud_for_team(id_team: int, db: AsyncSession = Depe
         order by id
         limit 22
         """)
-    result = result_query.fetchall()
-    result_dicts = [row._asdict() for row in result]
-    for row_dict in result_dicts:
-        for key, value in row_dict.items():
-            if isinstance(value, Decimal):
-                row_dict[key] = float(value)
-    await save_resp(href, result_dicts)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_dicts
+    try:
+        result = result_query.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        LOGGER.info(f"attendance_num_for_stud_for_team-{id_team} finish {(time.time() - start_time)}")
+        return result_dicts
+    except Exception as e:
+        LOGGER.error(f"attendance_num_for_stud_for_team-{id_team} Error {e}")
 
 
 @router.get('/api/attendance_num_for_stud_for_team_stat_table', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -1215,14 +1318,18 @@ async def attendance_num_for_stud_for_team(id_team: int, db: AsyncSession = Depe
             """)
 async def attendance_num_for_stud_for_team_stat_table(id_team: int, name_of_lesson: str,
                                                       db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"attendance_num_for_stud_for_team_stat_table-{id_team}-{name_of_lesson} start")
     start_time = time.time()
     href = f"attendance_num_for_stud_for_team_stat_table-{id_team}-{name_of_lesson}"
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"attendance_dynamical_for_stud_for_team-{id_team}-{name_of_lesson}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"attendance_num_for_stud_for_team_stat_table-{id_team}-{name_of_lesson} {e}")
         pass
     result_query = await db.execute(f"""
         SELECT sub.stud_name, sub.id, sub.Посещаемость, sub.Успеваемость
@@ -1242,15 +1349,19 @@ async def attendance_num_for_stud_for_team_stat_table(id_team: int, name_of_less
         WHERE
           sub.name = '{name_of_lesson}' AND sub.arrival = 'Н';
             """)
-    result = result_query.fetchall()
-    result_dicts = [row._asdict() for row in result]
-    for row_dict in result_dicts:
-        for key, value in row_dict.items():
-            if isinstance(value, Decimal):
-                row_dict[key] = float(value)
-    await save_resp(href, result_dicts)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_dicts
+    try:
+        result = result_query.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        LOGGER.info(f"attendance_num_for_stud_for_team_stat_table-{id_team}-{name_of_lesson} finish {(time.time() - start_time)}")
+        return result_dicts
+    except Exception as e:
+        LOGGER.error(f"attendance_num_for_stud_for_team_stat_table-{id_team}-{name_of_lesson} Error {e}")
 
 
 # endregion
@@ -1280,14 +1391,18 @@ async def attendance_num_for_stud_for_team_stat_table(id_team: int, name_of_less
                       },
             """)
 async def cum_sum_points_for_stud_for_team(id_team: int, id_stud: int, db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"cum_sum_points_for_stud_for_team-{id_team}-{id_stud} start")
     start_time = time.time()
     href = f"cum_sum_points_for_stud_for_team-{id_team}-{id_stud}"
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"cum_sum_points_for_stud_for_team-{id_team}-{id_stud}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"cum_sum_points_for_stud_for_team-{id_team}-{id_stud} {e}")
         pass
     result_query = await db.execute(f"""
             SELECT
@@ -1303,15 +1418,19 @@ async def cum_sum_points_for_stud_for_team(id_team: int, id_stud: int, db: Async
               WHERE
                 l.team_id = {id_team} and l.stud_id = {id_stud}
                     """)
-    result = result_query.fetchall()
-    result_dicts = [row._asdict() for row in result]
-    for row_dict in result_dicts:
-        for key, value in row_dict.items():
-            if isinstance(value, Decimal):
-                row_dict[key] = float(value)
-    await save_resp(href, result_dicts)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_dicts
+    try:
+        result = result_query.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        LOGGER.info(f"cum_sum_points_for_stud_for_team-{id_team}-{id_stud} finish {(time.time() - start_time)}")
+        return result_dicts
+    except Exception as e:
+        LOGGER.error(f"cum_sum_points_for_stud_for_team-{id_team}-{id_stud} Error {e}")
 
 
 @router.get('/api/attendance_dynamical_for_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -1398,33 +1517,41 @@ async def attendance_dynamical_for_stud_for_team(id_team: int, id_stud: int,
                       },
             """)
 async def attendance_static_for_stud_for_team(id_team: int, id_stud: int, db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"attendance_static_for_stud_for_team-{id_team}-{id_stud} start")
     start_time = time.time()
     href = f"attendance_static_for_stud_for_team-{id_team}-{id_stud}"
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"attendance_static_for_stud_for_team-{id_team}-{id_stud}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"attendance_static_for_stud_for_team-{id_team}-{id_stud} {e}")
         pass
-    result_query = await db.execute(f"""
-            SELECT
-                l.name,
-                ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / COUNT(id) OVER (PARTITION BY l.stud_id)::DECIMAL, 2) AS static_arrival
-              FROM
-                lesson l
-              WHERE
-                l.team_id = {id_team} and l.stud_id = {id_stud}
-                    """)
-    result = result_query.fetchall()
-    result_dicts = [row._asdict() for row in result]
-    for row_dict in result_dicts:
-        for key, value in row_dict.items():
-            if isinstance(value, Decimal):
-                row_dict[key] = float(value)
-    await save_resp(href, result_dicts)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
-    return result_dicts
+    try:
+        result_query = await db.execute(f"""
+                SELECT
+                    l.name,
+                    ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / COUNT(id) OVER (PARTITION BY l.stud_id)::DECIMAL, 2) AS static_arrival
+                  FROM
+                    lesson l
+                  WHERE
+                    l.team_id = {id_team} and l.stud_id = {id_stud}
+                        """)
+        result = result_query.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.warning(f"attendance_static_for_stud_for_team-{id_team}-{id_stud} {e}")
+        return result_dicts
+    except Exception as e:
+        LOGGER.error(f"attendance_static_for_stud_for_team-{id_team}-{id_stud} Error {e}")
 
 
 @router.get('/api/all_in_one_for_stud_for_team', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -1450,40 +1577,48 @@ async def attendance_static_for_stud_for_team(id_team: int, id_stud: int, db: As
                       },
             """)
 async def all_in_one_for_stud_for_team(id_team: int, id_stud: int, db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"all_in_one_for_stud_for_team-{id_team}-{id_stud} start")
     start_time = time.time()
     href = f"all_in_one_for_stud_for_team-{id_team}-{id_stud}"
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"all_in_one_for_stud_for_team-{id_team}-{id_stud}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"all_in_one_for_stud_for_team-{id_team}-{id_stud} {e}")
         pass
-    result_query = await db.execute(f"""
-        SELECT
-            l.name,
-            ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / COUNT(id) OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::DECIMAL, 2) AS dynamical_arrival,
-            ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / COUNT(id) OVER (PARTITION BY l.stud_id)::DECIMAL, 2) AS static_arrival,
-            ROUND((SUM(l.mark_for_work) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) + SUM(l.test) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW))::DECIMAL, 2) AS cum_sum,
-            row_number() over (PARTITION BY stud_id) as counter,
-            CASE
-                WHEN l.test  >= 0 THEN true
-                ELSE false
-            END AS test
-          FROM
-            lesson l
-          WHERE
-            l.team_id = {id_team} and l.stud_id = {id_stud}
-                """)
-    result = result_query.fetchall()
-    result_dicts = [row._asdict() for row in result]
-    for row_dict in result_dicts:
-        for key, value in row_dict.items():
-            if isinstance(value, Decimal):
-                row_dict[key] = float(value)
-    await save_resp(href, result_dicts)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_dicts
+    try:
+        result_query = await db.execute(f"""
+            SELECT
+                l.name,
+                ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / COUNT(id) OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::DECIMAL, 2) AS dynamical_arrival,
+                ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / COUNT(id) OVER (PARTITION BY l.stud_id)::DECIMAL, 2) AS static_arrival,
+                ROUND((SUM(l.mark_for_work) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) + SUM(l.test) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW))::DECIMAL, 2) AS cum_sum,
+                row_number() over (PARTITION BY stud_id) as counter,
+                CASE
+                    WHEN l.test  >= 0 THEN true
+                    ELSE false
+                END AS test
+              FROM
+                lesson l
+              WHERE
+                l.team_id = {id_team} and l.stud_id = {id_stud}
+                    """)
+        result = result_query.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key ] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        LOGGER.info(f"all_in_one_for_stud_for_team-{id_team}-{id_stud} finish {(time.time() - start_time)}")
+        return result_dicts
+    except Exception as e:
+        LOGGER.error(f"attendance_dynamical_for_stud_for_team-{id_team}-{id_stud} Error {e}")
 
 
 # endregion
@@ -1528,52 +1663,59 @@ async def all_in_one_for_stud_for_team(id_team: int, id_stud: int, db: AsyncSess
                       },
             """)
 async def attendance_static_stud_for_teams(id_team1: int, id_team2: int, db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"attendance_static_stud_for_teams-{id_team1}-{id_team2} start")
     start_time = time.time()
     href = f"attendance_static_stud_for_teams-{id_team1}-{id_team2}"
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"attendance_static_stud_for_teams-{id_team1}-{id_team2}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"attendance_static_stud_for_teams-{id_team1}-{id_team2} {e}")
         pass
-    res = await db.execute(f"""
-        SELECT DISTINCT
-            (SELECT s.name FROM stud s WHERE s.id = l.stud_id) AS name,
-            (SELECT s.id FROM stud s WHERE s.id = l.stud_id) AS id,
-            (SELECT t.name FROM team t WHERE t.id = l.team_id) AS team_name,
-            ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id) / COUNT(id) OVER (PARTITION BY l.stud_id)::DECIMAL, 2) AS static_arrival,
-            (SELECT t.id FROM team t WHERE t.id = l.team_id) AS team_id
-        FROM
-            lesson l
-        WHERE
-            l.team_id = {id_team1} OR l.team_id = {id_team2}
-        order by static_arrival desc
-    """)
-    mas = res.fetchall()
-    df_list = []
-    team_a = []
-    team_b = []
-    dict_team = {}
-    for row in mas:
-        team_id = row[2]
-        if team_id not in dict_team:
-            dict_team[team_id] = len(dict_team)
-        team = team_a if dict_team[team_id] == 0 else team_b
-        team.append({'name': row[0], 'id': row[1], 'team_name': row[2], 'arrival': row[3], 'team_id': row[4]})
-    for i in range(max(len(team_a), len(team_b))):
-        if i < len(team_a):
-            df_list.append(team_a[i])
-        if i < len(team_b):
-            df_list.append(team_b[i])
-    for row_dict in df_list:
-        for key, value in row_dict.items():
-            if isinstance(value, Decimal):
-                row_dict[key] = float(value)
-    await save_resp(href, df_list)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return df_list
-
+    try:
+        res = await db.execute(f"""
+            SELECT DISTINCT
+                (SELECT s.name FROM stud s WHERE s.id = l.stud_id) AS name,
+                (SELECT s.id FROM stud s WHERE s.id = l.stud_id) AS id,
+                (SELECT t.name FROM team t WHERE t.id = l.team_id) AS team_name,
+                ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id) / COUNT(id) OVER (PARTITION BY l.stud_id)::DECIMAL, 2) AS static_arrival,
+                (SELECT t.id FROM team t WHERE t.id = l.team_id) AS team_id
+            FROM
+                lesson l
+            WHERE
+                l.team_id = {id_team1} OR l.team_id = {id_team2}
+            order by static_arrival desc
+        """)
+        mas = res.fetchall()
+        df_list = []
+        team_a = []
+        team_b = []
+        dict_team = {}
+        for row in mas:
+            team_id = row[2]
+            if team_id not in dict_team:
+                dict_team[team_id] = len(dict_team)
+            team = team_a if dict_team[team_id] == 0 else team_b
+            team.append({'name': row[0], 'id': row[1], 'team_name': row[2], 'arrival': row[3], 'team_id': row[4]})
+        for i in range(max(len(team_a), len(team_b))):
+            if i < len(team_a):
+                df_list.append(team_a[i])
+            if i < len(team_b):
+                df_list.append(team_b[i])
+        for row_dict in df_list:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, df_list)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        LOGGER.info(f"attendance_static_stud_for_teams-{id_team1}-{id_team2} finish {(time.time() - start_time)}")
+        return df_list
+    except Exception as e:
+        LOGGER.error(f"attendance_static_stud_for_teams-{id_team1}-{id_team2} Error {e}")
 
 @router.get('/api/total_points_stud_for_teams', name='Plot:plot', status_code=status.HTTP_200_OK,
             tags=["Group comparison page"], description=
@@ -1613,51 +1755,59 @@ async def attendance_static_stud_for_teams(id_team1: int, id_team2: int, db: Asy
                       },
             """)
 async def total_points_stud_for_teams(id_team1: int, id_team2: int, db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"total_points_stud_for_teams-{id_team1}-{id_team2} start")
     start_time = time.time()
     href = f" total_points_stud_for_teams-{id_team1}-{id_team2}"
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"total_points_stud_for_teams-{id_team1}-{id_team2}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"total_points_stud_for_teams-{id_team1}-{id_team2} {e}")
         pass
-    res = await db.execute(f"""
-            SELECT DISTINCT
-                (SELECT s.name FROM stud s WHERE s.id = l.stud_id) AS name,
-                (SELECT s.id FROM stud s WHERE s.id = l.stud_id) AS id,
-                (SELECT t.name FROM team t WHERE t.id = l.team_id) AS team_name,
-                ROUND((SUM(l.mark_for_work) OVER (PARTITION BY stud_id) + SUM(l.test) OVER (PARTITION BY stud_id))::DECIMAL, 2) AS cum_sum,
-                (SELECT t.id FROM team t WHERE t.id = l.team_id) AS team_id
-            FROM
-                lesson l
-            WHERE
-                l.team_id = {id_team1} OR l.team_id = {id_team2}
-            order by cum_sum desc
-        """)
-    mas = res.fetchall()
-    df_list = []
-    team_a = []
-    team_b = []
-    dict_team = {}
-    for row in mas:
-        team_id = row[2]
-        if team_id not in dict_team:
-            dict_team[team_id] = len(dict_team)
-        team = team_a if dict_team[team_id] == 0 else team_b
-        team.append({'name': row[0], 'id': row[1], 'team_name': row[2], 'total_points': row[3], 'team_id': row[4]})
-    for i in range(max(len(team_a), len(team_b))):
-        if i < len(team_a):
-            df_list.append(team_a[i])
-        if i < len(team_b):
-            df_list.append(team_b[i])
-    for row_dict in df_list:
-        for key, value in row_dict.items():
-            if isinstance(value, Decimal):
-                row_dict[key] = float(value)
-    await save_resp(href, df_list)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return df_list
+    try:
+        res = await db.execute(f"""
+                SELECT DISTINCT
+                    (SELECT s.name FROM stud s WHERE s.id = l.stud_id) AS name,
+                    (SELECT s.id FROM stud s WHERE s.id = l.stud_id) AS id,
+                    (SELECT t.name FROM team t WHERE t.id = l.team_id) AS team_name,
+                    ROUND((SUM(l.mark_for_work) OVER (PARTITION BY stud_id) + SUM(l.test) OVER (PARTITION BY stud_id))::DECIMAL, 2) AS cum_sum,
+                    (SELECT t.id FROM team t WHERE t.id = l.team_id) AS team_id
+                FROM
+                    lesson l
+                WHERE
+                    l.team_id = {id_team1} OR l.team_id = {id_team2}
+                order by cum_sum desc
+            """)
+        mas = res.fetchall()
+        df_list = []
+        team_a = []
+        team_b = []
+        dict_team = {}
+        for row in mas:
+            team_id = row[2]
+            if team_id not in dict_team:
+                dict_team[team_id] = len(dict_team)
+            team = team_a if dict_team[team_id] == 0 else team_b
+            team.append({'name': row[0], 'id': row[1], 'team_name': row[2], 'total_points': row[3], 'team_id': row[4]})
+        for i in range(max(len(team_a), len(team_b))):
+            if i < len(team_a):
+                df_list.append(team_a[i])
+            if i < len(team_b):
+                df_list.append(team_b[i])
+        for row_dict in df_list:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, df_list)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        LOGGER.info(f"total_points_stud_for_teams-{id_team1}-{id_team2} finish {(time.time() - start_time)}")
+        return df_list
+    except Exception as e:
+        LOGGER.error(f"total_points_stud_for_teams-{id_team1}-{id_team2} Error {e}")
 
 
 @router.get('/api/attendance_static_stud_for_all_teams', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -1684,39 +1834,48 @@ async def total_points_stud_for_teams(id_team1: int, id_team2: int, db: AsyncSes
                       },
             """)
 async def attendance_static_stud_for_all_teams(token: str, db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"attendance_static_stud_for_all_teams-{token} start")
     start_time = time.time()
     href = f" attendance_static_stud_for_all_teams-{token}"
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"attendance_static_stud_for_all_teams-{token}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"attendance_static_stud_for_all_teams-{token} {e}")
+
         pass
     teams = await get_teams_for_user_private(token, db)
     teams_true = ', '.join([f"'{team[0]}'" for team in teams])
-    res = await db.execute(f"""
-        SELECT distinct
-            (SELECT t.name FROM team t WHERE t.id = l.team_id) AS team_name,
-            ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.team_id) / COUNT(id) OVER (PARTITION BY l.team_id)::DECIMAL, 2) AS arrival,
-            (SELECT t.id FROM team t WHERE t.id = l.team_id) AS team_id,
-            (SELECT t.id FROM teacher t WHERE t.id = l.teacher_id) AS teacher_id,
-            (SELECT t.name FROM teacher t WHERE t.id = l.teacher_id) AS teacher_name
-        FROM
-            lesson l
-        where
-            l.team_id in ({teams_true})
-        order by arrival desc
-    """)
-    result = res.fetchall()
-    result_dicts = [row._asdict() for row in result]
-    for row_dict in result_dicts:
-        for key, value in row_dict.items():
-            if isinstance(value, Decimal):
-                row_dict[key] = float(value)
-    await save_resp(href, result_dicts)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_dicts
+    try:
+        res = await db.execute(f"""
+            SELECT distinct
+                (SELECT t.name FROM team t WHERE t.id = l.team_id) AS team_name,
+                ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.team_id) / COUNT(id) OVER (PARTITION BY l.team_id)::DECIMAL, 2) AS arrival,
+                (SELECT t.id FROM team t WHERE t.id = l.team_id) AS team_id,
+                (SELECT t.id FROM teacher t WHERE t.id = l.teacher_id) AS teacher_id,
+                (SELECT t.name FROM teacher t WHERE t.id = l.teacher_id) AS teacher_name
+            FROM
+                lesson l
+            where
+                l.team_id in ({teams_true})
+            order by arrival desc
+        """)
+        result = res.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        LOGGER.info(f"attendance_static_stud_for_all_teams-{token} finish {(time.time() - start_time)}")
+        return result_dicts
+    except Exception as e:
+        LOGGER.error(f"attendance_static_stud_for_all_teams-{token} Error {e}")
 
 
 @router.get('/api/total_points_studs_for_all_teams', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -1743,6 +1902,7 @@ async def attendance_static_stud_for_all_teams(token: str, db: AsyncSession = De
                       },
             """)
 async def total_points_studs_for_all_teams(token: str, db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"total_points_studs_for_all_teams-{token} start")
     start_time = time.time()
     teams = await get_teams_for_user_private_without_lect(token, db)
     teams_true = ', '.join([f"'{team[0]}'" for team in teams])
@@ -1750,35 +1910,42 @@ async def total_points_studs_for_all_teams(token: str, db: AsyncSession = Depend
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"total_points_studs_for_all_teams-{token} "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"total_points_studs_for_all_teams-{token} {e}")
         pass
-    res = await db.execute(f"""
-        SELECT
-            (SELECT t.name FROM team t WHERE t.id = l.team_id) AS team_name,
-            ROUND(((SUM(l.mark_for_work) + SUM(l.test))/COUNT(DISTINCT stud_id))::DECIMAL, 2) AS avg_total_points,
-            (SELECT t.id FROM team t WHERE t.id = l.team_id) AS team_id,
-            (SELECT t.id FROM teacher t WHERE t.id = l.teacher_id) AS teacher_id,
-            (SELECT t.name FROM teacher t WHERE t.id = l.teacher_id) AS teacher_name
-        FROM
-            lesson l
-        WHERE
-            l.team_id IN ({teams_true})
-        GROUP BY
-            team_id, teacher_id, teacher_name, team_name
-        ORDER BY
-            avg_total_points DESC;
-        """)
-    result = res.fetchall()
-    result_dicts = [row._asdict() for row in result]
-    for row_dict in result_dicts:
-        for key, value in row_dict.items():
-            if isinstance(value, Decimal):
-                row_dict[key] = float(value)
-    await save_resp(href, result_dicts)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_dicts
+    try:
+        res = await db.execute(f"""
+            SELECT
+                (SELECT t.name FROM team t WHERE t.id = l.team_id) AS team_name,
+                ROUND(((SUM(l.mark_for_work) + SUM(l.test))/COUNT(DISTINCT stud_id))::DECIMAL, 2) AS avg_total_points,
+                (SELECT t.id FROM team t WHERE t.id = l.team_id) AS team_id,
+                (SELECT t.id FROM teacher t WHERE t.id = l.teacher_id) AS teacher_id,
+                (SELECT t.name FROM teacher t WHERE t.id = l.teacher_id) AS teacher_name
+            FROM
+                lesson l
+            WHERE
+                l.team_id IN ({teams_true})
+            GROUP BY
+                team_id, teacher_id, teacher_name, team_name
+            ORDER BY
+                avg_total_points DESC;
+            """)
+        result = res.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        LOGGER.info(f"total_points_studs_for_all_teams-{token} finish {(time.time() - start_time)}")
+        return result_dicts
+    except Exception as e:
+        LOGGER.error(f"total_points_studs_for_all_teams-{token} Error {e}")
 
 
 @router.get('/api/team_kr_total_points_attendance_dynamic', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -1823,6 +1990,7 @@ async def total_points_studs_for_all_teams(token: str, db: AsyncSession = Depend
 async def team_kr_total_points_attendance_dynamic(token: str, group_by_teacher: bool,
                                                   teacher_list: Optional[str] = None,
                                                   db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"team_kr_total_points_attendance_dynamic-{token}-{group_by_teacher}-{teacher_list}start")
     start_time = time.time()
     teams = await get_teams_for_user_private_without_lect(token, db)
     if teacher_list is not None:
@@ -1836,13 +2004,16 @@ async def team_kr_total_points_attendance_dynamic(token: str, group_by_teacher: 
         fields = """sub.team_name,
                     sub.team_id,"""
         partition_by = "sub.name, sub.teacher_id, sub.team_id"
-    href = f"team_kr_total_points_attendance_dynamic-{token}-{group_by_teacher}--{teacher_list}"
+    href = f"team_kr_total_points_attendance_dynamic-{token}-{group_by_teacher}-{teacher_list}"
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"team_kr_total_points_attendance_dynamic-{token}-{group_by_teacher}-{teacher_list}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"team_kr_total_points_attendance_dynamic-{token}-{group_by_teacher}-{teacher_list} {e}")
         pass
     res = await db.execute(f"""
         SELECT DISTINCT
@@ -1887,15 +2058,19 @@ async def team_kr_total_points_attendance_dynamic(token: str, group_by_teacher: 
         WHERE
             sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
         """)
-    result = res.fetchall()
-    result_dicts = [row._asdict() for row in result]
-    for row_dict in result_dicts:
-        for key, value in row_dict.items():
-            if isinstance(value, Decimal):
-                row_dict[key] = float(value)
-    await save_resp(href, result_dicts)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_dicts
+    try:
+        result = res.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        LOGGER.info(f"attendance_dynamical_for_stud_for_team-{token}-{group_by_teacher}-{teacher_list} finish {(time.time() - start_time)}")
+        return result_dicts
+    except Exception as e:
+        LOGGER.error(f"attendance_dynamical_for_stud_for_team-{token}-{group_by_teacher}-{teacher_list} Error {e}")
 
 
 @router.get('/api/team_kr_total_points_dynamic', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -1936,6 +2111,7 @@ async def team_kr_total_points_attendance_dynamic(token: str, group_by_teacher: 
 async def team_kr_total_points_dynamic(token: str, group_by_teacher: bool,
                                        teacher_list: Optional[str] = None,
                                        db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"team_kr_total_points_dynamic-{token}-{group_by_teacher}-{teacher_list} start")
     start_time = time.time()
     teams = await get_teams_for_user_private_without_lect(token, db)
     if teacher_list is not None:
@@ -1953,9 +2129,12 @@ async def team_kr_total_points_dynamic(token: str, group_by_teacher: bool,
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"team_kr_total_points_dynamic-{token}-{group_by_teacher}-{teacher_list}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"team_kr_total_points_dynamic-{token}-{group_by_teacher}-{teacher_list} {e}")
         pass
     res = await db.execute(f"""
         SELECT DISTINCT
@@ -1994,15 +2173,19 @@ async def team_kr_total_points_dynamic(token: str, group_by_teacher: bool,
         WHERE
             sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
         """)
-    result = res.fetchall()
-    result_dicts = [row._asdict() for row in result]
-    for row_dict in result_dicts:
-        for key, value in row_dict.items():
-            if isinstance(value, Decimal):
-                row_dict[key] = float(value)
-    await save_resp(href, result_dicts)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_dicts
+    try:
+        result = res.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        LOGGER.info(f"team_kr_total_points_dynamic-{token}-{group_by_teacher}-{teacher_list} finish {(time.time() - start_time)}")
+        return result_dicts
+    except Exception as e:
+        LOGGER.error(f"team_kr_total_points_dynamic-{token}-{group_by_teacher}-{teacher_list} Error {e}")
 
 
 @router.get('/api/team_kr_attendance_dynamic', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -2043,6 +2226,7 @@ async def team_kr_total_points_dynamic(token: str, group_by_teacher: bool,
 async def team_kr_attendance_dynamic(token: str, group_by_teacher: bool,
                                      teacher_list: Optional[str] = None,
                                      db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"team_kr_attendance_dynamic-{token}-{group_by_teacher}-{teacher_list} start")
     start_time = time.time()
     teams = await get_teams_for_user_private_without_lect(token, db)
     if teacher_list is not None:
@@ -2060,9 +2244,12 @@ async def team_kr_attendance_dynamic(token: str, group_by_teacher: bool,
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"team_kr_attendance_dynamic-{token}-{group_by_teacher}-{teacher_list}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"team_kr_attendance_dynamic-{token}-{group_by_teacher}-{teacher_list} {e}")
         pass
     res = await db.execute(f"""
         SELECT DISTINCT
@@ -2099,15 +2286,19 @@ async def team_kr_attendance_dynamic(token: str, group_by_teacher: bool,
         WHERE
             sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
         """)
-    result = res.fetchall()
-    result_dicts = [row._asdict() for row in result]
-    for row_dict in result_dicts:
-        for key, value in row_dict.items():
-            if isinstance(value, Decimal):
-                row_dict[key] = float(value)
-    await save_resp(href, result_dicts)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_dicts
+    try:
+        result = res.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        LOGGER.info(f"team_kr_attendance_dynamic-{token}-{group_by_teacher}-{teacher_list} finish {(time.time() - start_time)}")
+        return result_dicts
+    except Exception as e:
+        LOGGER.error(f"team_kr_attendance_dynamic-{token}-{group_by_teacher}-{teacher_list} Error {e}")
 
 
 # endregion
@@ -2135,6 +2326,7 @@ async def team_kr_attendance_dynamic(token: str, group_by_teacher: bool,
             """)
 async def attendance_static_for_specialities(token: str, speciality1: str, speciality2: str, lect: bool,
                                              db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"attendance_static_for_specialities-{token}-{speciality1}-{speciality2}-{lect} start")
     start_time = time.time()
     if lect:
         teams = await get_teams_for_user_private(token, db)
@@ -2145,9 +2337,12 @@ async def attendance_static_for_specialities(token: str, speciality1: str, speci
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"attendance_static_for_specialities-{token}-{speciality1}-{speciality2}-{lect}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"attendance_static_for_specialities-{token}-{speciality1}-{speciality2}-{lect} {e}")
         pass
     res = await db.execute(f"""
         SELECT DISTINCT
@@ -2162,29 +2357,33 @@ async def attendance_static_for_specialities(token: str, speciality1: str, speci
             and (s.speciality = '{speciality1}' or s.speciality = '{speciality2}')
         order by arrival desc
         """)
-    mas = res.fetchall()
-    df_list = []
-    team_a = []
-    team_b = []
-    dict_team = {}
-    for row in mas:
-        team_id = row[1]
-        if team_id not in dict_team:
-            dict_team[team_id] = len(dict_team)
-        team = team_a if dict_team[team_id] == 0 else team_b
-        team.append({'arrival': row[0], 'speciality': row[1], 'id': row[2]})
-    for i in range(max(len(team_a), len(team_b))):
-        if i < len(team_a):
-            df_list.append(team_a[i])
-        if i < len(team_b):
-            df_list.append(team_b[i])
-    for row_dict in df_list:
-        for key, value in row_dict.items():
-            if isinstance(value, Decimal):
-                row_dict[key] = float(value)
-    await save_resp(href, df_list)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return df_list
+    try:
+        mas = res.fetchall()
+        df_list = []
+        team_a = []
+        team_b = []
+        dict_team = {}
+        for row in mas:
+            team_id = row[1]
+            if team_id not in dict_team:
+                dict_team[team_id] = len(dict_team)
+            team = team_a if dict_team[team_id] == 0 else team_b
+            team.append({'arrival': row[0], 'speciality': row[1], 'id': row[2]})
+        for i in range(max(len(team_a), len(team_b))):
+            if i < len(team_a):
+                df_list.append(team_a[i])
+            if i < len(team_b):
+                df_list.append(team_b[i])
+        for row_dict in df_list:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, df_list)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        LOGGER.info(f"attendance_static_for_specialities-{token}-{speciality1}-{speciality2}-{lect} finish {(time.time() - start_time)}")
+        return df_list
+    except Exception as e:
+        LOGGER.error(f"attendance_static_for_specialities-{token}-{speciality1}-{speciality2}-{lect} Error {e}")
 
 
 @router.get('/api/total_points_for_specialities', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -2213,6 +2412,7 @@ async def attendance_static_for_specialities(token: str, speciality1: str, speci
             """)
 async def total_points_for_specialities(token: str, speciality1: str, speciality2: str, lect: bool,
                                         db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"total_points_for_specialities-{token}-{speciality1}-{speciality2}-{lect} start")
     start_time = time.time()
     if lect:
         teams = await get_teams_for_user_private(token, db)
@@ -2223,9 +2423,12 @@ async def total_points_for_specialities(token: str, speciality1: str, speciality
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"total_points_for_specialities-{token}-{speciality1}-{speciality2}-{lect}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"total_points_for_specialities-{token}-{speciality1}-{speciality2}-{lect} {e}")
         pass
     res = await db.execute(f"""
             SELECT DISTINCT
@@ -2240,30 +2443,33 @@ async def total_points_for_specialities(token: str, speciality1: str, speciality
                 and (s.speciality = '{speciality1}' or s.speciality = '{speciality2}')
             order by total_points desc
             """)
-    mas = res.fetchall()
-    df_list = []
-    team_a = []
-    team_b = []
-    dict_team = {}
-    for row in mas:
-        team_id = row[1]
-        if team_id not in dict_team:
-            dict_team[team_id] = len(dict_team)
-        team = team_a if dict_team[team_id] == 0 else team_b
-        team.append({'total_points': row[0] if row[0] > 0 else 0, 'speciality': row[1], 'id': row[2]})
-    for i in range(max(len(team_a), len(team_b))):
-        if i < len(team_a):
-            df_list.append(team_a[i])
-        if i < len(team_b):
-            df_list.append(team_b[i])
-    for row_dict in df_list:
-        for key, value in row_dict.items():
-            if isinstance(value, Decimal):
-                row_dict[key] = float(value)
-    await save_resp(href, df_list)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return df_list
-
+    try:
+        mas = res.fetchall()
+        df_list = []
+        team_a = []
+        team_b = []
+        dict_team = {}
+        for row in mas:
+            team_id = row[1]
+            if team_id not in dict_team:
+                dict_team[team_id] = len(dict_team)
+            team = team_a if dict_team[team_id] == 0 else team_b
+            team.append({'total_points': row[0] if row[0] > 0 else 0, 'speciality': row[1], 'id': row[2]})
+        for i in range(max(len(team_a), len(team_b))):
+            if i < len(team_a):
+                df_list.append(team_a[i])
+            if i < len(team_b):
+                df_list.append(team_b[i])
+        for row_dict in df_list:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, df_list)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        LOGGER.info(f"total_points_for_specialities-{token}-{speciality1}-{speciality2}-{lect} finish {(time.time() - start_time)}")
+        return df_list
+    except Exception as e:
+        LOGGER.error(f"total_points_for_specialities-{token}-{speciality1}-{speciality2}-{lect} Error {e}")
 
 @router.get('/api/attendance_static_stud_for_all_specialities', name='Plot:plot', status_code=status.HTTP_200_OK,
             tags=["Speciality comparison page"], description=
@@ -2286,6 +2492,7 @@ async def total_points_for_specialities(token: str, speciality1: str, speciality
             """)
 async def attendance_static_stud_for_all_specialities(token: str, lect: bool,
                                                       db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"attendance_static_stud_for_all_specialities-{token}-{lect} start")
     start_time = time.time()
     if lect:
         teams = await get_teams_for_user_private(token, db)
@@ -2296,9 +2503,12 @@ async def attendance_static_stud_for_all_specialities(token: str, lect: bool,
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"attendance_static_stud_for_all_specialities-{token}-{lect}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"attendance_static_stud_for_all_specialities-{token}-{lect} {e}")
         pass
     res = await db.execute(f"""
         SELECT
@@ -2313,16 +2523,19 @@ async def attendance_static_stud_for_all_specialities(token: str, lect: bool,
         group by s.speciality 
         order by arrival desc
                 """)
-    result = res.fetchall()
-    result_dicts = [row._asdict() for row in result]
-    for row_dict in result_dicts:
-        for key, value in row_dict.items():
-            if isinstance(value, Decimal):
-                row_dict[key] = float(value)
-    await save_resp(href, result_dicts)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_dicts
-
+    try:
+        result = res.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        LOGGER.info(f"attendance_static_stud_for_all_specialities-{token}-{lect} finish {(time.time() - start_time)}")
+        return result_dicts
+    except Exception as e:
+        LOGGER.error(f"attendance_static_stud_for_all_specialities-{token}-{lect} Error {e}")
 
 @router.get('/api/total_points_studs_for_all_specialities', name='Plot:plot', status_code=status.HTTP_200_OK,
             tags=["Speciality comparison page"], description=
@@ -2344,6 +2557,7 @@ async def attendance_static_stud_for_all_specialities(token: str, lect: bool,
                       },
             """)
 async def total_points_studs_for_all_specialities(token: str, lect: bool, db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"total_points_studs_for_all_specialities-{token}-{lect} start")
     start_time = time.time()
     if lect:
         teams = await get_teams_for_user_private(token, db)
@@ -2354,9 +2568,12 @@ async def total_points_studs_for_all_specialities(token: str, lect: bool, db: As
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"total_points_studs_for_all_specialities-{token}-{lect}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"total_points_studs_for_all_specialities-{token}-{lect} {e}")
         pass
     res = await db.execute(f"""
             select
@@ -2371,15 +2588,19 @@ async def total_points_studs_for_all_specialities(token: str, lect: bool, db: As
             group by s.speciality 
             order by avg_total_points desc
     """)
-    result = res.fetchall()
-    result_dicts = [row._asdict() for row in result]
-    for row_dict in result_dicts:
-        for key, value in row_dict.items():
-            if isinstance(value, Decimal):
-                row_dict[key] = float(value)
-    await save_resp(href, result_dicts)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_dicts
+    try:
+        result = res.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        LOGGER.info(f"total_points_studs_for_all_specialities-{token}-{lect} finish {(time.time() - start_time)}")
+        return result_dicts
+    except Exception as e:
+        LOGGER.error(f"total_points_studs_for_all_specialities-{token}-{lect} Error {e}")
 
 
 @router.get('/api/attendance_static_total_points_studs_for_all_specialities', name='Plot:plot',
@@ -2403,6 +2624,7 @@ async def total_points_studs_for_all_specialities(token: str, lect: bool, db: As
                       },
             """)
 async def all_for_studs_for_all_specialities(token: str, lect: bool, db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"all_for_studs_for_all_specialities-{token}-{lect} start")
     start_time = time.time()
     if lect:
         teams = await get_teams_for_user_private(token, db)
@@ -2413,9 +2635,12 @@ async def all_for_studs_for_all_specialities(token: str, lect: bool, db: AsyncSe
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"all_for_studs_for_all_specialities-{token}-{lect}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"all_for_studs_for_all_specialities-{token}-{lect} {e}")
         pass
     res = await db.execute(f"""
             select
@@ -2431,16 +2656,19 @@ async def all_for_studs_for_all_specialities(token: str, lect: bool, db: AsyncSe
             group by s.speciality 
             order by avg_total_points desc
     """)
-    result = res.fetchall()
-    result_dicts = [row._asdict() for row in result]
-    for row_dict in result_dicts:
-        for key, value in row_dict.items():
-            if isinstance(value, Decimal):
-                row_dict[key] = float(value)
-    await save_resp(href, result_dicts)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_dicts
-
+    try:
+        result = res.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        LOGGER.info(f"all_for_studs_for_all_specialities-{token}-{lect} finish {(time.time() - start_time)}")
+        return result_dicts
+    except Exception as e:
+        LOGGER.error(f"all_for_studs_for_all_specialities-{token}-{lect} Error {e}")
 
 @router.get('/api/speciality_kr_total_points_attendance_dynamic', name='Plot:plot', status_code=status.HTTP_200_OK,
             tags=["Speciality comparison page"], description=
@@ -2480,6 +2708,7 @@ async def all_for_studs_for_all_specialities(token: str, lect: bool, db: AsyncSe
 async def speciality_kr_total_points_attendance_dynamic(token: str, group_by_speciality: bool,
                                                         teacher_list: Optional[str] = None,
                                                         db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"speciality_kr_total_points_attendance_dynamic-{token}-{group_by_speciality}-{teacher_list} start")
     start_time = time.time()
     teams = await get_teams_for_user_private_without_lect(token, db)
     if teacher_list is not None:
@@ -2497,9 +2726,12 @@ async def speciality_kr_total_points_attendance_dynamic(token: str, group_by_spe
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"speciality_kr_total_points_attendance_dynamic-{token}-{group_by_speciality}-{teacher_list}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"speciality_kr_total_points_attendance_dynamic-{token}-{group_by_speciality}-{teacher_list} {e}")
         pass
     res = await db.execute(f"""
         SELECT DISTINCT
@@ -2542,15 +2774,19 @@ async def speciality_kr_total_points_attendance_dynamic(token: str, group_by_spe
         WHERE 
             sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
         """)
-    result = res.fetchall()
-    result_dicts = [row._asdict() for row in result]
-    for row_dict in result_dicts:
-        for key, value in row_dict.items():
-            if isinstance(value, Decimal):
-                row_dict[key] = float(value)
-    await save_resp(href, result_dicts)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_dicts
+    try:
+        result = res.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        LOGGER.info(f"speciality_kr_total_points_attendance_dynamic-{token}-{group_by_speciality}-{teacher_list} finish {(time.time() - start_time)}")
+        return result_dicts
+    except Exception as e:
+        LOGGER.error(f"speciality_kr_total_points_attendance_dynamic-{token}-{group_by_speciality}-{teacher_list} Error {e}")
 
 
 @router.get('/api/speciality_kr_attendance_dynamic', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -2587,6 +2823,7 @@ async def speciality_kr_total_points_attendance_dynamic(token: str, group_by_spe
 async def speciality_kr_attendance_dynamic(token: str, group_by_speciality: bool,
                                            teacher_list: Optional[str] = None,
                                            db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"speciality_kr_attendance_dynamic-{token}-{group_by_speciality}-{teacher_list} start")
     start_time = time.time()
     teams = await get_teams_for_user_private_without_lect(token, db)
     if teacher_list is not None:
@@ -2604,9 +2841,12 @@ async def speciality_kr_attendance_dynamic(token: str, group_by_speciality: bool
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"speciality_kr_attendance_dynamic-{token}-{group_by_speciality}-{teacher_list}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"speciality_kr_attendance_dynamic-{token}-{group_by_speciality}-{teacher_list} {e}")
         pass
     res = await db.execute(f"""
         SELECT DISTINCT
@@ -2641,15 +2881,19 @@ async def speciality_kr_attendance_dynamic(token: str, group_by_speciality: bool
         WHERE 
             sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
         """)
-    result = res.fetchall()
-    result_dicts = [row._asdict() for row in result]
-    for row_dict in result_dicts:
-        for key, value in row_dict.items():
-            if isinstance(value, Decimal):
-                row_dict[key] = float(value)
-    await save_resp(href, result_dicts)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_dicts
+    try:
+        result = res.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        LOGGER.info(f"speciality_kr_attendance_dynamic-{token}-{group_by_speciality}-{teacher_list} finish {(time.time() - start_time)}")
+        return result_dicts
+    except Exception as e:
+        LOGGER.error(f"speciality_kr_attendance_dynamic-{token}-{group_by_speciality}-{teacher_list} Error {e}")
 
 
 @router.get('/api/speciality_kr_total_points_dynamic', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -2686,6 +2930,7 @@ async def speciality_kr_attendance_dynamic(token: str, group_by_speciality: bool
 async def speciality_kr_total_points_dynamic(token: str, group_by_speciality: bool,
                                              teacher_list: Optional[str] = None,
                                              db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"speciality_kr_total_points_dynamic-{token}-{group_by_speciality}-{teacher_list} start")
     start_time = time.time()
     teams = await get_teams_for_user_private_without_lect(token, db)
     if teacher_list is not None:
@@ -2703,9 +2948,12 @@ async def speciality_kr_total_points_dynamic(token: str, group_by_speciality: bo
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"speciality_kr_total_points_dynamic-{token}-{group_by_speciality}-{teacher_list}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"speciality_kr_total_points_dynamic-{token}-{group_by_speciality}-{teacher_list} {e}")
         pass
     res = await db.execute(f"""
         SELECT DISTINCT
@@ -2742,15 +2990,19 @@ async def speciality_kr_total_points_dynamic(token: str, group_by_speciality: bo
         WHERE 
             sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
         """)
-    result = res.fetchall()
-    result_dicts = [row._asdict() for row in result]
-    for row_dict in result_dicts:
-        for key, value in row_dict.items():
-            if isinstance(value, Decimal):
-                row_dict[key] = float(value)
-    await save_resp(href, result_dicts)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_dicts
+    try:
+        result = res.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        LOGGER.info(f"speciality_kr_total_points_dynamic-{token}-{group_by_speciality}-{teacher_list} finish {(time.time() - start_time)}")
+        return result_dicts
+    except Exception as e:
+        LOGGER.error(f"speciality_kr_total_points_dynamic-{token}-{group_by_speciality}-{teacher_list} Error {e}")
 
 
 # endregion
@@ -2776,6 +3028,7 @@ async def speciality_kr_total_points_dynamic(token: str, group_by_speciality: bo
             """)
 async def kr_analyse_simple(token: str, type_group_by: int, kr: str,
                             db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"kr_analyse_simple-{token}-{type_group_by}-{kr} start")
     start_time = time.time()
     teams = await get_teams_for_user_private_without_lect(token, db)
     teams_true = ', '.join([f"'{team[0]}'" for team in teams])
@@ -2797,9 +3050,12 @@ async def kr_analyse_simple(token: str, type_group_by: int, kr: str,
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"kr_analyse_simpl-{token}-{type_group_by}-{kr}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"kr_analyse_simpl-{token}-{type_group_by}-{kr} {e}")
         pass
     res = await db.execute(f"""
         SELECT
@@ -2812,15 +3068,19 @@ async def kr_analyse_simple(token: str, type_group_by: int, kr: str,
             and l.name = '{kr}'
         {fill_query_str2}
     """)
-    result = res.fetchall()
-    result_dicts = [row._asdict() for row in result]
-    for row_dict in result_dicts:
-        for key, value in row_dict.items():
-            if isinstance(value, Decimal):
-                row_dict[key] = float(value)
-    await save_resp(href, result_dicts)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_dicts
+    try:
+        result = res.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        LOGGER.info(f"kr_analyse_simpl-{token}-{type_group_by}-{kr} finish {(time.time() - start_time)}")
+        return result_dicts
+    except Exception as e:
+        LOGGER.error(f"kr_analyse_simpl-{token}-{type_group_by}-{kr} Error {e}")
 
 
 @router.get('/api/kr_analyse_with_filters', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -2844,6 +3104,7 @@ async def kr_analyse_simple(token: str, type_group_by: int, kr: str,
 async def kr_analyse_with_filters(token: str, kr: str, type_select: int, teacher: Optional[str] = None,
                                   speciality: Optional[str] = None, team: Optional[str] = None,
                                   db: AsyncSession = Depends(connect_db_data)):
+    LOGGER.info(f"kr_analyse_with_filters-{token}-{kr}-{type_select}-{teacher}-{speciality}-{team} start")
     start_time = time.time()
     if teacher is None:
         teachers = await get_all_teachers(token, db)
@@ -2897,9 +3158,12 @@ async def kr_analyse_with_filters(token: str, kr: str, type_select: int, teacher
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
+        LOGGER.info(f"kr_analyse_with_filters-{token}-{kr}-{type_select}-{teacher}-{speciality}-{team}--- "
+                    f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
+        LOGGER.warning(f"kr_analyse_with_filters-{token}-{kr}-{type_select}-{teacher}-{speciality}-{team} {e}")
         pass
     res = await db.execute(f"""
         SELECT
@@ -2919,15 +3183,19 @@ async def kr_analyse_with_filters(token: str, kr: str, type_select: int, teacher
             and s.speciality IN ({specialities})
         {group_by_query}
         """)
-    result = res.fetchall()
-    result_dicts = [row._asdict() for row in result]
-    for row_dict in result_dicts:
-        for key, value in row_dict.items():
-            if isinstance(value, Decimal):
-                row_dict[key] = float(value)
-    await save_resp(href, result_dicts)
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    return result_dicts
+    try:
+        result = res.fetchall()
+        result_dicts = [row._asdict() for row in result]
+        for row_dict in result_dicts:
+            for key, value in row_dict.items():
+                if isinstance(value, Decimal):
+                    row_dict[key] = float(value)
+        await save_resp(href, result_dicts)
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        LOGGER.info(f"kr_analyse_with_filters-{token}-{kr}-{type_select}-{teacher}-{speciality}-{team} finish {(time.time() - start_time)}")
+        return result_dicts
+    except Exception as e:
+        LOGGER.error(f"kr_analyse_with_filters-{token}-{kr}-{type_select}-{teacher}-{speciality}-{team} Error {e}")
 
 
 # endregion
