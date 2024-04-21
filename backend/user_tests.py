@@ -148,7 +148,6 @@ class UserTests(unittest.TestCase):
             self.get_request(url="/api/get_teams_for_user", **params))
         self.assertEqual(response['status'], 401)
 
-
     def test_get_teams_for_user_wo_lect_by_true_token(self):
 
         login_data = {
@@ -178,7 +177,6 @@ class UserTests(unittest.TestCase):
         response = self.loop.run_until_complete(
             self.get_request(url="/api/get_teams_for_user_without_lect", **params))
         self.assertEqual(response['status'], 401)
-
 
     def test_get_student_true(self):
         params = {'id_stud': 2}
@@ -229,11 +227,9 @@ class UserTests(unittest.TestCase):
             self.get_request(url="/api/get_all_specialities", **params))
         self.assertEqual(response['status'], 200)
 
-
         for speciality in response['response_json']:
             self.assertIsInstance(speciality["speciality"], str)
             self.assertIsNotNone(speciality["speciality"])
-
 
     def test_get_all_specialities_by_false_token(self):
         params = {'token': 'token'}
@@ -246,11 +242,9 @@ class UserTests(unittest.TestCase):
             self.get_request(url='/api/get_all_kr'))
         self.assertEqual(response['status'], 200)
 
-
         for kr in response['response_json']:
             self.assertIsInstance(kr["name"], str)
             self.assertIsNotNone(kr["name"])
-
 
     def test_get_all_teachers_unique_by_true_token(self):
         login_data = {
@@ -277,7 +271,6 @@ class UserTests(unittest.TestCase):
         response = self.loop.run_until_complete(
             self.get_request(url="/api/get_all_teachers_unique", **params))
         self.assertEqual(response['status'], 401)
-
 
     def test_get_all_teachers_by_true_token(self):
         login_data = {

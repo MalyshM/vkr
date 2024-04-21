@@ -2,6 +2,7 @@ import asyncio
 import unittest
 import aiohttp as aiohttp
 
+
 class MainPageTests(unittest.TestCase):
     def setUp(self):
         self.base_url = 'http://moais-dashboard.ru:8082'
@@ -168,10 +169,11 @@ class MainPageTests(unittest.TestCase):
         self.assertEqual(response['status'], 422)
 
     def test_attendance_num_for_stud_for_team_stat_table_fail_5(self):
-        data = {'name_of_lesson':'Организация функций30'}
+        data = {'name_of_lesson': 'Организация функций30'}
         response = self.loop.run_until_complete(
             self.get_request(url='/api/attendance_num_for_stud_for_team_stat_table', **data))
         self.assertEqual(response['status'], 422)
+
 
 if __name__ == '__main__':
     unittest.main()
