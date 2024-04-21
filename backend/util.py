@@ -16,7 +16,7 @@ class Hasher:
         return pwd_context.hash(password)
 
 
-async def fetch(session, url, as_csv:bool):
+async def fetch(session, url, as_csv: bool):
     try:
         async with session.get(url, ssl=False) as response:
             if as_csv:
@@ -28,7 +28,7 @@ async def fetch(session, url, as_csv:bool):
         raise e
 
 
-async def get_urls(urls: list, as_csv:bool):
+async def get_urls(urls: list, as_csv: bool):
     timeout = aiohttp.ClientTimeout(total=30)
     conn = aiohttp.TCPConnector(limit_per_host=20)
     cookie_jar = aiohttp.CookieJar(unsafe=True)

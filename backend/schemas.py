@@ -10,12 +10,12 @@ class UserRegistration(BaseModel):
     isTeacher: bool
     isCurator: bool
 
+
 class UserLogin(BaseModel):
     FIO: str
     username: str
     password: str
     email: str
-
 
 
 class TokenData(BaseModel):

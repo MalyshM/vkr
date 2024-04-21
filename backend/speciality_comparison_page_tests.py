@@ -1,4 +1,5 @@
 import asyncio
+import math
 import unittest
 import aiohttp as aiohttp
 
@@ -296,9 +297,11 @@ class SpecialityComparisonTests(unittest.TestCase):
         for item in response['response_json']:
             self.assertIsInstance(item["stud_speciality"], str)
             self.assertIsInstance(item["avg_total_points"], float)
+            self.assertIsInstance(item["arrival"], float)
             self.assertIsInstance(item["studs_in_speciality"], int)
             self.assertIsNotNone(item["stud_speciality"])
             self.assertIsNotNone(item["avg_total_points"])
+            self.assertIsNotNone(item["arrival"])
             self.assertIsNotNone(item["studs_in_speciality"])
 
     def test_attendance_static_total_points_studs_for_all_specialities_by_false_token(self):
