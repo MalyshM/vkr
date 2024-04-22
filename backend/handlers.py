@@ -31,11 +31,15 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
+    start_time = time.time()
+    LOGGER.info(f"create_access_token-{data}-{expires_delta} start")
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
+        LOGGER.info(f"create_access_token-{data}-{expires_delta} finish {(time.time() - start_time)}")
     else:
         expire = datetime.utcnow() + timedelta(minutes=15)
+        LOGGER.info(f"create_access_token-{data}-{expires_delta} finish {(time.time() - start_time)}")
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
@@ -66,6 +70,8 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
                     }
              """)
 async def registration_standard(user: UserRegistration, db: AsyncSession = Depends(connect_db_users)):
+    start_time=time.time()
+    LOGGER.info(f"registration_standard-{user} start")
     query = await db.execute(f"""
         select
             *
@@ -88,11 +94,14 @@ async def registration_standard(user: UserRegistration, db: AsyncSession = Depen
         User(isadmin=user.isAdmin, iscurator=user.isCurator, isteacher=user.isTeacher, fio=user.FIO,
              username=user.username, password=Hasher.get_password_hash(user.password), email=user.email,
              date_of_add=datetime.now().date()))
+    LOGGER.info(f"registration_standard-{user} finish {(time.time() - start_time)}")
     await db.commit()
     return {"access_token": access_token, "token_type": "bearer"}
 
 
 async def get_user(username, email):
+    start_time = time.time()
+    LOGGER.info(f"get_user-{username}-{email} start")
     async with async_session_users() as db:
         query = await db.execute(f"""
             select
@@ -103,6 +112,7 @@ async def get_user(username, email):
             u.email = '{email}'
             """)
         user = query.one()
+        LOGGER.info(f"get_user-{username}-{email} finish {(time.time() - start_time)}")
         return user
 
 
@@ -130,6 +140,8 @@ async def get_user(username, email):
                      }
              """)
 async def get_current_user_dev(token: str):
+    start_time = time.time()
+    LOGGER.info(f"get_current_user_dev-{token} start")
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Нерабочий токен",
@@ -143,6 +155,7 @@ async def get_current_user_dev(token: str):
         if username is None:
             raise credentials_exception
         token_data = TokenData(username=username, password=password, email=email)
+        LOGGER.info(f"get_current_user_dev-{token} finish {(time.time() - start_time)}")
     except:
         raise credentials_exception
     user = await get_user(username=token_data.username, email=token_data.email)
@@ -201,6 +214,7 @@ async def get_all_users(db: AsyncSession = Depends(connect_db_users)):
                     }
             """)
 async def delete_all_users(db: AsyncSession = Depends(connect_db_users)):
+    LOGGER.info("check logs")
     await db.execute("""DELETE FROM users""")
     await db.commit()
     return {"message": "All users deleted successfully"}
@@ -217,6 +231,7 @@ async def delete_all_users(db: AsyncSession = Depends(connect_db_users)):
                     }
             """)
 async def delete_test_user(db: AsyncSession = Depends(connect_db_users)):
+    LOGGER.info("check logs")
     await db.execute("""
         DELETE FROM users u
          where u.username = 'string' and 
@@ -250,6 +265,8 @@ async def delete_test_user(db: AsyncSession = Depends(connect_db_users)):
                      }
              """)
 async def login_standard(user: UserLogin, db: AsyncSession = Depends(connect_db_users)):
+    start_time = time.time()
+    LOGGER.info(f"login_standard-{user} start")
     query = await db.execute(f"""
         select
             *
@@ -271,6 +288,7 @@ async def login_standard(user: UserLogin, db: AsyncSession = Depends(connect_db_
         expires_delta=access_token_expires
     )
     if is_true_login:
+        LOGGER.info(f"login_standard-{user} finish {(time.time() - start_time)}")
         return {"access_token": access_token, "token_type": "bearer"}
     else:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
@@ -299,11 +317,13 @@ async def login_standard(user: UserLogin, db: AsyncSession = Depends(connect_db_
                       },
             """)
 async def get_teams_for_user(token: str, db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"get_teams_for_user-{token} start")
     start_time = time.time()
     user = await get_current_user_dev(token)
     user_fio = user.fio
     href = f"get_teams_for_user-{token}"
+    LOGGER.info(f"{href} start")
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -315,41 +335,45 @@ async def get_teams_for_user(token: str, db: AsyncSession = Depends(connect_db_d
         LOGGER.warning(f"get_teams_for_user-{token} {e}")
         pass
     if user.iscurator or user.isadmin:
-        response = await db.execute("""
-        select distinct t.id, t.name from team t
-        """)
-        result = response.fetchall()
-        result_dicts = [row._asdict() for row in result]
-        for row_dict in result_dicts:
-            for key, value in row_dict.items():
-                if isinstance(value, Decimal):
-                    row_dict[key] = float(value)
-        await save_resp(href, result_dicts)
-        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-        return result_dicts
-    elif user.isteacher:
-        response = await db.execute(f"""
-            select
-                distinct t.id,
-                t.name
-            from
-                team t
-            where
-                t.id in (
-                select
-                    distinct l.team_id
-                from
-                    lesson l
-                where
-                    l.teacher_id in (
-                    select
-                        distinct t.id
-                    from
-                        teacher t
-                    where
-                        t.name ilike '%{user_fio}%'))
-        """)
         try:
+            response = await db.execute("""
+            select distinct t.id, t.name from team t
+            """)
+            result = response.fetchall()
+            result_dicts = [row._asdict() for row in result]
+            for row_dict in result_dicts:
+                for key, value in row_dict.items():
+                    if isinstance(value, Decimal):
+                        row_dict[key] = float(value)
+            await save_resp(href, result_dicts)
+            print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+            LOGGER.info(f"get_teams_for_user-{token} finish {(time.time() - start_time)}")
+            return result_dicts
+        except Exception as e:
+            LOGGER.error(f"get_teams_for_user-{token} Error {e}")
+    elif user.isteacher:
+        try:
+            response = await db.execute(f"""
+                select
+                    distinct t.id,
+                    t.name
+                from
+                    team t
+                where
+                    t.id in (
+                    select
+                        distinct l.team_id
+                    from
+                        lesson l
+                    where
+                        l.teacher_id in (
+                        select
+                            distinct t.id
+                        from
+                            teacher t
+                        where
+                            t.name ilike '%{user_fio}%'))
+            """)
             result = response.fetchall()
             result_dicts = [row._asdict() for row in result]
             for row_dict in result_dicts:
@@ -368,12 +392,15 @@ async def get_teams_for_user(token: str, db: AsyncSession = Depends(connect_db_d
 
 
 async def get_teams_for_user_private(token: str, db):
+    start_time = time.time()
     user = await get_current_user_dev(token)
     user_fio = user.fio
+    LOGGER.info(f"get_teams_for_user_private-{token} start")
     if user.iscurator or user.isadmin:
         response = await db.execute("""
             select distinct t.id, t.name from team t
             """)
+        LOGGER.info(f"get_teams_for_user_private_without_lect-{token} finish {(time.time() - start_time)}")
         return response.fetchall()
     elif user.isteacher:
         response = await db.execute(f"""
@@ -397,6 +424,7 @@ async def get_teams_for_user_private(token: str, db):
                     where
                         t.name ilike '%{user_fio}%'))
             """)
+        LOGGER.info(f"get_teams_for_user_private_without_lect-{token} finish {(time.time() - start_time)}")
     else:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
@@ -428,8 +456,10 @@ async def get_teams_for_param_private_without_lect(teacher_arr: list, db):
 
 
 async def get_teams_for_user_private_without_lect(token: str, db):
+    start_time = time.time()
     user = await get_current_user_dev(token)
     user_fio = user.fio
+    LOGGER.info(f"get_teams_for_user_private_without_lect-{token} start")
     if user.iscurator or user.isadmin:
         response = await db.execute("""
             select
@@ -440,6 +470,7 @@ async def get_teams_for_user_private_without_lect(token: str, db):
             where
                 t."name" not ilike '%л%'
         """)
+        LOGGER.info(f"get_teams_for_user_private_without_lect-{token} finish {(time.time() - start_time)}")
         return response.fetchall()
     elif user.isteacher:
         response = await db.execute(f"""
@@ -464,6 +495,7 @@ async def get_teams_for_user_private_without_lect(token: str, db):
                                 t.name ilike '%{user_fio}%'))
                         and t.name not ilike '%л%'
                     """)
+        LOGGER.info(f"get_teams_for_user_private_without_lect-{token} finish {(time.time() - start_time)}")
     else:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
@@ -492,8 +524,10 @@ async def get_teams_for_user_private_without_lect(token: str, db):
                       },
             """)
 async def get_teams_for_user_without_lect(token: str, db: AsyncSession = Depends(connect_db_data)):
+    start_time = time.time()
     user = await get_current_user_dev(token)
     user_fio = user.fio
+    LOGGER.info(f"get_teams_for_user_without_lect-{token} start")
     if user.iscurator or user.isadmin:
         response = await db.execute("""
                 select
@@ -504,6 +538,7 @@ async def get_teams_for_user_without_lect(token: str, db: AsyncSession = Depends
                 where
                     t."name" not ilike '%л%'
             """)
+        LOGGER.info(f"get_teams_for_user_without_lect-{token} finish {(time.time() - start_time)}")
         return response.fetchall()
     elif user.isteacher:
         response = await db.execute(f"""
@@ -528,6 +563,7 @@ async def get_teams_for_user_without_lect(token: str, db: AsyncSession = Depends
                                     t.name ilike '%{user_fio}%'))
                             and t.name not ilike '%л%'
                         """)
+        LOGGER.info(f"get_teams_for_user_without_lect-{token} finish {(time.time() - start_time)}")
     else:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
@@ -548,9 +584,10 @@ async def get_teams_for_user_without_lect(token: str, db: AsyncSession = Depends
         }
 """)
 async def get_student(id_stud: int, db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"get_student-{id_stud} start")
     start_time = time.time()
     href = f"get_student-{id_stud}"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -561,15 +598,15 @@ async def get_student(id_stud: int, db: AsyncSession = Depends(connect_db_data))
         print(e)
         LOGGER.warning(f"get_student-{id_stud} {e}")
         pass
-    all_users = await db.execute(f"""
-        select
-            *
-        from
-            stud s
-        where
-            s.id = {id_stud}
-	""")
     try:
+        all_users = await db.execute(f"""
+            select
+                *
+            from
+                stud s
+            where
+                s.id = {id_stud}
+        """)
         result = all_users.fetchall()
         result_dicts = [row._asdict() for row in result]
         for row_dict in result_dicts:
@@ -609,6 +646,8 @@ async def get_student(id_stud: int, db: AsyncSession = Depends(connect_db_data))
                       },
             """)
 async def get_router_paths():
+    start_time = time.time()
+    LOGGER.info(f"get_router_paths start")
     router_list = [{"path": route.path, "name": route.name} for route in router.routes]
     resp = []
     for item in router_list:
@@ -616,7 +655,11 @@ async def get_router_paths():
                 and "Team" not in item['name'] and "Stud" not in item['name'] \
                 and "Reporting system" not in item['name'] and "Util" not in item['name']:
             resp.append(item['path'])
-    return resp
+    try:
+        LOGGER.info(f"get_router_paths finish {(time.time() - start_time)}")
+        return resp
+    except Exception as e:
+        LOGGER.error(f"get_router_paths Error {e}")
 
 
 @router.get('/api/get_all_specialities', name='Util:get_all_specialities', status_code=status.HTTP_200_OK,
@@ -638,29 +681,30 @@ async def get_router_paths():
                       },
             """)
 async def get_all_specialities(token: str, db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"get_all_kr-{db} start")
     start_time = time.time()
     user = await get_current_user_dev(token)
     user_fio = user.fio
     href = f"get_all_specialities-{token}"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
-        LOGGER.info(f"get_all_kr-{db}--- "
+        LOGGER.info(f"get_all_specialities-{token}--- "
                     f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
-        LOGGER.warning(f"get_all_kr-{db} {e}")
+        LOGGER.warning(f"get_all_specialities-{token} {e}")
         pass
     if user.iscurator or user.isadmin:
-        response = await db.execute("""
-            select distinct
-                s.speciality 
-            from
-                stud s 
-        """)
         try:
+            response = await db.execute("""
+                select distinct
+                    s.speciality 
+                from
+                    stud s 
+            """)
             result = response.fetchall()
             result_dicts = [row._asdict() for row in result]
             for row_dict in result_dicts:
@@ -669,32 +713,32 @@ async def get_all_specialities(token: str, db: AsyncSession = Depends(connect_db
                         row_dict[key] = float(value)
             await save_resp(href, result_dicts)
             print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-            LOGGER.info(f"get_all_kr-{db} finish {(time.time() - start_time)}")
+            LOGGER.info(f"get_all_specialities-{token} finish {(time.time() - start_time)}")
             return result_dicts
         except Exception as e:
-            LOGGER.error(f"get_all_kr-{db} Error {e}")
+            LOGGER.error(f"get_all_specialities-{token} Error {e}")
     elif user.isteacher:
-        response = await db.execute(f"""
-            select distinct
-                s.speciality 
-            from
-                stud s
-            where
-                s.id in (
-                select
-                    distinct l.stud_id
-                from
-                    lesson l
-                where
-                    l.teacher_id in (
-                    select
-                        distinct t.id
-                    from
-                        teacher t
-                    where
-                        t.name ilike '%{user_fio}%'))
-        """)
         try:
+            response = await db.execute(f"""
+                select distinct
+                    s.speciality 
+                from
+                    stud s
+                where
+                    s.id in (
+                    select
+                        distinct l.stud_id
+                    from
+                        lesson l
+                    where
+                        l.teacher_id in (
+                        select
+                            distinct t.id
+                        from
+                            teacher t
+                        where
+                            t.name ilike '%{user_fio}%'))
+            """)
             result = response.fetchall()
             result_dicts = [row._asdict() for row in result]
             for row_dict in result_dicts:
@@ -704,10 +748,10 @@ async def get_all_specialities(token: str, db: AsyncSession = Depends(connect_db
             await save_resp(href, result_dicts)
             print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
             LOGGER.info(
-                f"get_all_kr-{db} finish {(time.time() - start_time)}")
+                f"get_all_specialities-{token} finish {(time.time() - start_time)}")
             return result_dicts
         except Exception as e:
-            LOGGER.error(f"get_all_kr-{db} Error {e}")
+            LOGGER.error(f"get_all_specialities-{token} Error {e}")
     else:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
@@ -731,28 +775,29 @@ async def get_all_specialities(token: str, db: AsyncSession = Depends(connect_db
         ]
 """)
 async def get_all_kr(db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"get_all_kr-{db} start")
     start_time = time.time()
-    href = f"get_all_kr-{db}"
+    href = f"get_all_kr"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
-        LOGGER.info(f"get_all_kr-{db}--- "
+        LOGGER.info(f"get_all_kr--- "
                     f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
-        LOGGER.warning(f"get_all_kr-{db} {e}")
+        LOGGER.warning(f"get_all_kr {e}")
         pass
-    all_users = await db.execute("""
-        select distinct 
-            l.name
-        from
-            lesson l
-        where
-            l.test >= 0.0
-    """)
     try:
+        all_users = await db.execute("""
+            select distinct 
+                l.name
+            from
+                lesson l
+            where
+                l.test >= 0.0
+        """)
         result = all_users.fetchall()
         result_dicts = [row._asdict() for row in result]
         for row_dict in result_dicts:
@@ -761,10 +806,10 @@ async def get_all_kr(db: AsyncSession = Depends(connect_db_data)):
                     row_dict[key] = float(value)
         await save_resp(href, result_dicts)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-        LOGGER.info(f"get_all_kr-{db} finish {(time.time() - start_time)}")
+        LOGGER.info(f"get_all_kr finish {(time.time() - start_time)}")
         return result_dicts
     except Exception as e:
-        LOGGER.error(f"get_all_kr-{db} Error {e}")
+        LOGGER.error(f"get_all_kr Error {e}")
 
 
 @router.get('/api/get_all_teachers_unique', name='Util:get_all_teachers', status_code=status.HTTP_200_OK,
@@ -789,11 +834,12 @@ async def get_all_kr(db: AsyncSession = Depends(connect_db_data)):
                       },
             """)
 async def get_all_teachers_unique(token: str, db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"get_all_teachers_unique-{token} start")
     start_time = time.time()
     user = await get_current_user_dev(token)
     user_fio = user.fio
     href = f"get_all_teachers_unique-{token}"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -805,16 +851,16 @@ async def get_all_teachers_unique(token: str, db: AsyncSession = Depends(connect
         LOGGER.warning(f"get_all_teachers_unique-{token} {e}")
         pass
     if user.iscurator or user.isadmin:
-        response = await db.execute("""
-            select distinct
-                t.id,
-                t."name"
-            from
-                teacher t
-            where 
-                t.name not ilike '%,%'
-        """)
         try:
+            response = await db.execute("""
+                select distinct
+                    t.id,
+                    t."name"
+                from
+                    teacher t
+                where 
+                    t.name not ilike '%,%'
+            """)
             result = response.fetchall()
             result_dicts = [row._asdict() for row in result]
             for row_dict in result_dicts:
@@ -828,16 +874,16 @@ async def get_all_teachers_unique(token: str, db: AsyncSession = Depends(connect
         except Exception as e:
             LOGGER.error(f"get_all_teachers_unique-{token} Error {e}")
     elif user.isteacher:
-        response = await db.execute(f"""
-            select distinct
-                t.id,
-                t."name"
-            from
-                teacher t
-            where
-                t.name = '{user_fio}'
-        """)
         try:
+            response = await db.execute(f"""
+                select distinct
+                    t.id,
+                    t."name"
+                from
+                    teacher t
+                where
+                    t.name = '{user_fio}'
+            """)
             result = response.fetchall()
             result_dicts = [row._asdict() for row in result]
             for row_dict in result_dicts:
@@ -877,11 +923,12 @@ async def get_all_teachers_unique(token: str, db: AsyncSession = Depends(connect
                       },
             """)
 async def get_all_teachers(token: str, db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"get_all_teachers-{token} start")
     start_time = time.time()
     user = await get_current_user_dev(token)
     user_fio = user.fio
     href = f"get_all_teachers-{token}"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -893,14 +940,14 @@ async def get_all_teachers(token: str, db: AsyncSession = Depends(connect_db_dat
         LOGGER.warning(f"get_all_teachers-{token} {e}")
         pass
     if user.iscurator or user.isadmin:
-        response = await db.execute("""
-                select distinct
-                    t.id,
-                    t."name"
-                from
-                    teacher t
-            """)
         try:
+            response = await db.execute("""
+                    select distinct
+                        t.id,
+                        t."name"
+                    from
+                        teacher t
+                """)
             result = response.fetchall()
             result_dicts = [row._asdict() for row in result]
             for row_dict in result_dicts:
@@ -915,16 +962,16 @@ async def get_all_teachers(token: str, db: AsyncSession = Depends(connect_db_dat
         except Exception as e:
             LOGGER.error(f"get_all_teachers-{token} Error {e}")
     elif user.isteacher:
-        response = await db.execute(f"""
-            select distinct
-                t.id,
-                t."name"
-            from
-                teacher t
-            where
-                t.name ilike '%{user_fio}%'
-        """)
         try:
+            response = await db.execute(f"""
+                select distinct
+                    t.id,
+                    t."name"
+                from
+                    teacher t
+                where
+                    t.name ilike '%{user_fio}%'
+            """)
             result = response.fetchall()
             result_dicts = [row._asdict() for row in result]
             for row_dict in result_dicts:
@@ -965,9 +1012,10 @@ async def get_all_teachers(token: str, db: AsyncSession = Depends(connect_db_dat
                       },
             """)
 async def attendance_per_stud_for_team(id_team: int, db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"attendance_per_stud_for_team-{id_team} start")
     start_time = time.time()
     href = f"attendance_per_stud_for_team-{id_team}"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -978,17 +1026,17 @@ async def attendance_per_stud_for_team(id_team: int, db: AsyncSession = Depends(
         print(e)
         LOGGER.warning(f"attendance_per_stud_for_team-{id_team} {e}")
         pass
-    result_query = await db.execute(f"""
-        select distinct
-            (select s.name from stud s where s.id=l.stud_id) as "stud_name",
-            (select s.id from stud s where s.id=l.stud_id) as "stud_id",
-            ROUND(count(id) filter (where l.arrival ='П') over (partition by stud_id) / count(id) over (partition by stud_id)::DECIMAL, 2) as "Посещаемость"
-        from
-            lesson l
-        where
-            l.team_id = {id_team}
-    """)
     try:
+        result_query = await db.execute(f"""
+            select distinct
+                (select s.name from stud s where s.id=l.stud_id) as "stud_name",
+                (select s.id from stud s where s.id=l.stud_id) as "stud_id",
+                ROUND(count(id) filter (where l.arrival ='П') over (partition by stud_id) / count(id) over (partition by stud_id)::DECIMAL, 2) as "Посещаемость"
+            from
+                lesson l
+            where
+                l.team_id = {id_team}
+        """)
         result = result_query.fetchall()
         result_dicts = [row._asdict() for row in result]
         for row_dict in result_dicts:
@@ -1036,9 +1084,10 @@ async def attendance_per_stud_for_team(id_team: int, db: AsyncSession = Depends(
                       }
             """)
 async def total_points_attendance_per_stud_for_team(id_team: int, db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"total_points_attendance_per_stud_for_team-{id_team} start")
     start_time = time.time()
     href = f"total_points_attendance_per_stud_for_team-{id_team}"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -1049,21 +1098,21 @@ async def total_points_attendance_per_stud_for_team(id_team: int, db: AsyncSessi
         print(e)
         LOGGER.warning(f"total_points_attendance_per_stud_for_team-{id_team} {e}")
         pass
-    result_query = await db.execute(f"""
-        select *, avg(sub.Успеваемость) over (partition by Посещаемость_средняя) as "Успеваемость_средняя"
-        from
-        (select distinct
-            (select s.name from stud s where s.id=l.stud_id) as "stud_name",
-            (select s.id from stud s where s.id=l.stud_id) as "stud_id",
-            ROUND(count(id) filter (where l.arrival ='П') over (partition by stud_id) / count(id) over (partition by stud_id)::DECIMAL, 2) as "Посещаемость",
-            ROUND((sum(l.mark_for_work) over (partition by stud_id) + sum(l.test) over (partition by stud_id))::DECIMAL, 2) as "Успеваемость",
-            ROUND(count(id) filter (where l.arrival ='П') over (partition by team_id) / count(id) over (partition by team_id)::DECIMAL, 2) as "Посещаемость_средняя"
-        from
-            lesson l
-        where
-            l.team_id = {id_team}) as sub
-    """)
     try:
+        result_query = await db.execute(f"""
+            select *, avg(sub.Успеваемость) over (partition by Посещаемость_средняя) as "Успеваемость_средняя"
+            from
+            (select distinct
+                (select s.name from stud s where s.id=l.stud_id) as "stud_name",
+                (select s.id from stud s where s.id=l.stud_id) as "stud_id",
+                ROUND(count(id) filter (where l.arrival ='П') over (partition by stud_id) / count(id) over (partition by stud_id)::DECIMAL, 2) as "Посещаемость",
+                ROUND((sum(l.mark_for_work) over (partition by stud_id) + sum(l.test) over (partition by stud_id))::DECIMAL, 2) as "Успеваемость",
+                ROUND(count(id) filter (where l.arrival ='П') over (partition by team_id) / count(id) over (partition by team_id)::DECIMAL, 2) as "Посещаемость_средняя"
+            from
+                lesson l
+            where
+                l.team_id = {id_team}) as sub
+        """)
         result = result_query.fetchall()
         result_dicts = [row._asdict() for row in result]
         for row_dict in result_dicts:
@@ -1098,9 +1147,10 @@ async def total_points_attendance_per_stud_for_team(id_team: int, db: AsyncSessi
                       },
             """)
 async def total_points_per_stud_for_team(id_team: int, db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"total_points_per_stud_for_team-{id_team} start")
     start_time = time.time()
     href = f"total_points_per_stud_for_team-{id_team}"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -1111,17 +1161,17 @@ async def total_points_per_stud_for_team(id_team: int, db: AsyncSession = Depend
         print(e)
         LOGGER.warning(f"total_points_per_stud_for_team-{id_team} {e}")
         pass
-    result_query = await db.execute(f"""
-            select distinct
-                (select s.name from stud s where s.id=l.stud_id) as "stud_name",
-                (select s.id from stud s where s.id=l.stud_id) as "stud_id",
-                ROUND((sum(l.mark_for_work) over (partition by stud_id) + sum(l.test) over (partition by stud_id))::DECIMAL, 2) as "Успеваемость"
-            from
-                lesson l
-            where
-                l.team_id = {id_team}
-        """)
     try:
+        result_query = await db.execute(f"""
+                select distinct
+                    (select s.name from stud s where s.id=l.stud_id) as "stud_name",
+                    (select s.id from stud s where s.id=l.stud_id) as "stud_id",
+                    ROUND((sum(l.mark_for_work) over (partition by stud_id) + sum(l.test) over (partition by stud_id))::DECIMAL, 2) as "Успеваемость"
+                from
+                    lesson l
+                where
+                    l.team_id = {id_team}
+            """)
         result = result_query.fetchall()
         result_dicts = [row._asdict() for row in result]
         for row_dict in result_dicts:
@@ -1168,9 +1218,10 @@ async def total_points_per_stud_for_team(id_team: int, db: AsyncSession = Depend
                     ]
             """)
 async def total_marks_for_team(id_team: int, db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"total_marks_for_team-{id_team} start")
     start_time = time.time()
     href = f"total_marks_for_team-{id_team}"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -1181,38 +1232,38 @@ async def total_marks_for_team(id_team: int, db: AsyncSession = Depends(connect_
         print(e)
         LOGGER.warning(f"total_marks_for_team-{id_team} {e}")
         pass
-    result_query = await db.execute(f"""
-        SELECT
-            CASE
-                WHEN Успеваемость > 60 AND Успеваемость < 76 THEN 'удовл.'
-                WHEN Успеваемость > 75 AND Успеваемость < 91 THEN 'хор.'
-                WHEN Успеваемость > 90 THEN 'отл.'
-                ELSE 'неудовл.'
-            END AS mark,
-            ROUND(COUNT(*) / count_all::DECIMAL, 2) AS percent,
-            ROUND(AVG(Успеваемость)::DECIMAL, 2) AS avg_total_points
-        FROM
-            (
-            SELECT DISTINCT
-                (SELECT s.name FROM stud s WHERE s.id = l.stud_id) AS stud_name,
-                (SELECT s.id FROM stud s WHERE s.id = l.stud_id) AS stud_id,
-                ROUND((SUM(l.mark_for_work) + SUM(l.test))::DECIMAL, 0) AS Успеваемость,
-                (
-                SELECT COUNT(DISTINCT stud_id) AS count_all 
-                FROM lesson l
-                WHERE l.team_id = {id_team}
-                ) AS count_all
-            FROM
-                lesson l
-            WHERE
-                l.team_id = {id_team}
-            GROUP BY 
-                stud_id
-            ) AS sub
-        GROUP BY 
-            mark, count_all;
-    """)
     try:
+        result_query = await db.execute(f"""
+            SELECT
+                CASE
+                    WHEN Успеваемость > 60 AND Успеваемость < 76 THEN 'удовл.'
+                    WHEN Успеваемость > 75 AND Успеваемость < 91 THEN 'хор.'
+                    WHEN Успеваемость > 90 THEN 'отл.'
+                    ELSE 'неудовл.'
+                END AS mark,
+                ROUND(COUNT(*) / count_all::DECIMAL, 2) AS percent,
+                ROUND(AVG(Успеваемость)::DECIMAL, 2) AS avg_total_points
+            FROM
+                (
+                SELECT DISTINCT
+                    (SELECT s.name FROM stud s WHERE s.id = l.stud_id) AS stud_name,
+                    (SELECT s.id FROM stud s WHERE s.id = l.stud_id) AS stud_id,
+                    ROUND((SUM(l.mark_for_work) + SUM(l.test))::DECIMAL, 0) AS Успеваемость,
+                    (
+                    SELECT COUNT(DISTINCT stud_id) AS count_all 
+                    FROM lesson l
+                    WHERE l.team_id = {id_team}
+                    ) AS count_all
+                FROM
+                    lesson l
+                WHERE
+                    l.team_id = {id_team}
+                GROUP BY 
+                    stud_id
+                ) AS sub
+            GROUP BY 
+                mark, count_all;
+        """)
         result = result_query.fetchall()
         result_dicts = [row._asdict() for row in result]
         for row_dict in result_dicts:
@@ -1268,19 +1319,19 @@ async def attendance_num_for_stud_for_team(id_team: int, db: AsyncSession = Depe
         print(e)
         LOGGER.warning(f"attendance_num_for_stud_for_team-{id_team} {e}")
         pass
-    result_query = await db.execute(f"""
-        select 
-            l.name,
-            l.id,
-            count(id) filter (where l.arrival ='П') over (partition by l.name) as "Посещаемость"
-        from
-            lesson l
-        where
-            l.team_id = {id_team}
-        order by id
-        limit 22
-        """)
     try:
+        result_query = await db.execute(f"""
+            select 
+                l.name,
+                l.id,
+                count(id) filter (where l.arrival ='П') over (partition by l.name) as "Посещаемость"
+            from
+                lesson l
+            where
+                l.team_id = {id_team}
+            order by id
+            limit 22
+            """)
         result = result_query.fetchall()
         result_dicts = [row._asdict() for row in result]
         for row_dict in result_dicts:
@@ -1318,9 +1369,10 @@ async def attendance_num_for_stud_for_team(id_team: int, db: AsyncSession = Depe
             """)
 async def attendance_num_for_stud_for_team_stat_table(id_team: int, name_of_lesson: str,
                                                       db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"attendance_num_for_stud_for_team_stat_table-{id_team}-{name_of_lesson} start")
     start_time = time.time()
     href = f"attendance_num_for_stud_for_team_stat_table-{id_team}-{name_of_lesson}"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -1331,25 +1383,25 @@ async def attendance_num_for_stud_for_team_stat_table(id_team: int, name_of_less
         print(e)
         LOGGER.warning(f"attendance_num_for_stud_for_team_stat_table-{id_team}-{name_of_lesson} {e}")
         pass
-    result_query = await db.execute(f"""
-        SELECT sub.stud_name, sub.id, sub.Посещаемость, sub.Успеваемость
-        FROM (
-          SELECT
-            (SELECT s.name FROM stud s WHERE s.id = l.stud_id) AS stud_name,
-            (SELECT s.id FROM stud s WHERE s.id = l.stud_id) AS id,
-            l.name,
-            ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / COUNT(id) OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::DECIMAL, 2) AS Посещаемость,
-            ROUND((SUM(l.mark_for_work) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) + SUM(l.test) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW))::DECIMAL, 2) AS Успеваемость,
-            l.arrival
-          FROM
-            lesson l
-          WHERE
-            l.team_id = {id_team}
-        ) AS sub
-        WHERE
-          sub.name = '{name_of_lesson}' AND sub.arrival = 'Н';
-            """)
     try:
+        result_query = await db.execute(f"""
+            SELECT sub.stud_name, sub.id, sub.Посещаемость, sub.Успеваемость
+            FROM (
+              SELECT
+                (SELECT s.name FROM stud s WHERE s.id = l.stud_id) AS stud_name,
+                (SELECT s.id FROM stud s WHERE s.id = l.stud_id) AS id,
+                l.name,
+                ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / COUNT(id) OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::DECIMAL, 2) AS Посещаемость,
+                ROUND((SUM(l.mark_for_work) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) + SUM(l.test) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW))::DECIMAL, 2) AS Успеваемость,
+                l.arrival
+              FROM
+                lesson l
+              WHERE
+                l.team_id = {id_team}
+            ) AS sub
+            WHERE
+              sub.name = '{name_of_lesson}' AND sub.arrival = 'Н';
+                """)
         result = result_query.fetchall()
         result_dicts = [row._asdict() for row in result]
         for row_dict in result_dicts:
@@ -1391,9 +1443,10 @@ async def attendance_num_for_stud_for_team_stat_table(id_team: int, name_of_less
                       },
             """)
 async def cum_sum_points_for_stud_for_team(id_team: int, id_stud: int, db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"cum_sum_points_for_stud_for_team-{id_team}-{id_stud} start")
     start_time = time.time()
     href = f"cum_sum_points_for_stud_for_team-{id_team}-{id_stud}"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -1404,21 +1457,21 @@ async def cum_sum_points_for_stud_for_team(id_team: int, id_stud: int, db: Async
         print(e)
         LOGGER.warning(f"cum_sum_points_for_stud_for_team-{id_team}-{id_stud} {e}")
         pass
-    result_query = await db.execute(f"""
-            SELECT
-                l.name,
-                ROUND((SUM(l.mark_for_work) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) + SUM(l.test) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW))::DECIMAL, 2) AS cum_sum,
-                row_number() over (PARTITION BY stud_id) as counter,
-                CASE
-                    WHEN l.test  >= 0 THEN true
-                    ELSE false
-                END AS test
-              FROM
-                lesson l
-              WHERE
-                l.team_id = {id_team} and l.stud_id = {id_stud}
-                    """)
     try:
+        result_query = await db.execute(f"""
+                SELECT
+                    l.name,
+                    ROUND((SUM(l.mark_for_work) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) + SUM(l.test) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW))::DECIMAL, 2) AS cum_sum,
+                    row_number() over (PARTITION BY stud_id) as counter,
+                    CASE
+                        WHEN l.test  >= 0 THEN true
+                        ELSE false
+                    END AS test
+                  FROM
+                    lesson l
+                  WHERE
+                    l.team_id = {id_team} and l.stud_id = {id_stud}
+                        """)
         result = result_query.fetchall()
         result_dicts = [row._asdict() for row in result]
         for row_dict in result_dicts:
@@ -1457,9 +1510,10 @@ async def cum_sum_points_for_stud_for_team(id_team: int, id_stud: int, db: Async
             """)
 async def attendance_dynamical_for_stud_for_team(id_team: int, id_stud: int,
                                                  db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"attendance_dynamical_for_stud_for_team-{id_team}-{id_stud} start")
     start_time = time.time()
     href = f"attendance_dynamical_for_stud_for_team-{id_team}-{id_stud}"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -1517,9 +1571,10 @@ async def attendance_dynamical_for_stud_for_team(id_team: int, id_stud: int,
                       },
             """)
 async def attendance_static_for_stud_for_team(id_team: int, id_stud: int, db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"attendance_static_for_stud_for_team-{id_team}-{id_stud} start")
     start_time = time.time()
     href = f"attendance_static_for_stud_for_team-{id_team}-{id_stud}"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -1577,9 +1632,10 @@ async def attendance_static_for_stud_for_team(id_team: int, id_stud: int, db: As
                       },
             """)
 async def all_in_one_for_stud_for_team(id_team: int, id_stud: int, db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"all_in_one_for_stud_for_team-{id_team}-{id_stud} start")
     start_time = time.time()
     href = f"all_in_one_for_stud_for_team-{id_team}-{id_stud}"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -1663,9 +1719,10 @@ async def all_in_one_for_stud_for_team(id_team: int, id_stud: int, db: AsyncSess
                       },
             """)
 async def attendance_static_stud_for_teams(id_team1: int, id_team2: int, db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"attendance_static_stud_for_teams-{id_team1}-{id_team2} start")
     start_time = time.time()
     href = f"attendance_static_stud_for_teams-{id_team1}-{id_team2}"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -1755,9 +1812,10 @@ async def attendance_static_stud_for_teams(id_team1: int, id_team2: int, db: Asy
                       },
             """)
 async def total_points_stud_for_teams(id_team1: int, id_team2: int, db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"total_points_stud_for_teams-{id_team1}-{id_team2} start")
     start_time = time.time()
     href = f" total_points_stud_for_teams-{id_team1}-{id_team2}"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -1834,9 +1892,10 @@ async def total_points_stud_for_teams(id_team1: int, id_team2: int, db: AsyncSes
                       },
             """)
 async def attendance_static_stud_for_all_teams(token: str, db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"attendance_static_stud_for_all_teams-{token} start")
     start_time = time.time()
     href = f" attendance_static_stud_for_all_teams-{token}"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -1902,11 +1961,12 @@ async def attendance_static_stud_for_all_teams(token: str, db: AsyncSession = De
                       },
             """)
 async def total_points_studs_for_all_teams(token: str, db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"total_points_studs_for_all_teams-{token} start")
     start_time = time.time()
     teams = await get_teams_for_user_private_without_lect(token, db)
     teams_true = ', '.join([f"'{team[0]}'" for team in teams])
     href = f"total_points_studs_for_all_teams-{token}"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -1990,7 +2050,6 @@ async def total_points_studs_for_all_teams(token: str, db: AsyncSession = Depend
 async def team_kr_total_points_attendance_dynamic(token: str, group_by_teacher: bool,
                                                   teacher_list: Optional[str] = None,
                                                   db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"team_kr_total_points_attendance_dynamic-{token}-{group_by_teacher}-{teacher_list}start")
     start_time = time.time()
     teams = await get_teams_for_user_private_without_lect(token, db)
     if teacher_list is not None:
@@ -2005,6 +2064,8 @@ async def team_kr_total_points_attendance_dynamic(token: str, group_by_teacher: 
                     sub.team_id,"""
         partition_by = "sub.name, sub.teacher_id, sub.team_id"
     href = f"team_kr_total_points_attendance_dynamic-{token}-{group_by_teacher}-{teacher_list}"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -2015,50 +2076,50 @@ async def team_kr_total_points_attendance_dynamic(token: str, group_by_teacher: 
         print(e)
         LOGGER.warning(f"team_kr_total_points_attendance_dynamic-{token}-{group_by_teacher}-{teacher_list} {e}")
         pass
-    res = await db.execute(f"""
-        SELECT DISTINCT
-            {fields}
-            sub.teacher_id,
-            sub.teacher_name,
-            ROUND(AVG(sub.Успеваемость) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Успеваемость_средняя,
-            ROUND(AVG(sub.dynamical_arrival) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Посещаемость_средняя
-        FROM
-            (
-                SELECT
-                    (
-                        SELECT t.name FROM team t WHERE t.id = l.team_id
-                    ) AS team_name,
-                    ROUND(
-                        (
-                            SUM(l.mark_for_work) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) +
-                            SUM(l.test) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
-                        )::DECIMAL,
-                        2
-                    ) AS Успеваемость,
-                    ROUND(
-                        COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / 
-                        COUNT(id) OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::DECIMAL,
-                        2
-                    ) AS dynamical_arrival,
-                    (
-                        SELECT t.id FROM team t WHERE t.id = l.team_id
-                    ) AS team_id,
-                    (
-                        SELECT t.id FROM teacher t WHERE t.id = l.teacher_id
-                    ) AS teacher_id,
-                    (
-                        SELECT t.name FROM teacher t WHERE t.id = l.teacher_id
-                    ) AS teacher_name,
-                    l.name
-                FROM
-                    lesson l
-                WHERE
-                    l.team_id IN ({teams_true})
-            ) AS sub
-        WHERE
-            sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
-        """)
     try:
+        res = await db.execute(f"""
+            SELECT DISTINCT
+                {fields}
+                sub.teacher_id,
+                sub.teacher_name,
+                ROUND(AVG(sub.Успеваемость) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Успеваемость_средняя,
+                ROUND(AVG(sub.dynamical_arrival) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Посещаемость_средняя
+            FROM
+                (
+                    SELECT
+                        (
+                            SELECT t.name FROM team t WHERE t.id = l.team_id
+                        ) AS team_name,
+                        ROUND(
+                            (
+                                SUM(l.mark_for_work) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) +
+                                SUM(l.test) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
+                            )::DECIMAL,
+                            2
+                        ) AS Успеваемость,
+                        ROUND(
+                            COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / 
+                            COUNT(id) OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::DECIMAL,
+                            2
+                        ) AS dynamical_arrival,
+                        (
+                            SELECT t.id FROM team t WHERE t.id = l.team_id
+                        ) AS team_id,
+                        (
+                            SELECT t.id FROM teacher t WHERE t.id = l.teacher_id
+                        ) AS teacher_id,
+                        (
+                            SELECT t.name FROM teacher t WHERE t.id = l.teacher_id
+                        ) AS teacher_name,
+                        l.name
+                    FROM
+                        lesson l
+                    WHERE
+                        l.team_id IN ({teams_true})
+                ) AS sub
+            WHERE
+                sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
+            """)
         result = res.fetchall()
         result_dicts = [row._asdict() for row in result]
         for row_dict in result_dicts:
@@ -2111,7 +2172,6 @@ async def team_kr_total_points_attendance_dynamic(token: str, group_by_teacher: 
 async def team_kr_total_points_dynamic(token: str, group_by_teacher: bool,
                                        teacher_list: Optional[str] = None,
                                        db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"team_kr_total_points_dynamic-{token}-{group_by_teacher}-{teacher_list} start")
     start_time = time.time()
     teams = await get_teams_for_user_private_without_lect(token, db)
     if teacher_list is not None:
@@ -2126,6 +2186,8 @@ async def team_kr_total_points_dynamic(token: str, group_by_teacher: bool,
                     sub.team_id,"""
         partition_by = "sub.name, sub.teacher_id, sub.team_id"
     href = f"team_kr_total_points_dynamic-{token}-{group_by_teacher}--{teacher_list}"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -2136,44 +2198,44 @@ async def team_kr_total_points_dynamic(token: str, group_by_teacher: bool,
         print(e)
         LOGGER.warning(f"team_kr_total_points_dynamic-{token}-{group_by_teacher}-{teacher_list} {e}")
         pass
-    res = await db.execute(f"""
-        SELECT DISTINCT
-            {fields}
-            sub.teacher_id,
-            sub.teacher_name,
-            ROUND(AVG(sub.Успеваемость) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Успеваемость_средняя
-        FROM
-            (
-                SELECT
-                    (
-                        SELECT t.name FROM team t WHERE t.id = l.team_id
-                    ) AS team_name,
-                    ROUND(
-                        (
-                            SUM(l.mark_for_work) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) +
-                            SUM(l.test) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
-                        )::DECIMAL,
-                        2
-                    ) AS Успеваемость,
-                    (
-                        SELECT t.id FROM team t WHERE t.id = l.team_id
-                    ) AS team_id,
-                    (
-                        SELECT t.id FROM teacher t WHERE t.id = l.teacher_id
-                    ) AS teacher_id,
-                    (
-                        SELECT t.name FROM teacher t WHERE t.id = l.teacher_id
-                    ) AS teacher_name,
-                    l.name
-                FROM
-                    lesson l
-                WHERE
-                    l.team_id IN ({teams_true})
-            ) AS sub
-        WHERE
-            sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
-        """)
     try:
+        res = await db.execute(f"""
+            SELECT DISTINCT
+                {fields}
+                sub.teacher_id,
+                sub.teacher_name,
+                ROUND(AVG(sub.Успеваемость) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Успеваемость_средняя
+            FROM
+                (
+                    SELECT
+                        (
+                            SELECT t.name FROM team t WHERE t.id = l.team_id
+                        ) AS team_name,
+                        ROUND(
+                            (
+                                SUM(l.mark_for_work) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) +
+                                SUM(l.test) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
+                            )::DECIMAL,
+                            2
+                        ) AS Успеваемость,
+                        (
+                            SELECT t.id FROM team t WHERE t.id = l.team_id
+                        ) AS team_id,
+                        (
+                            SELECT t.id FROM teacher t WHERE t.id = l.teacher_id
+                        ) AS teacher_id,
+                        (
+                            SELECT t.name FROM teacher t WHERE t.id = l.teacher_id
+                        ) AS teacher_name,
+                        l.name
+                    FROM
+                        lesson l
+                    WHERE
+                        l.team_id IN ({teams_true})
+                ) AS sub
+            WHERE
+                sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
+            """)
         result = res.fetchall()
         result_dicts = [row._asdict() for row in result]
         for row_dict in result_dicts:
@@ -2226,7 +2288,6 @@ async def team_kr_total_points_dynamic(token: str, group_by_teacher: bool,
 async def team_kr_attendance_dynamic(token: str, group_by_teacher: bool,
                                      teacher_list: Optional[str] = None,
                                      db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"team_kr_attendance_dynamic-{token}-{group_by_teacher}-{teacher_list} start")
     start_time = time.time()
     teams = await get_teams_for_user_private_without_lect(token, db)
     if teacher_list is not None:
@@ -2241,6 +2302,9 @@ async def team_kr_attendance_dynamic(token: str, group_by_teacher: bool,
                     sub.team_id,"""
         partition_by = "sub.name, sub.teacher_id, sub.team_id"
     href = f"team_kr_attendance_dynamic-{token}-{group_by_teacher}--{teacher_list}"
+    LOGGER.info(f"{href} start")
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -2251,42 +2315,42 @@ async def team_kr_attendance_dynamic(token: str, group_by_teacher: bool,
         print(e)
         LOGGER.warning(f"team_kr_attendance_dynamic-{token}-{group_by_teacher}-{teacher_list} {e}")
         pass
-    res = await db.execute(f"""
-        SELECT DISTINCT
-            {fields}
-            sub.teacher_id,
-            sub.teacher_name,
-            ROUND(AVG(sub.dynamical_arrival) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Посещаемость_средняя
-        FROM
-            (
-                SELECT
-                    (
-                        SELECT t.name FROM team t WHERE t.id = l.team_id
-                    ) AS team_name,
-                    ROUND(
-                        COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / 
-                        COUNT(id) OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::DECIMAL,
-                        2
-                    ) AS dynamical_arrival,
-                    (
-                        SELECT t.id FROM team t WHERE t.id = l.team_id
-                    ) AS team_id,
-                    (
-                        SELECT t.id FROM teacher t WHERE t.id = l.teacher_id
-                    ) AS teacher_id,
-                    (
-                        SELECT t.name FROM teacher t WHERE t.id = l.teacher_id
-                    ) AS teacher_name,
-                    l.name
-                FROM
-                    lesson l
-                WHERE
-                    l.team_id IN ({teams_true})
-            ) AS sub
-        WHERE
-            sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
-        """)
     try:
+        res = await db.execute(f"""
+            SELECT DISTINCT
+                {fields}
+                sub.teacher_id,
+                sub.teacher_name,
+                ROUND(AVG(sub.dynamical_arrival) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Посещаемость_средняя
+            FROM
+                (
+                    SELECT
+                        (
+                            SELECT t.name FROM team t WHERE t.id = l.team_id
+                        ) AS team_name,
+                        ROUND(
+                            COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / 
+                            COUNT(id) OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::DECIMAL,
+                            2
+                        ) AS dynamical_arrival,
+                        (
+                            SELECT t.id FROM team t WHERE t.id = l.team_id
+                        ) AS team_id,
+                        (
+                            SELECT t.id FROM teacher t WHERE t.id = l.teacher_id
+                        ) AS teacher_id,
+                        (
+                            SELECT t.name FROM teacher t WHERE t.id = l.teacher_id
+                        ) AS teacher_name,
+                        l.name
+                    FROM
+                        lesson l
+                    WHERE
+                        l.team_id IN ({teams_true})
+                ) AS sub
+            WHERE
+                sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
+            """)
         result = res.fetchall()
         result_dicts = [row._asdict() for row in result]
         for row_dict in result_dicts:
@@ -2326,7 +2390,6 @@ async def team_kr_attendance_dynamic(token: str, group_by_teacher: bool,
             """)
 async def attendance_static_for_specialities(token: str, speciality1: str, speciality2: str, lect: bool,
                                              db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"attendance_static_for_specialities-{token}-{speciality1}-{speciality2}-{lect} start")
     start_time = time.time()
     if lect:
         teams = await get_teams_for_user_private(token, db)
@@ -2334,6 +2397,8 @@ async def attendance_static_for_specialities(token: str, speciality1: str, speci
         teams = await get_teams_for_user_private_without_lect(token, db)
     teams_true = ', '.join([f"'{team[0]}'" for team in teams])
     href = f"attendance_static_for_specialities-{token}-{speciality1}--{speciality2}--{lect}"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -2344,20 +2409,20 @@ async def attendance_static_for_specialities(token: str, speciality1: str, speci
         print(e)
         LOGGER.warning(f"attendance_static_for_specialities-{token}-{speciality1}-{speciality2}-{lect} {e}")
         pass
-    res = await db.execute(f"""
-        SELECT DISTINCT
-            ROUND(COUNT(l.id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id) / COUNT(l.id) OVER (PARTITION BY l.stud_id)::DECIMAL, 2) AS arrival,
-            s.speciality AS speciality,
-            s.id AS id
-        FROM
-            lesson l
-        inner join stud s on s.id = l.stud_id
-        WHERE
-            l.team_id IN ({teams_true})
-            and (s.speciality = '{speciality1}' or s.speciality = '{speciality2}')
-        order by arrival desc
-        """)
     try:
+        res = await db.execute(f"""
+            SELECT DISTINCT
+                ROUND(COUNT(l.id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id) / COUNT(l.id) OVER (PARTITION BY l.stud_id)::DECIMAL, 2) AS arrival,
+                s.speciality AS speciality,
+                s.id AS id
+            FROM
+                lesson l
+            inner join stud s on s.id = l.stud_id
+            WHERE
+                l.team_id IN ({teams_true})
+                and (s.speciality = '{speciality1}' or s.speciality = '{speciality2}')
+            order by arrival desc
+            """)
         mas = res.fetchall()
         df_list = []
         team_a = []
@@ -2412,7 +2477,6 @@ async def attendance_static_for_specialities(token: str, speciality1: str, speci
             """)
 async def total_points_for_specialities(token: str, speciality1: str, speciality2: str, lect: bool,
                                         db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"total_points_for_specialities-{token}-{speciality1}-{speciality2}-{lect} start")
     start_time = time.time()
     if lect:
         teams = await get_teams_for_user_private(token, db)
@@ -2420,6 +2484,8 @@ async def total_points_for_specialities(token: str, speciality1: str, speciality
         teams = await get_teams_for_user_private_without_lect(token, db)
     teams_true = ', '.join([f"'{team[0]}'" for team in teams])
     href = f"total_points_for_specialities-{token}-{speciality1}--{speciality2}--{lect}"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -2430,20 +2496,20 @@ async def total_points_for_specialities(token: str, speciality1: str, speciality
         print(e)
         LOGGER.warning(f"total_points_for_specialities-{token}-{speciality1}-{speciality2}-{lect} {e}")
         pass
-    res = await db.execute(f"""
-            SELECT DISTINCT
-                ROUND((SUM(l.mark_for_work) OVER (PARTITION BY stud_id) + SUM(l.test) OVER (PARTITION BY stud_id))::DECIMAL, 2) AS total_points,
-                s.speciality AS speciality,
-                s.id AS id
-            FROM
-                lesson l
-            inner join stud s on s.id = l.stud_id
-            WHERE
-                l.team_id IN ({teams_true})
-                and (s.speciality = '{speciality1}' or s.speciality = '{speciality2}')
-            order by total_points desc
-            """)
     try:
+        res = await db.execute(f"""
+                SELECT DISTINCT
+                    ROUND((SUM(l.mark_for_work) OVER (PARTITION BY stud_id) + SUM(l.test) OVER (PARTITION BY stud_id))::DECIMAL, 2) AS total_points,
+                    s.speciality AS speciality,
+                    s.id AS id
+                FROM
+                    lesson l
+                inner join stud s on s.id = l.stud_id
+                WHERE
+                    l.team_id IN ({teams_true})
+                    and (s.speciality = '{speciality1}' or s.speciality = '{speciality2}')
+                order by total_points desc
+                """)
         mas = res.fetchall()
         df_list = []
         team_a = []
@@ -2492,7 +2558,6 @@ async def total_points_for_specialities(token: str, speciality1: str, speciality
             """)
 async def attendance_static_stud_for_all_specialities(token: str, lect: bool,
                                                       db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"attendance_static_stud_for_all_specialities-{token}-{lect} start")
     start_time = time.time()
     if lect:
         teams = await get_teams_for_user_private(token, db)
@@ -2500,6 +2565,8 @@ async def attendance_static_stud_for_all_specialities(token: str, lect: bool,
         teams = await get_teams_for_user_private_without_lect(token, db)
     teams_true = ', '.join([f"'{team[0]}'" for team in teams])
     href = f"attendance_static_stud_for_all_specialities-{token}-{lect}"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -2510,20 +2577,20 @@ async def attendance_static_stud_for_all_specialities(token: str, lect: bool,
         print(e)
         LOGGER.warning(f"attendance_static_stud_for_all_specialities-{token}-{lect} {e}")
         pass
-    res = await db.execute(f"""
-        SELECT
-            ROUND(COUNT(l.id) FILTER (WHERE l.arrival = 'П') / COUNT(l.id)::DECIMAL, 2) AS arrival,
-            s.speciality AS Stud_speciality,
-            count(distinct s.id) AS studs_in_speciality
-        FROM
-            lesson l
-        inner join stud s on s.id = l.stud_id
-        WHERE
-            l.team_id IN ({teams_true})
-        group by s.speciality 
-        order by arrival desc
-                """)
     try:
+        res = await db.execute(f"""
+            SELECT
+                ROUND(COUNT(l.id) FILTER (WHERE l.arrival = 'П') / COUNT(l.id)::DECIMAL, 2) AS arrival,
+                s.speciality AS Stud_speciality,
+                count(distinct s.id) AS studs_in_speciality
+            FROM
+                lesson l
+            inner join stud s on s.id = l.stud_id
+            WHERE
+                l.team_id IN ({teams_true})
+            group by s.speciality 
+            order by arrival desc
+                    """)
         result = res.fetchall()
         result_dicts = [row._asdict() for row in result]
         for row_dict in result_dicts:
@@ -2557,7 +2624,6 @@ async def attendance_static_stud_for_all_specialities(token: str, lect: bool,
                       },
             """)
 async def total_points_studs_for_all_specialities(token: str, lect: bool, db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"total_points_studs_for_all_specialities-{token}-{lect} start")
     start_time = time.time()
     if lect:
         teams = await get_teams_for_user_private(token, db)
@@ -2565,6 +2631,8 @@ async def total_points_studs_for_all_specialities(token: str, lect: bool, db: As
         teams = await get_teams_for_user_private_without_lect(token, db)
     teams_true = ', '.join([f"'{team[0]}'" for team in teams])
     href = f"total_points_studs_for_all_specialities-{token}-{lect}"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -2575,20 +2643,20 @@ async def total_points_studs_for_all_specialities(token: str, lect: bool, db: As
         print(e)
         LOGGER.warning(f"total_points_studs_for_all_specialities-{token}-{lect} {e}")
         pass
-    res = await db.execute(f"""
-            select
-                s.speciality AS Stud_speciality,
-                ROUND(((SUM(l.mark_for_work) + SUM(l.test))/COUNT(DISTINCT stud_id))::DECIMAL, 2) AS avg_total_points,
-                count(distinct s.id) AS studs_in_speciality
-            FROM
-                lesson l
-            inner join stud s on s.id = l.stud_id
-            WHERE
-                l.team_id IN ({teams_true})
-            group by s.speciality 
-            order by avg_total_points desc
-    """)
     try:
+        res = await db.execute(f"""
+                select
+                    s.speciality AS Stud_speciality,
+                    ROUND(((SUM(l.mark_for_work) + SUM(l.test))/COUNT(DISTINCT stud_id))::DECIMAL, 2) AS avg_total_points,
+                    count(distinct s.id) AS studs_in_speciality
+                FROM
+                    lesson l
+                inner join stud s on s.id = l.stud_id
+                WHERE
+                    l.team_id IN ({teams_true})
+                group by s.speciality 
+                order by avg_total_points desc
+        """)
         result = res.fetchall()
         result_dicts = [row._asdict() for row in result]
         for row_dict in result_dicts:
@@ -2624,7 +2692,6 @@ async def total_points_studs_for_all_specialities(token: str, lect: bool, db: As
                       },
             """)
 async def all_for_studs_for_all_specialities(token: str, lect: bool, db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"all_for_studs_for_all_specialities-{token}-{lect} start")
     start_time = time.time()
     if lect:
         teams = await get_teams_for_user_private(token, db)
@@ -2632,6 +2699,8 @@ async def all_for_studs_for_all_specialities(token: str, lect: bool, db: AsyncSe
         teams = await get_teams_for_user_private_without_lect(token, db)
     teams_true = ', '.join([f"'{team[0]}'" for team in teams])
     href = f"all_for_studs_for_all_specialities-{token}-{lect}"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -2642,21 +2711,21 @@ async def all_for_studs_for_all_specialities(token: str, lect: bool, db: AsyncSe
         print(e)
         LOGGER.warning(f"all_for_studs_for_all_specialities-{token}-{lect} {e}")
         pass
-    res = await db.execute(f"""
-            select
-                s.speciality AS Stud_speciality,
-                ROUND(((SUM(l.mark_for_work) + SUM(l.test))/COUNT(DISTINCT stud_id))::DECIMAL, 2) AS avg_total_points,
-                ROUND(COUNT(l.id) FILTER (WHERE l.arrival = 'П') / COUNT(l.id)::DECIMAL, 2) AS arrival,
-                count(distinct s.id) AS studs_in_speciality
-            FROM
-                lesson l
-            inner join stud s on s.id = l.stud_id
-            WHERE
-                l.team_id IN ({teams_true})
-            group by s.speciality 
-            order by avg_total_points desc
-    """)
     try:
+        res = await db.execute(f"""
+                select
+                    s.speciality AS Stud_speciality,
+                    ROUND(((SUM(l.mark_for_work) + SUM(l.test))/COUNT(DISTINCT stud_id))::DECIMAL, 2) AS avg_total_points,
+                    ROUND(COUNT(l.id) FILTER (WHERE l.arrival = 'П') / COUNT(l.id)::DECIMAL, 2) AS arrival,
+                    count(distinct s.id) AS studs_in_speciality
+                FROM
+                    lesson l
+                inner join stud s on s.id = l.stud_id
+                WHERE
+                    l.team_id IN ({teams_true})
+                group by s.speciality 
+                order by avg_total_points desc
+        """)
         result = res.fetchall()
         result_dicts = [row._asdict() for row in result]
         for row_dict in result_dicts:
@@ -2708,7 +2777,6 @@ async def all_for_studs_for_all_specialities(token: str, lect: bool, db: AsyncSe
 async def speciality_kr_total_points_attendance_dynamic(token: str, group_by_speciality: bool,
                                                         teacher_list: Optional[str] = None,
                                                         db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"speciality_kr_total_points_attendance_dynamic-{token}-{group_by_speciality}-{teacher_list} start")
     start_time = time.time()
     teams = await get_teams_for_user_private_without_lect(token, db)
     if teacher_list is not None:
@@ -2723,6 +2791,8 @@ async def speciality_kr_total_points_attendance_dynamic(token: str, group_by_spe
                     sub.teacher_id,"""
         partition_by = "sub.Stud_speciality, sub.name, sub.teacher_id"
     href = f"speciality_kr_total_points_attendance_dynamic-{token}--{group_by_speciality}--{teacher_list}"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -2733,48 +2803,48 @@ async def speciality_kr_total_points_attendance_dynamic(token: str, group_by_spe
         print(e)
         LOGGER.warning(f"speciality_kr_total_points_attendance_dynamic-{token}-{group_by_speciality}-{teacher_list} {e}")
         pass
-    res = await db.execute(f"""
-        SELECT DISTINCT
-            sub.Stud_speciality,
-            {fields}
-            ROUND(AVG(sub.Успеваемость) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Успеваемость_средняя,
-            ROUND(AVG(sub.dynamical_arrival) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Посещаемость_средняя
-        FROM
-            (
-                SELECT
-                    s.speciality AS Stud_speciality,
-                    ROUND(
-                        (
-                            SUM(l.mark_for_work) OVER (PARTITION BY l.stud_id, s.speciality ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) +
-                            SUM(l.test) OVER (PARTITION BY l.stud_id, s.speciality ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
-                        )::DECIMAL,
-                        2
-                    ) AS Успеваемость,
-                    ROUND(
-                        COUNT(l.id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id, s.speciality ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / 
-                        COUNT(l.id) OVER (PARTITION BY l.stud_id, s.speciality ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::DECIMAL,
-                        2
-                    ) AS dynamical_arrival,
-                    (
-                        SELECT t.id FROM team t WHERE t.id = l.team_id
-                    ) AS team_id,
-                    (
-                        SELECT t.id FROM teacher t WHERE t.id = l.teacher_id
-                    ) AS teacher_id,
-                    (
-                        SELECT t.name FROM teacher t WHERE t.id = l.teacher_id
-                    ) AS teacher_name,
-                    l.name
-                FROM
-                    lesson l
-                INNER JOIN stud s ON s.id = l.stud_id
-                WHERE
-                    l.team_id IN ({teams_true})
-            ) AS sub
-        WHERE 
-            sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
-        """)
     try:
+        res = await db.execute(f"""
+            SELECT DISTINCT
+                sub.Stud_speciality,
+                {fields}
+                ROUND(AVG(sub.Успеваемость) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Успеваемость_средняя,
+                ROUND(AVG(sub.dynamical_arrival) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Посещаемость_средняя
+            FROM
+                (
+                    SELECT
+                        s.speciality AS Stud_speciality,
+                        ROUND(
+                            (
+                                SUM(l.mark_for_work) OVER (PARTITION BY l.stud_id, s.speciality ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) +
+                                SUM(l.test) OVER (PARTITION BY l.stud_id, s.speciality ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
+                            )::DECIMAL,
+                            2
+                        ) AS Успеваемость,
+                        ROUND(
+                            COUNT(l.id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id, s.speciality ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / 
+                            COUNT(l.id) OVER (PARTITION BY l.stud_id, s.speciality ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::DECIMAL,
+                            2
+                        ) AS dynamical_arrival,
+                        (
+                            SELECT t.id FROM team t WHERE t.id = l.team_id
+                        ) AS team_id,
+                        (
+                            SELECT t.id FROM teacher t WHERE t.id = l.teacher_id
+                        ) AS teacher_id,
+                        (
+                            SELECT t.name FROM teacher t WHERE t.id = l.teacher_id
+                        ) AS teacher_name,
+                        l.name
+                    FROM
+                        lesson l
+                    INNER JOIN stud s ON s.id = l.stud_id
+                    WHERE
+                        l.team_id IN ({teams_true})
+                ) AS sub
+            WHERE 
+                sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
+            """)
         result = res.fetchall()
         result_dicts = [row._asdict() for row in result]
         for row_dict in result_dicts:
@@ -2823,7 +2893,6 @@ async def speciality_kr_total_points_attendance_dynamic(token: str, group_by_spe
 async def speciality_kr_attendance_dynamic(token: str, group_by_speciality: bool,
                                            teacher_list: Optional[str] = None,
                                            db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"speciality_kr_attendance_dynamic-{token}-{group_by_speciality}-{teacher_list} start")
     start_time = time.time()
     teams = await get_teams_for_user_private_without_lect(token, db)
     if teacher_list is not None:
@@ -2838,6 +2907,8 @@ async def speciality_kr_attendance_dynamic(token: str, group_by_speciality: bool
                     sub.teacher_id,"""
         partition_by = "sub.Stud_speciality, sub.name, sub.teacher_id"
     href = f"speciality_kr_attendance_dynamic-{token}-{group_by_speciality}-{teacher_list}"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -2848,40 +2919,40 @@ async def speciality_kr_attendance_dynamic(token: str, group_by_speciality: bool
         print(e)
         LOGGER.warning(f"speciality_kr_attendance_dynamic-{token}-{group_by_speciality}-{teacher_list} {e}")
         pass
-    res = await db.execute(f"""
-        SELECT DISTINCT
-            sub.Stud_speciality,
-            {fields}
-            ROUND(AVG(sub.dynamical_arrival) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Посещаемость_средняя
-        FROM
-            (
-                SELECT
-                    s.speciality AS Stud_speciality,
-                    ROUND(
-                        COUNT(l.id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id, s.speciality ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / 
-                        COUNT(l.id) OVER (PARTITION BY l.stud_id, s.speciality ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::DECIMAL,
-                        2
-                    ) AS dynamical_arrival,
-                    (
-                        SELECT t.id FROM team t WHERE t.id = l.team_id
-                    ) AS team_id,
-                    (
-                        SELECT t.id FROM teacher t WHERE t.id = l.teacher_id
-                    ) AS teacher_id,
-                    (
-                        SELECT t.name FROM teacher t WHERE t.id = l.teacher_id
-                    ) AS teacher_name,
-                    l.name
-                FROM
-                    lesson l
-                INNER JOIN stud s ON s.id = l.stud_id
-                WHERE
-                    l.team_id IN ({teams_true})
-            ) AS sub
-        WHERE 
-            sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
-        """)
     try:
+        res = await db.execute(f"""
+            SELECT DISTINCT
+                sub.Stud_speciality,
+                {fields}
+                ROUND(AVG(sub.dynamical_arrival) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Посещаемость_средняя
+            FROM
+                (
+                    SELECT
+                        s.speciality AS Stud_speciality,
+                        ROUND(
+                            COUNT(l.id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id, s.speciality ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / 
+                            COUNT(l.id) OVER (PARTITION BY l.stud_id, s.speciality ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::DECIMAL,
+                            2
+                        ) AS dynamical_arrival,
+                        (
+                            SELECT t.id FROM team t WHERE t.id = l.team_id
+                        ) AS team_id,
+                        (
+                            SELECT t.id FROM teacher t WHERE t.id = l.teacher_id
+                        ) AS teacher_id,
+                        (
+                            SELECT t.name FROM teacher t WHERE t.id = l.teacher_id
+                        ) AS teacher_name,
+                        l.name
+                    FROM
+                        lesson l
+                    INNER JOIN stud s ON s.id = l.stud_id
+                    WHERE
+                        l.team_id IN ({teams_true})
+                ) AS sub
+            WHERE 
+                sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
+            """)
         result = res.fetchall()
         result_dicts = [row._asdict() for row in result]
         for row_dict in result_dicts:
@@ -2930,7 +3001,6 @@ async def speciality_kr_attendance_dynamic(token: str, group_by_speciality: bool
 async def speciality_kr_total_points_dynamic(token: str, group_by_speciality: bool,
                                              teacher_list: Optional[str] = None,
                                              db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"speciality_kr_total_points_dynamic-{token}-{group_by_speciality}-{teacher_list} start")
     start_time = time.time()
     teams = await get_teams_for_user_private_without_lect(token, db)
     if teacher_list is not None:
@@ -2945,6 +3015,8 @@ async def speciality_kr_total_points_dynamic(token: str, group_by_speciality: bo
                     sub.teacher_id,"""
         partition_by = "sub.Stud_speciality, sub.name, sub.teacher_id"
     href = f"speciality_kr_total_points_dynamic-{token}-{group_by_speciality}-{teacher_list}"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -2955,42 +3027,42 @@ async def speciality_kr_total_points_dynamic(token: str, group_by_speciality: bo
         print(e)
         LOGGER.warning(f"speciality_kr_total_points_dynamic-{token}-{group_by_speciality}-{teacher_list} {e}")
         pass
-    res = await db.execute(f"""
-        SELECT DISTINCT
-            sub.Stud_speciality,
-            {fields}
-            ROUND(AVG(sub.Успеваемость) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Успеваемость_средняя
-        FROM
-            (
-                SELECT
-                    s.speciality AS Stud_speciality,
-                    ROUND(
-                        (
-                            SUM(l.mark_for_work) OVER (PARTITION BY l.stud_id, s.speciality ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) +
-                            SUM(l.test) OVER (PARTITION BY l.stud_id, s.speciality ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
-                        )::DECIMAL,
-                        2
-                    ) AS Успеваемость,
-                    (
-                        SELECT t.id FROM team t WHERE t.id = l.team_id
-                    ) AS team_id,
-                    (
-                        SELECT t.id FROM teacher t WHERE t.id = l.teacher_id
-                    ) AS teacher_id,
-                    (
-                        SELECT t.name FROM teacher t WHERE t.id = l.teacher_id
-                    ) AS teacher_name,
-                    l.name
-                FROM
-                    lesson l
-                INNER JOIN stud s ON s.id = l.stud_id
-                WHERE
-                    l.team_id IN ({teams_true})
-            ) AS sub
-        WHERE 
-            sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
-        """)
     try:
+        res = await db.execute(f"""
+            SELECT DISTINCT
+                sub.Stud_speciality,
+                {fields}
+                ROUND(AVG(sub.Успеваемость) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Успеваемость_средняя
+            FROM
+                (
+                    SELECT
+                        s.speciality AS Stud_speciality,
+                        ROUND(
+                            (
+                                SUM(l.mark_for_work) OVER (PARTITION BY l.stud_id, s.speciality ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) +
+                                SUM(l.test) OVER (PARTITION BY l.stud_id, s.speciality ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
+                            )::DECIMAL,
+                            2
+                        ) AS Успеваемость,
+                        (
+                            SELECT t.id FROM team t WHERE t.id = l.team_id
+                        ) AS team_id,
+                        (
+                            SELECT t.id FROM teacher t WHERE t.id = l.teacher_id
+                        ) AS teacher_id,
+                        (
+                            SELECT t.name FROM teacher t WHERE t.id = l.teacher_id
+                        ) AS teacher_name,
+                        l.name
+                    FROM
+                        lesson l
+                    INNER JOIN stud s ON s.id = l.stud_id
+                    WHERE
+                        l.team_id IN ({teams_true})
+                ) AS sub
+            WHERE 
+                sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
+            """)
         result = res.fetchall()
         result_dicts = [row._asdict() for row in result]
         for row_dict in result_dicts:
@@ -3028,7 +3100,6 @@ async def speciality_kr_total_points_dynamic(token: str, group_by_speciality: bo
             """)
 async def kr_analyse_simple(token: str, type_group_by: int, kr: str,
                             db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"kr_analyse_simple-{token}-{type_group_by}-{kr} start")
     start_time = time.time()
     teams = await get_teams_for_user_private_without_lect(token, db)
     teams_true = ', '.join([f"'{team[0]}'" for team in teams])
@@ -3047,28 +3118,30 @@ async def kr_analyse_simple(token: str, type_group_by: int, kr: str,
                                 detail="Неправильно выбран тип 0 - Группировка по командам, 1 - " +
                                        "Группировка по направлениям, 2 - Группировка по преподавателям")
     href = f"kr_analyse_simple-{token}-{type_group_by}-{kr}"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
-        LOGGER.info(f"kr_analyse_simpl-{token}-{type_group_by}-{kr}--- "
+        LOGGER.info(f"kr_analyse_simple-{token}-{type_group_by}-{kr}--- "
                     f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
         print(e)
-        LOGGER.warning(f"kr_analyse_simpl-{token}-{type_group_by}-{kr} {e}")
+        LOGGER.warning(f"kr_analyse_simple-{token}-{type_group_by}-{kr} {e}")
         pass
-    res = await db.execute(f"""
-        SELECT
-            ARRAY_AGG(l.test) AS test_mark_list,
-            {fill_query_str}
-        FROM
-            lesson l
-        WHERE
-            l.team_id IN ({teams_true})
-            and l.name = '{kr}'
-        {fill_query_str2}
-    """)
     try:
+        res = await db.execute(f"""
+            SELECT
+                ARRAY_AGG(l.test) AS test_mark_list,
+                {fill_query_str}
+            FROM
+                lesson l
+            WHERE
+                l.team_id IN ({teams_true})
+                and l.name = '{kr}'
+            {fill_query_str2}
+        """)
         result = res.fetchall()
         result_dicts = [row._asdict() for row in result]
         for row_dict in result_dicts:
@@ -3077,10 +3150,10 @@ async def kr_analyse_simple(token: str, type_group_by: int, kr: str,
                     row_dict[key] = float(value)
         await save_resp(href, result_dicts)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-        LOGGER.info(f"kr_analyse_simpl-{token}-{type_group_by}-{kr} finish {(time.time() - start_time)}")
+        LOGGER.info(f"kr_analyse_simple-{token}-{type_group_by}-{kr} finish {(time.time() - start_time)}")
         return result_dicts
     except Exception as e:
-        LOGGER.error(f"kr_analyse_simpl-{token}-{type_group_by}-{kr} Error {e}")
+        LOGGER.error(f"kr_analyse_simple-{token}-{type_group_by}-{kr} Error {e}")
 
 
 @router.get('/api/kr_analyse_with_filters', name='Plot:plot', status_code=status.HTTP_200_OK,
@@ -3104,7 +3177,6 @@ async def kr_analyse_simple(token: str, type_group_by: int, kr: str,
 async def kr_analyse_with_filters(token: str, kr: str, type_select: int, teacher: Optional[str] = None,
                                   speciality: Optional[str] = None, team: Optional[str] = None,
                                   db: AsyncSession = Depends(connect_db_data)):
-    LOGGER.info(f"kr_analyse_with_filters-{token}-{kr}-{type_select}-{teacher}-{speciality}-{team} start")
     start_time = time.time()
     if teacher is None:
         teachers = await get_all_teachers(token, db)
@@ -3155,6 +3227,8 @@ async def kr_analyse_with_filters(token: str, kr: str, type_select: int, teacher
             raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                                 detail="Неправильно выбран тип(всего их 0,1,2,3,4,5,6)")
     href = f"kr_analyse_with_filters-{token}-{kr}-{type_select}-{teacher}-{speciality}-{team}"
+    LOGGER.info(f"{href}--- "
+                f"{(time.time() - start_time)} seconds --- finish redis")
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -3165,25 +3239,25 @@ async def kr_analyse_with_filters(token: str, kr: str, type_select: int, teacher
         print(e)
         LOGGER.warning(f"kr_analyse_with_filters-{token}-{kr}-{type_select}-{teacher}-{speciality}-{team} {e}")
         pass
-    res = await db.execute(f"""
-        SELECT
-            ARRAY_AGG(l.test) AS test_mark_list,
-            {teacher_query}
-            {team_query}
-            {speciality_query}
-        FROM
-            lesson l
-        inner join teacher t on t.id = l.teacher_id
-        inner join team t1 on t1.id = l.team_id
-        inner join stud s on s.id = l.stud_id
-        WHERE
-            l.name = '{kr}'
-            and l.team_id IN ({teams})
-            and t.id IN ({teachers})
-            and s.speciality IN ({specialities})
-        {group_by_query}
-        """)
     try:
+        res = await db.execute(f"""
+            SELECT
+                ARRAY_AGG(l.test) AS test_mark_list,
+                {teacher_query}
+                {team_query}
+                {speciality_query}
+            FROM
+                lesson l
+            inner join teacher t on t.id = l.teacher_id
+            inner join team t1 on t1.id = l.team_id
+            inner join stud s on s.id = l.stud_id
+            WHERE
+                l.name = '{kr}'
+                and l.team_id IN ({teams})
+                and t.id IN ({teachers})
+                and s.speciality IN ({specialities})
+            {group_by_query}
+            """)
         result = res.fetchall()
         result_dicts = [row._asdict() for row in result]
         for row_dict in result_dicts:
@@ -3223,6 +3297,7 @@ async def kr_analyse_with_filters(token: str, kr: str, type_select: int, teacher
 async def get_dataset(fields_dict: dict | None, filter_dict: dict | None, distinct: bool,
                       db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
+    LOGGER.info(f"get_dataset start")
     print(fields_dict)
     # field_params = ['lesson_id', 'lesson_name', 'lesson_mark_for_work', 'lesson_arrival', 'lesson_test',
     #                 'lesson_result_points', 'lesson_result_mark', 'lesson_stud_id', 'lesson_team_id',
@@ -3278,25 +3353,29 @@ async def get_dataset(fields_dict: dict | None, filter_dict: dict | None, distin
         distinct_str = ' distinct '
     else:
         distinct_str = ''
-    result_query = await db.execute(f"""
-        SELECT {distinct_str}
-            {field_list_str}
-        from lesson l
-        inner join teacher t on t.id = l.teacher_id 
-        inner join team t2 on t2.id  = l.team_id 
-        inner join stud s on s.id = l.stud_id
-        inner join rmup r on r.id = t2.rmup_id
-        {filter_str}
-                    """)
-    df = pd.DataFrame(result_query.fetchall())
-    print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
-    stream = io.StringIO()
-    df.to_csv(stream, index=False)
-    response = StreamingResponse(iter([stream.getvalue()]),
-                                 media_type="text/csv"
-                                 )
-    response.headers["Content-Disposition"] = "attachment; filename=export.csv"
-    return response
+    try:
+        result_query = await db.execute(f"""
+            SELECT {distinct_str}
+                {field_list_str}
+            from lesson l
+            inner join teacher t on t.id = l.teacher_id 
+            inner join team t2 on t2.id  = l.team_id 
+            inner join stud s on s.id = l.stud_id
+            inner join rmup r on r.id = t2.rmup_id
+            {filter_str}
+                        """)
+        df = pd.DataFrame(result_query.fetchall())
+        stream = io.StringIO()
+        df.to_csv(stream, index=False)
+        response = StreamingResponse(iter([stream.getvalue()]),
+                                     media_type="text/csv"
+                                     )
+        response.headers["Content-Disposition"] = "attachment; filename=export.csv"
+        print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
+        LOGGER.info(f"get_dataset finish {(time.time() - start_time)}")
+        return response
+    except Exception as e:
+        LOGGER.error(f"get_dataset finish Error {e}")
 
 
 @router.post('/api/reporting_system', name='Reporting system:Reporting system', status_code=status.HTTP_200_OK,
@@ -3309,27 +3388,35 @@ async def get_dataset(fields_dict: dict | None, filter_dict: dict | None, distin
                          массив словарей с полями 'response', "url" либо ссылку на скачивает csv файла
              """)
 async def reporting_system(hrefs_list: str, name_of_sheet_list: str, as_csv: bool):
+    start_time = time.time()
+    LOGGER.info(f"reporting_system-{hrefs_list}-{name_of_sheet_list}-{as_csv} start")
     hrefs_list = hrefs_list.split(',')
     name_of_sheet_list = name_of_sheet_list.split(',')
     res = await get_urls(hrefs_list, as_csv)
     if isinstance(res, dict):
+        LOGGER.info(f"reporting_system-{hrefs_list}-{name_of_sheet_list}-{as_csv} finish {(time.time() - start_time)}")
         res = [res]
     if as_csv:
-        random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=30))
-        file_path = f"trash/{random_string}.xlsx"
-        writer = pd.ExcelWriter(file_path, engine="xlsxwriter")
-        for index, href_resp in enumerate(res, start=0):
-            df = pd.DataFrame(href_resp)
-            df.to_excel(writer, sheet_name=f"{name_of_sheet_list[index]}", index=False)
-        writer.close()
-        with open(file_path, "rb") as file:
-            contents = file.read()
-        response = StreamingResponse(iter([contents]),
-                                     media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-        response.headers["Content-Disposition"] = "attachment; filename=export.xlsx"
-        os.remove(file_path)
-        return response
+        try:
+            random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=30))
+            file_path = f"trash/{random_string}.xlsx"
+            writer = pd.ExcelWriter(file_path, engine="xlsxwriter")
+            for index, href_resp in enumerate(res, start=0):
+                df = pd.DataFrame(href_resp)
+                df.to_excel(writer, sheet_name=f"{name_of_sheet_list[index]}", index=False)
+            writer.close()
+            with open(file_path, "rb") as file:
+                contents = file.read()
+            response = StreamingResponse(iter([contents]),
+                                         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            response.headers["Content-Disposition"] = "attachment; filename=export.xlsx"
+            os.remove(file_path)
+            LOGGER.info(f"reporting_system-{hrefs_list}-{name_of_sheet_list}-{as_csv} finish {(time.time() - start_time)}")
+            return response
+        except Exception as e:
+            LOGGER.error(f"reporting_system-{hrefs_list}-{name_of_sheet_list}-{as_csv} Error {e}")
     else:
+        LOGGER.info(f"reporting_system-{hrefs_list}-{name_of_sheet_list}-{as_csv} finish {(time.time() - start_time)}")
         return res
 
 # endregion
