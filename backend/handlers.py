@@ -425,6 +425,7 @@ async def get_teams_for_user_private(token: str, db):
                         t.name ilike '%{user_fio}%'))
             """)
         LOGGER.info(f"get_teams_for_user_private_without_lect-{token} finish {(time.time() - start_time)}")
+        return response.fetchall()
     else:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
@@ -496,6 +497,7 @@ async def get_teams_for_user_private_without_lect(token: str, db):
                         and t.name not ilike '%л%'
                     """)
         LOGGER.info(f"get_teams_for_user_private_without_lect-{token} finish {(time.time() - start_time)}")
+        return response.fetchall()
     else:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")

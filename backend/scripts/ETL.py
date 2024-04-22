@@ -150,7 +150,7 @@ for i, name in enumerate(list_of_name_of_lesson):
         counter = 1
     previous_name = name
 # print(list_of_test)
-list_of_test_sub = [item for item in list_of_test if float(item)>-0.5]
+list_of_test_sub = [item for item in list_of_test if float(item) > -0.5]
 list_of_test_true = []
 # list_of_test_sub.append('0.0')
 # list_of_test_sub.append('0.0')
@@ -158,15 +158,15 @@ list_of_test_true = []
 print(len(list_of_test_sub))
 print(len(list_of_name_of_lesson))
 print(list_of_test_sub)
-counter=0
+counter = 0
 for name in list_of_name_of_lesson:
     if name == 'Организация функций3' or name == 'Управляющие конструкции5' or name == 'Коллекции. Работа с файлами2':
         try:
             list_of_test_true.append(list_of_test_sub[0])
-            list_of_test_sub=list_of_test_sub[1:]
+            list_of_test_sub = list_of_test_sub[1:]
         except:
             list_of_test_true.append('0.0')
-        counter+=1
+        counter += 1
     else:
         list_of_test_true.append(math.nan)
         # list_of_test_sub = list_of_test_sub[1:]
@@ -174,7 +174,6 @@ print(counter)
 df_list = [list_of_rmup, list_of_rmup_link, list_of_stud_fio, list_of_team, list_of_name_of_lesson,
            list_of_mark_of_subject_of_control, list_of_arrival, list_of_test_true, list_of_result_points,
            list_of_result_mark, list_of_stud_email, list_of_stud_course, list_of_teachers]
-
 
 df_true = pd.DataFrame(df_list)
 df_true = df_true.T

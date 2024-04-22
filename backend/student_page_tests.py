@@ -19,8 +19,6 @@ class StudentPageTests(unittest.TestCase):
             return {'status': res.status, 'response_json': await res.json(), 'response_text': await res.text(),
                     'headers': res.headers}
 
-
-
     def test_cum_sum_points_for_stud_for_team_true(self):
         params = {'id_stud': 144,
                   'id_team': 2}
@@ -37,7 +35,6 @@ class StudentPageTests(unittest.TestCase):
             self.assertIsNotNone(item["cum_sum"])
             self.assertIsNotNone(item["counter"])
             self.assertIsNotNone(item["test"])
-
 
     def test_cum_sum_points_for_stud_for_team_false_a(self):
         params = {'id_stud': -1}
@@ -72,7 +69,6 @@ class StudentPageTests(unittest.TestCase):
             self.assertIsNotNone(item["name"])
             self.assertIsNotNone(item["dynamical_arrival"])
 
-
     def test_attendance_dynamical_for_stud_for_team_false_a(self):
         params = {'id_stud': -1}
         response = self.loop.run_until_complete(
@@ -92,7 +88,6 @@ class StudentPageTests(unittest.TestCase):
         response = self.loop.run_until_complete(
             self.get_request(url="/api/attendance_dynamical_for_stud_for_team", **params))
         self.assertEqual(response['status'], 200)
-
 
     def test_attendance_static_for_stud_for_team_true(self):
         params = {'id_stud': 144,
@@ -161,16 +156,12 @@ class StudentPageTests(unittest.TestCase):
             self.get_request(url="/api/all_in_one_for_stud_for_team", **params))
         self.assertEqual(response['status'], 200)
 
-
-
     def test_all_in_one_for_stud_for_team_false_c(self):
         params = {'id_stud': -1,
                   'id_team': 2}
         response = self.loop.run_until_complete(
             self.get_request(url="/api/all_in_one_for_stud_for_team", **params))
         self.assertEqual(response['status'], 200)
-
-
 
 
 if __name__ == '__main__':

@@ -14,11 +14,11 @@ class LoggerSetup:
         LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT)
 
-        #configure formmater for logger
+        # configure formmater for logger
         formatter = logging.Formatter(LOG_FORMAT)
 
         # configure console handler
-        console= logging.StreamHandler()
+        console = logging.StreamHandler()
         console.setFormatter(formatter)
 
         # configure TimeRotatingFileHandler
