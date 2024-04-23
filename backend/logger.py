@@ -29,3 +29,6 @@ class LoggerSetup:
         # add handlers
         self.logger.addHandler(console)
         self.logger.addHandler(file)
+
+logger_setup = LoggerSetup()
+LOGGER = logging.getLogger(__name__)

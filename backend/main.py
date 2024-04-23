@@ -1,12 +1,9 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from handlers import router
-from logger import LoggerSetup
-import logging
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
 
-logger_setup = LoggerSetup()
 
 
 def get_application() -> FastAPI:
