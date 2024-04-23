@@ -722,7 +722,7 @@ async def get_student(id_stud: int, db: AsyncSession = Depends(connect_db_data))
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
-        LOGGER.info(f"g{href}--- "
+        LOGGER.info(f"{href}--- "
                     f"{(time.time() - start_time)} seconds --- finish redis")
         return res
     except Exception as e:
@@ -2009,7 +2009,7 @@ async def attendance_static_stud_for_all_teams(token: str, db: AsyncSession = De
         LOGGER.warning(f"{href} {e}")
         pass
     teams = await get_teams_for_user_private(token, db)
-    teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    teams_true = ', '.join([f"'{team['id']}'" for team in teams])
     try:
         res = await db.execute(f"""
             SELECT distinct
@@ -2065,7 +2065,7 @@ async def attendance_static_stud_for_all_teams(token: str, db: AsyncSession = De
 async def total_points_studs_for_all_teams(token: str, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
     teams = await get_teams_for_user_private_without_lect(token, db)
-    teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    teams_true = ', '.join([f"'{team['id']}'" for team in teams])
     href = f"total_points_studs_for_all_teams-{token}"
     LOGGER.info(f"{href} start")
     try:
@@ -2156,7 +2156,7 @@ async def team_kr_total_points_attendance_dynamic(token: str, group_by_teacher: 
     if teacher_list is not None:
         teacher_arr = teacher_list.split(',')
         teams = await get_teams_for_param_private_without_lect(teacher_arr=teacher_arr, db=db)
-    teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    teams_true = ', '.join([f"'{team['id']}'" for team in teams])
     if group_by_teacher:
         fields = """"""
         partition_by = "sub.name, sub.teacher_id"
@@ -2277,7 +2277,7 @@ async def team_kr_total_points_dynamic(token: str, group_by_teacher: bool,
     if teacher_list is not None:
         teacher_arr = teacher_list.split(',')
         teams = await get_teams_for_param_private_without_lect(teacher_arr=teacher_arr, db=db)
-    teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    teams_true = ', '.join([f"'{team['id']}'" for team in teams])
     if group_by_teacher:
         fields = """"""
         partition_by = "sub.name, sub.teacher_id"
@@ -2393,7 +2393,7 @@ async def team_kr_attendance_dynamic(token: str, group_by_teacher: bool,
     if teacher_list is not None:
         teacher_arr = teacher_list.split(',')
         teams = await get_teams_for_param_private_without_lect(teacher_arr=teacher_arr, db=db)
-    teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    teams_true = ', '.join([f"'{team['id']}'" for team in teams])
     if group_by_teacher:
         fields = """"""
         partition_by = "sub.name, sub.teacher_id"
@@ -2495,7 +2495,7 @@ async def attendance_static_for_specialities(token: str, speciality1: str, speci
         teams = await get_teams_for_user_private(token, db)
     else:
         teams = await get_teams_for_user_private_without_lect(token, db)
-    teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    teams_true = ', '.join([f"'{team['id']}'" for team in teams])
     href = f"attendance_static_for_specialities-{token}-{speciality1}--{speciality2}--{lect}"
     LOGGER.info(f"{href} start")
     try:
@@ -2582,7 +2582,7 @@ async def total_points_for_specialities(token: str, speciality1: str, speciality
         teams = await get_teams_for_user_private(token, db)
     else:
         teams = await get_teams_for_user_private_without_lect(token, db)
-    teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    teams_true = ', '.join([f"'{team['id']}'" for team in teams])
     href = f"total_points_for_specialities-{token}-{speciality1}--{speciality2}--{lect}"
     LOGGER.info(f"{href} start")
     try:
@@ -2663,7 +2663,7 @@ async def attendance_static_stud_for_all_specialities(token: str, lect: bool,
         teams = await get_teams_for_user_private(token, db)
     else:
         teams = await get_teams_for_user_private_without_lect(token, db)
-    teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    teams_true = ', '.join([f"'{team['id']}'" for team in teams])
     href = f"attendance_static_stud_for_all_specialities-{token}-{lect}"
     LOGGER.info(f"{href} start")
     try:
@@ -2730,7 +2730,7 @@ async def total_points_studs_for_all_specialities(token: str, lect: bool, db: As
         teams = await get_teams_for_user_private(token, db)
     else:
         teams = await get_teams_for_user_private_without_lect(token, db)
-    teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    teams_true = ', '.join([f"'{team['id']}'" for team in teams])
     href = f"total_points_studs_for_all_specialities-{token}-{lect}"
     LOGGER.info(f"{href} start")
     try:
@@ -2792,14 +2792,14 @@ async def total_points_studs_for_all_specialities(token: str, lect: bool, db: As
                         "studs_in_speciality": 23
                       },
             """)
-async def all_for_studs_for_all_specialities(token: str, lect: bool, db: AsyncSession = Depends(connect_db_data)):
+async def attendance_static_total_points_studs_for_all_specialities(token: str, lect: bool, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
     if lect:
         teams = await get_teams_for_user_private(token, db)
     else:
         teams = await get_teams_for_user_private_without_lect(token, db)
-    teams_true = ', '.join([f"'{team[0]}'" for team in teams])
-    href = f"all_for_studs_for_all_specialities-{token}-{lect}"
+    teams_true = ', '.join([f"'{team['id']}'" for team in teams])
+    href = f"attendance_static_total_points_studs_for_all_specialities-{token}-{lect}"
     LOGGER.info(f"{href} start")
     try:
         res = await check_href(href)
@@ -2883,7 +2883,7 @@ async def speciality_kr_total_points_attendance_dynamic(token: str, group_by_spe
     if teacher_list is not None:
         teacher_arr = teacher_list.split(',')
         teams = await get_teams_for_param_private_without_lect(teacher_arr=teacher_arr, db=db)
-    teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    teams_true = ', '.join([f"'{team['id']}'" for team in teams])
     if group_by_speciality:
         fields = """"""
         partition_by = "sub.Stud_speciality, sub.name"
@@ -2999,7 +2999,7 @@ async def speciality_kr_attendance_dynamic(token: str, group_by_speciality: bool
     if teacher_list is not None:
         teacher_arr = teacher_list.split(',')
         teams = await get_teams_for_param_private_without_lect(teacher_arr=teacher_arr, db=db)
-    teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    teams_true = ', '.join([f"'{team['id']}'" for team in teams])
     if group_by_speciality:
         fields = """"""
         partition_by = "sub.Stud_speciality, sub.name"
@@ -3107,7 +3107,7 @@ async def speciality_kr_total_points_dynamic(token: str, group_by_speciality: bo
     if teacher_list is not None:
         teacher_arr = teacher_list.split(',')
         teams = await get_teams_for_param_private_without_lect(teacher_arr=teacher_arr, db=db)
-    teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    teams_true = ', '.join([f"'{team['id']}'" for team in teams])
     if group_by_speciality:
         fields = """"""
         partition_by = "sub.Stud_speciality, sub.name"
@@ -3203,7 +3203,7 @@ async def kr_analyse_simple(token: str, type_group_by: int, kr: str,
                             db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
     teams = await get_teams_for_user_private_without_lect(token, db)
-    teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    teams_true = ', '.join([f"'{team['id']}'" for team in teams])
     href = f"kr_analyse_simple-{token}-{type_group_by}-{kr}"
     LOGGER.info(f"{href} start")
     match type_group_by:
@@ -3293,7 +3293,7 @@ async def kr_analyse_with_filters(token: str, kr: str, type_select: int, teacher
         specialities = speciality
     if team is None:
         teams = await get_teams_for_user_private_without_lect(token, db)
-        teams = ', '.join([f"'{team[0]}'" for team in teams])
+        teams = ', '.join([f"'{team['id']}'" for team in teams])
     else:
         teams = team
     team_query = ''
