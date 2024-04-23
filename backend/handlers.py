@@ -99,6 +99,9 @@ async def registration_standard(user: UserRegistration, db: AsyncSession = Depen
         LOGGER.info(f"{href} finish {(time.time() - start_time)}")
         await db.commit()
         return {"access_token": access_token, "token_type": "bearer"}
+    except HTTPException as e:
+        LOGGER.error(f"{href} Error {e.detail}")
+        raise e
     except Exception as e:
         LOGGER.error(f"{href} Error {e}")
         raise e
@@ -175,6 +178,9 @@ async def get_current_user_dev(token: str):
             raise credentials_exception
         LOGGER.info(f"{href} finish {(time.time() - start_time)}")
         return user
+    except HTTPException as e:
+        LOGGER.error(f"{href} Error {e.detail}")
+        raise e
     except Exception as e:
         LOGGER.error(f"{href} Error {e}")
         raise e
@@ -332,6 +338,9 @@ async def login_standard(user: UserLogin, db: AsyncSession = Depends(connect_db_
         else:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                                 detail="Нельзя войти в несуществующий аккаунт/Неправильно введены данные")
+    except HTTPException as e:
+            LOGGER.error(f"{href} Error {e.detail}")
+            raise e
     except Exception as e:
         LOGGER.error(f"{href} Error {e}")
         raise e
@@ -414,6 +423,9 @@ async def get_teams_for_user(token: str, db: AsyncSession = Depends(connect_db_d
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
         LOGGER.info(f"{href} finish {(time.time() - start_time)}")
         return result_dicts
+    except HTTPException as e:
+        LOGGER.error(f"{href} Error {e.detail}")
+        raise e
     except Exception as e:
         LOGGER.error(f"{href} Error {e}")
         raise e
@@ -475,6 +487,9 @@ async def get_teams_for_user_private(token: str, db):
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
         LOGGER.info(f"{href} finish {(time.time() - start_time)}")
         return result_dicts
+    except HTTPException as e:
+        LOGGER.error(f"{href} Error {e.detail}")
+        raise e
     except Exception as e:
         LOGGER.error(f"{href} Error {e}")
         raise e
@@ -595,6 +610,9 @@ async def get_teams_for_user_private_without_lect(token: str, db):
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
         LOGGER.info(f"{href} finish {(time.time() - start_time)}")
         return result_dicts
+    except HTTPException as e:
+        LOGGER.error(f"{href} Error {e.detail}")
+        raise e
     except Exception as e:
         LOGGER.error(f"{href} Error {e}")
         raise e
@@ -675,6 +693,9 @@ async def get_teams_for_user_without_lect(token: str, db: AsyncSession = Depends
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
         LOGGER.info(f"{href} finish {(time.time() - start_time)}")
         return result_dicts
+    except HTTPException as e:
+        LOGGER.error(f"{href} Error {e.detail}")
+        raise e
     except Exception as e:
         LOGGER.error(f"{href} Error {e}")
         raise e
@@ -851,6 +872,9 @@ async def get_all_specialities(token: str, db: AsyncSession = Depends(connect_db
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
         LOGGER.info(f"{href} finish {(time.time() - start_time)}")
         return result_dicts
+    except HTTPException as e:
+        LOGGER.error(f"{href} Error {e.detail}")
+        raise e
     except Exception as e:
         LOGGER.error(f"{href} Error {e}")
         raise e
@@ -982,6 +1006,9 @@ async def get_all_teachers_unique(token: str, db: AsyncSession = Depends(connect
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish\n")
         LOGGER.info(f"{href} finish {(time.time() - start_time)}")
         return result_dicts
+    except HTTPException as e:
+        LOGGER.error(f"{href} Error {e.detail}")
+        raise e
     except Exception as e:
         LOGGER.error(f"{href} Error {e}")
         raise e
@@ -1057,6 +1084,9 @@ async def get_all_teachers(token: str, db: AsyncSession = Depends(connect_db_dat
         LOGGER.info(
             f"{href} finish {(time.time() - start_time)}")
         return result_dicts
+    except HTTPException as e:
+        LOGGER.error(f"{href} Error {e.detail}")
+        raise e
     except Exception as e:
         LOGGER.error(f"{href} Error {e}")
         raise e
@@ -3174,6 +3204,8 @@ async def kr_analyse_simple(token: str, type_group_by: int, kr: str,
     start_time = time.time()
     teams = await get_teams_for_user_private_without_lect(token, db)
     teams_true = ', '.join([f"'{team[0]}'" for team in teams])
+    href = f"kr_analyse_simple-{token}-{type_group_by}-{kr}"
+    LOGGER.info(f"{href} start")
     match type_group_by:
         case 0:
             fill_query_str = '(select t.name from team t where t.id = l.team_id)'
@@ -3185,11 +3217,11 @@ async def kr_analyse_simple(token: str, type_group_by: int, kr: str,
             fill_query_str = '(select t.name from teacher t where t.id = l.teacher_id) as teacher_name'
             fill_query_str2 = 'group by teacher_name'
         case _:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+            e = HTTPException(status_code=status.HTTP_409_CONFLICT,
                                 detail="Неправильно выбран тип 0 - Группировка по командам, 1 - " +
                                        "Группировка по направлениям, 2 - Группировка по преподавателям")
-    href = f"kr_analyse_simple-{token}-{type_group_by}-{kr}"
-    LOGGER.info(f"{href} start")
+            LOGGER.warning(f"{href} warning {e.detail}")
+            raise e
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
@@ -3267,6 +3299,8 @@ async def kr_analyse_with_filters(token: str, kr: str, type_select: int, teacher
     team_query = ''
     teacher_query = ''
     speciality_query = ''
+    href = f"kr_analyse_with_filters-{token}-{kr}-{type_select}-{teacher}-{speciality}-{team}"
+    LOGGER.info(f"{href} start")
     match type_select:
         case 0:
             team_query = 't1.name as team_name'
@@ -3295,10 +3329,10 @@ async def kr_analyse_with_filters(token: str, kr: str, type_select: int, teacher
             speciality_query = 's.speciality as speciality'
             group_by_query = 'group by speciality,teacher_name,team_name'
         case _:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+            e = HTTPException(status_code=status.HTTP_409_CONFLICT,
                                 detail="Неправильно выбран тип(всего их 0,1,2,3,4,5,6)")
-    href = f"kr_analyse_with_filters-{token}-{kr}-{type_select}-{teacher}-{speciality}-{team}"
-    LOGGER.info(f"{href} start")
+            LOGGER.warning(f"{href} warning {e.detail}")
+            raise e
     try:
         res = await check_href(href)
         print("--- %s seconds ---" % (time.time() - start_time), end=" finish redis\n")
