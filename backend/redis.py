@@ -4,8 +4,7 @@ import asyncio
 import time
 from decimal import Decimal
 from datetime import datetime
-
-from handlers import LOGGER
+from logger import LOGGER
 
 
 async def connect_to_redis():
