@@ -1565,7 +1565,7 @@ async def attendance_static_stud_for_teams(id_team1: int, id_team2: int, db: Asy
                 df_list.append(team_a[i])
             if i < len(team_b):
                 df_list.append(team_b[i])
-        return await save_resp_and_return_it(mas, href, start_time, skip=True)
+        return await save_resp_and_return_it(df_list, href, start_time, skip=True)
     except Exception as e:
         LOGGER.error(f"{href} Error {e}")
         raise e
@@ -1645,7 +1645,7 @@ async def total_points_stud_for_teams(id_team1: int, id_team2: int, db: AsyncSes
                 df_list.append(team_a[i])
             if i < len(team_b):
                 df_list.append(team_b[i])
-        return await save_resp_and_return_it(mas, href, start_time, skip=True)
+        return await save_resp_and_return_it(df_list, href, start_time, skip=True)
     except Exception as e:
         LOGGER.error(f"{href} Error {e}")
         raise e
@@ -2137,7 +2137,7 @@ async def attendance_static_for_specialities(token: str, speciality1: str, speci
                 df_list.append(team_a[i])
             if i < len(team_b):
                 df_list.append(team_b[i])
-        return await save_resp_and_return_it(mas, href, start_time, skip=True)
+        return await save_resp_and_return_it(df_list, href, start_time, skip=True)
     except Exception as e:
         LOGGER.error(f"{href} Error {e}")
         raise e
@@ -2210,7 +2210,7 @@ async def total_points_for_specialities(token: str, speciality1: str, speciality
                 df_list.append(team_a[i])
             if i < len(team_b):
                 df_list.append(team_b[i])
-        return await save_resp_and_return_it(mas, href, start_time, skip=True)
+        return await save_resp_and_return_it(df_list, href, start_time, skip=True)
     except Exception as e:
         LOGGER.error(f"{href} Error {e}")
         raise e
