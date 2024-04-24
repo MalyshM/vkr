@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
+
+from routers.main_page.main_page_router import main_page_router
 from handlers import router
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
@@ -16,6 +18,7 @@ def get_application() -> FastAPI:
         allow_headers=["*"],
     )
     application.include_router(router)
+    application.include_router(main_page_router)
     return application
 
 
