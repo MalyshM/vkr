@@ -4,9 +4,9 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
-from backend.logger import LOGGER
-from backend.models import connect_db_data
-from backend.redis import process_href, save_resp_and_return_it
+from logger import LOGGER
+from models import connect_db_data
+from redis import process_href, save_resp_and_return_it
 
 main_page_router = APIRouter(tags=["Main page"])
 
