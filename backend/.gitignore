@@ -4,7 +4,7 @@
 /scripts/*.csv
 /scripts/*.xls
 /scripts/*.pkl
-/__pycache__
+*__pycache__
 /for_eyes
 *.png
 /temp_dir
