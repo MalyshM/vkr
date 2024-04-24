@@ -11,7 +11,7 @@ const AnalysKrSimple = ({ tokenUsers, type, kr }) => {
     const fetchAnalysKrSimpleData = async () => {
       try {
         if (type !== null && kr !== null) {
-          const response = await fetch(`http://localhost:8090/api/kr_analyse_simple?type=${type}&kr=${kr}&token=${tokenUsers}`);
+          const response = await fetch(`http://moais-dashboard.ru:8082/api/kr_analyse_simple?type_group_by=${type}&kr=${kr}&token=${tokenUsers}`);
           const result = await response.json();
           setAnalysKrSimpleData(result);
         }
@@ -21,11 +21,15 @@ const AnalysKrSimple = ({ tokenUsers, type, kr }) => {
     };
     fetchAnalysKrSimpleData();
   }, [type, kr, tokenUsers]);
+  // console.log('test AnalysKrSimple - ', tokenUsers, type, kr)
+  console.log('NEW AnalysKrSimpleData - ', AnalysKrSimpleData)
 
   useEffect(() => {
     if (AnalysKrSimpleData) {
-      const labels = Object.keys(AnalysKrSimpleData);
-      const data = Object.values(AnalysKrSimpleData);
+
+      const labels = AnalysKrSimpleData.map(item => item.name || item.speciality || item.teacher_name);
+      const data = AnalysKrSimpleData.map(item => item.test_mark_list);
+
 
 
       const boxplotData = {

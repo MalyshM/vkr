@@ -20,66 +20,70 @@ const GeneralStudPage = () => {
 
 
   useEffect(() => {
-    fetch(`http://localhost:8090/api/cum_sum_points_for_stud_for_team?id_team=${teamId}&id_stud=${studentId}&isTest=${isTest}`)
-    .then(response => response.json())
-      .then(data => setAttendanceData(data))
-      .catch(error => console.error('Error fetching attendance data:', error));
+    const fetchData = async () => {
+      try {
+        const urls = [
+          `http://moais-dashboard.ru:8082/api/cum_sum_points_for_stud_for_team?id_team=${teamId}&id_stud=${studentId}`,
+          `http://moais-dashboard.ru:8082/api/attendance_dynamical_for_stud_for_team?id_team=${teamId}&id_stud=${studentId}`,
+          `http://moais-dashboard.ru:8082/api/attendance_static_for_stud_for_team?id_team=${teamId}&id_stud=${studentId}`
+        ];
 
-    fetch(`http://localhost:8090/api/attendance_dynamical_for_stud_for_team?id_team=${teamId}&id_stud=${studentId}`)
-      .then(response => response.json())
-      .then(data => setAttendanceDynamicData(data))
-      .catch(error => console.error('Error fetching dynamic attendance data:', error));
+        const responses = await Promise.all(urls.map(url => fetch(url)));
+        const data = await Promise.all(responses.map(response => response.json()));
 
-    fetch(`http://localhost:8090/api/attendance_static_for_stud_for_team?id_team=${teamId}&id_stud=${studentId}`)
-      .then(response => response.json())
-      .then(data => setAttendanceStaticData(data))
-      .catch(error => console.error('Error fetching static attendance data:', error));
-  }, [teamId, studentId,isTest]);
+        setAttendanceData(data[0]);
+        setAttendanceDynamicData(data[1]);
+        setAttendanceStaticData(data[2]);
 
-
-    const chartAttendanceData = {
-      labels: attendanceData ? attendanceData.map(item => item.name): [],
-      datasets: [
-        {
-          label: 'cum_sum',
-          data: attendanceData ? attendanceData.map(item => item.cum_sum): [],
-          fill: true,
-          borderColor: 'rgb(0,174,239)',
-          pointBackgroundColor: attendanceData ? attendanceData.map(item => item.isTest ? 'red' : 'rgb(0,174,239)') : [],
-
-        },
-      ],
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
     };
 
-    const charDynamictData = {
-      labels: attendanceDynamicData ? attendanceDynamicData.map(item => item.name) : [],
-      datasets: [
-        {
-          label: 'dynamical_arrival',
-          data: attendanceDynamicData ? attendanceDynamicData.map(item => item.dynamical_arrival) : [],
-          fill: true,
-          borderColor: 'rgb(95,122,208)',
-          // pointBackgroundColor: attendanceDynamicData ? attendanceDynamicData.map(item => item.isTest ? 'red' : 'rgb(0,174,239)') : [],
-        },
-      ],
-    };
-    
+    fetchData();
+
+  }, [teamId, studentId, isTest]);
+
+  console.log("NOW GeneralStudPage: ", attendanceData);
 
 
-    const chartStaticData = {
-      labels: attendanceStaticData ? attendanceStaticData.map(item => item.name): [],
-      datasets: [
-        {
-          label: 'static_arrival',
-          data: attendanceStaticData ? attendanceStaticData.map(item => item.static_arrival): [],
-          fill: true,
-          
-          // backgroundColor: 'rgb(251,157,47)',
-          borderColor: 'rgb(251,157,47)',
-          // pointBackgroundColor: attendanceStaticData ? attendanceStaticData.map(item => item.isTest ? 'red' : 'rgb(0,174,239)') : [],
-        },
-      ],
-    };
+  const chartAttendanceData = {
+    labels: attendanceData && Array.isArray(attendanceData) ? attendanceData.map(item => item.name) : [],
+    datasets: [
+      {
+        label: 'cum_sum',
+        data: attendanceData && Array.isArray(attendanceData) ? attendanceData.map(item => item.cum_sum) : [],
+        fill: true,
+        borderColor: 'rgb(0,174,239)',
+        pointBackgroundColor: attendanceData && Array.isArray(attendanceData) ? attendanceData.map(item => item.test ? 'red' : 'rgb(0,174,239)') : [],
+      },
+    ],
+  };
+  
+  const charDynamictData = {
+    labels: attendanceDynamicData && Array.isArray(attendanceDynamicData) ? attendanceDynamicData.map(item => item.name) : [],
+    datasets: [
+      {
+        label: 'dynamical_arrival',
+        data: attendanceDynamicData && Array.isArray(attendanceDynamicData) ? attendanceDynamicData.map(item => item.dynamical_arrival) : [],
+        fill: true,
+        borderColor: 'rgb(95,122,208)',
+      },
+    ],
+  };
+  
+  const chartStaticData = {
+    labels: attendanceStaticData && Array.isArray(attendanceStaticData) ? attendanceStaticData.map(item => item.name) : [],
+    datasets: [
+      {
+        label: 'static_arrival',
+        data: attendanceStaticData && Array.isArray(attendanceStaticData) ? attendanceStaticData.map(item => item.static_arrival) : [],
+        fill: true,
+        borderColor: 'rgb(251,157,47)',
+      },
+    ],
+  };
+  
    
     const OptionsChartAttendance = {
       scales: {

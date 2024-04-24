@@ -39,7 +39,7 @@ const AnalysRr = () => {
 
   const fetchNameKR = async () => {
   try {
-    const response = await fetch('http://localhost:8090/api/get_all_kr');
+    const response = await fetch('http://moais-dashboard.ru:8082/api/get_all_kr');
     const result = await response.json();
     setKRSimple(result);
     setKRFiltr(result);
@@ -55,7 +55,7 @@ const AnalysRr = () => {
 
 const fetchAllTeachers = async () => {
     try {
-      const response = await fetch(`http://localhost:8090/api/get_all_teachers?token=${userToken}`);
+      const response = await fetch(`http://moais-dashboard.ru:8082/api/get_all_teachers?token=${userToken}`);
       const result = await response.json();
       setNameTeachers(result);
   
@@ -68,7 +68,7 @@ const fetchAllTeachers = async () => {
 
   const fetchAllSpeciality = async () => {
     try {
-      const response = await fetch(`http://localhost:8090/api/get_all_specialities?token=${userToken}`);
+      const response = await fetch(`http://moais-dashboard.ru:8082/api/get_all_specialities?token=${userToken}`);
       const result = await response.json();
       setSpeciality(result);
   
@@ -81,7 +81,7 @@ const fetchAllTeachers = async () => {
 
   const fetchAllTeam = async () => {
     try {
-      const response = await fetch(`http://localhost:8090/api/get_teams_for_user_without_lect?token=${userToken}`);
+      const response = await fetch(`http://moais-dashboard.ru:8082/api/get_teams_for_user_without_lect?token=${userToken}`);
       const result = await response.json();
       setTeam(result);
   
@@ -233,7 +233,7 @@ return(
 
             {Array.isArray(nameTeachers) ? (
               nameTeachers.map((teacher) => (
-                <option key={teacher.name} value={teacher.name}>
+                <option key={teacher.id} value={teacher.id}>
                   {teacher.name}
                 </option>
               ))
@@ -269,7 +269,7 @@ return(
 
             {Array.isArray(team) ? (
               team.map((team_) => (
-                <option key={team_.name} value={team_.name}>
+                <option key={team_.id} value={team_.id}>
                   {team_.name}
                 </option>
               ))

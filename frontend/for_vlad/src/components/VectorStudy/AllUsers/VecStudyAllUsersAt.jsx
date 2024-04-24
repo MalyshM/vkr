@@ -30,7 +30,7 @@ const VecStudyAllUsersAt = ({tokenUsers}) => {
   const fetchVecStudyAllUsersAtData = async () => {
     try {
         if (tokenUsers!== null) {
-        const response = await fetch(`http://localhost:8090/api/attendance_static_stud_for_all_specialities?token=${tokenUsers}&lect=${false}`);
+        const response = await fetch(`http://moais-dashboard.ru:8082/api/attendance_static_stud_for_all_specialities?token=${tokenUsers}&lect=${false}`);
         const result = await response.json();
         setVecStudyAllUsersAtData(result); 
         setCount(result.length);

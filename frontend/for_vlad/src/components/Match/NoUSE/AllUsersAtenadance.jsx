@@ -44,7 +44,7 @@ const AllUsersAtenadance = ({tokenUsers,teamId,teamName}) => {
   const fetchAllUsersAtenadanceData = async () => {
     try {
         if (tokenUsers!== null) {
-        const response = await fetch(`http://localhost:8090/api/attendance_static_stud_for_all_teams?token=${tokenUsers}`);
+        const response = await fetch(`http://moais-dashboard.ru:8082/api/attendance_static_stud_for_all_teams?token=${tokenUsers}`);
         const result = await response.json();
         setAllUsersAtenadanceData(result);  
         

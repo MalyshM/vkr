@@ -11,7 +11,7 @@ const AnalysKrFiltres = ({ tokenUsers, type, kr, teacher,speciality,team }) => {
     const fetchAnalysKrFiltresData = async () => {
       try {
         if (tokenUsers !== null ) {
-            const response = await fetch(`http://localhost:8090/api/kr_analyse_with_filters?type_select=${type}&kr=${kr}&token=${tokenUsers}${teacher ? `&teacher=${teacher}` : ''}${speciality ? `&speciality=${speciality}` : ''}${team ? `&team=${team}` : ''}`);
+            const response = await fetch(`http://moais-dashboard.ru:8082/api/kr_analyse_with_filters?type_select=${type}&kr=${kr}&token=${tokenUsers}${teacher?`&teacher=${teacher}`:''}${speciality?`&speciality='${speciality}'`:''}${team?`&team=${team}`:''}`);
  
           const result = await response.json();
           setAnalysKrFiltresData(result);
@@ -24,20 +24,24 @@ const AnalysKrFiltres = ({ tokenUsers, type, kr, teacher,speciality,team }) => {
   }, [type, kr, tokenUsers,teacher,speciality,team]);
 
   
-  console.log("tokenUsers - ", tokenUsers)
-  console.log("type - ", type)
-  console.log("kr - ", kr)
+  // console.log("tokenUsers - ", tokenUsers)
+  // console.log("type - ", type)
+  // console.log("kr - ", kr)
   console.log("teacher - ", teacher)
   console.log("speciality - ", speciality )
   console.log("team - ", team)
-  console.log("AnalysKrFiltresData - ", AnalysKrFiltresData)
+  // console.log("AnalysKrFiltresData - ", AnalysKrFiltresData)
 
-  
+  console.log('NEW2 AnalysKrFiltresData - ', AnalysKrFiltresData)
 
   useEffect(() => {
-    if (AnalysKrFiltresData) {
-      const labels = Object.keys(AnalysKrFiltresData);
-      const data = Object.values(AnalysKrFiltresData);
+    if (Array.isArray(AnalysKrFiltresData)) {
+      // const labels = Object.keys(AnalysKrFiltresData);
+      // const data = Object.values(AnalysKrFiltresData);
+      
+      const labels = AnalysKrFiltresData.map(item => item.team_name || item.speciality || item.teacher_name );
+      const data = AnalysKrFiltresData.map(item => item.test_mark_list);
+      
 
 
       const boxplotData = {
@@ -105,7 +109,7 @@ const AnalysKrFiltres = ({ tokenUsers, type, kr, teacher,speciality,team }) => {
 
             title: {
               display: true,
-              text: '"Точный" График результатов контрольных работ',
+              text: 'Точный График результатов контрольных работ',
               font: {
                 size: 22,
                 fontColor: 'black',

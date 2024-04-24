@@ -1,6 +1,6 @@
 import React, { useState,useEffect} from 'react';
 import { Box, Flex, Select,Spacer ,Heading,Text,Button,  Menu, MenuButton, MenuList, MenuItem} from '@chakra-ui/react';
-import { useAuth } from '../useAuth';
+import { useAuth } from '../../useAuth';
 import { HamburgerIcon ,LockIcon ,CloseIcon,StarIcon,ArrowBackIcon, ArrowUpDownIcon} from '@chakra-ui/icons';
 import { Link } from 'react-router-dom';
 import { Tabs, TabList, TabPanels, Tab, TabPanel } from '@chakra-ui/react'
@@ -24,7 +24,7 @@ const YourVectorStudy = () => {
     }
       try {
         // Отправляем GET-запрос для получения данных о командах пользователя
-        const response = await fetch(`http://localhost:8090/api/get_teams_for_user_without_lect?token=${userToken}`, {
+        const response = await fetch(`http://moais-dashboard.ru:8082/api/get_teams_for_user_without_lect?token=${userToken}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

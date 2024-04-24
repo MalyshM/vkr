@@ -50,7 +50,7 @@ const handleButtonClick = (sortType) => {
     if (elements && elements.length > 0) {
       const clickedElement = elements[0];
       const dataIndex = clickedElement.index;
-      const studentId = attendanceTotalPointsData[dataIndex]?.Stud_id;
+      const studentId = attendanceTotalPointsData[dataIndex]?.stud_id;
       navigate (`/student/${studentId}/${teamId}/${teamName}`);
     }
   };
@@ -59,25 +59,32 @@ const handleButtonClick = (sortType) => {
     const fetchAtendanceTotalPointsData = async () => {
       try {
         if (teamId !== null) { 
-          const response = await fetch(`http://localhost:8090/api/total_points_attendance_per_stud_for_team?id_team=${teamId}`);
+          const response = await fetch(`http://moais-dashboard.ru:8082/api/total_points_attendance_per_stud_for_team?id_team=${teamId}`);
           const result = await response.json();
 
-          const lastItem = result[result.length - 1];
+          console.log('Total_points_attendance_per_stud_for_team:', result);
 
-          console.log('Last item from API:', lastItem);
-
-          if ('total_points_avg' in lastItem && 'arrival_avg' in lastItem) {
-            // Обновляем состояния для новых данных
-            setTotalPointsAvg(lastItem.total_points_avg);
-            setArrivalAvg(lastItem.arrival_avg);
-          }
-          const dataArray = Object.values(result);
-          const sortedDataArray = dataArray.sort((a, b) =>
+          const sortedDataArray = result.sort((a, b) =>
               sortBy === 'Посещаемость' ? b.Посещаемость - a.Посещаемость : b.Успеваемость - a.Успеваемость
             );
           // Обновляем состояние с полученными данными
           setAttendanceTotalPointsData(sortedDataArray);
-          setNumberOfItems(sortedDataArray.length - 1);
+          setNumberOfItems(sortedDataArray.length);
+
+
+          
+          
+          const firstStudentAtendence = sortedDataArray[0];
+          const averageAttendance = firstStudentAtendence.Посещаемость_средняя;
+          // Устанавливаем значение в состояние arrivalAvg
+          setArrivalAvg(averageAttendance);
+
+          const firstStudentTotalPoints = sortedDataArray[0];
+          const averageTotalPoints = firstStudentTotalPoints.Успеваемость_средняя;
+          // Устанавливаем значение в состояние arrivalAvg
+          setTotalPointsAvg(averageTotalPoints);
+
+          
         }
       } catch (error) {
         console.error('Error fetching attendanceTotalPoints data:', error);
@@ -85,16 +92,18 @@ const handleButtonClick = (sortType) => {
     };
     fetchAtendanceTotalPointsData();
   },[teamId,sortBy]);
+  console.log("NOW: attendanceTotalPointsData", attendanceTotalPointsData);
 
 
   if (!attendanceTotalPointsData) {
     return <div>Loading...</div>;
   }
 
-  const data = {
-    labels: attendanceTotalPointsData.map((item => item.Stud_id)),
-    
 
+
+  const data = {
+    labels: attendanceTotalPointsData.map((item => item.stud_id)),
+    
     datasets: [
       {
         label: 'Линия уровня',
@@ -116,13 +125,14 @@ const handleButtonClick = (sortType) => {
       },
       {
         label: 'Посещаемость',
-        data: attendanceTotalPointsData.map((item) => item.Посещаемость),
+        data: attendanceTotalPointsData.map(item => Math.round(item.Посещаемость*100)),
         backgroundColor: attendanceColor,
         borderWidth: 0,
+
       },
       {
       label: 'Total Points Avg',
-      data: Array(attendanceTotalPointsData.length).fill(totalPointsAvg),
+      data: Array(attendanceTotalPointsData.length).fill(totalPointsAvg.toFixed(2)),
       borderColor: 'rgba(0, 28, 172, 1)',
       borderWidth: 3,
       fill: false,
@@ -131,7 +141,7 @@ const handleButtonClick = (sortType) => {
     },
     {
       label: 'Arrival Avg',
-      data: Array(attendanceTotalPointsData.length).fill(arrivalAvg),
+      data: Array(attendanceTotalPointsData.length).fill(Math.round(arrivalAvg*100)),
       borderColor: 'rgb(255,100,50)',
       borderWidth: 3,
       fill: false,
@@ -261,7 +271,8 @@ return (
       </Flex>
 
   <Flex align="center">
-  <Text bg={'white'} fontFamily={'Trebuchet MS'} borderColor={'rgba(0, 28, 172, 1)'} mr={2} p={2} borderWidth={2} borderRadius={6}>Среднее посещение: {arrivalAvg.toFixed(2)}%</Text>
+  <Text bg={'white'} fontFamily={'Trebuchet MS'} borderColor={'rgba(0, 28, 172, 1)'} mr={2} p={2} borderWidth={2} borderRadius={6}>Среднее посещение: {Math.round(arrivalAvg * 100)}%</Text>
+
 
   <Text bg={'white'} fontFamily={'Trebuchet MS'} borderColor={'rgb(255,100,50)'} mr={2} p={2} borderWidth={2} borderRadius={6}>Средний балл: {totalPointsAvg.toFixed(2)}</Text>
     

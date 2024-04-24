@@ -28,7 +28,7 @@ const VecStudyMatchTPTeams = ({ speciality1, speciality2, token}) => {
   const fetchVecStudyMatchTPTeamsData = async () => {
     try {
         if (speciality1 !== null && speciality2 !== null) {
-        const response = await fetch(`http://localhost:8090/api/total_points_for_specialities?speciality1=${speciality1}&speciality2=${speciality2}&token=${token}&lect=${false}`);
+        const response = await fetch(`http://moais-dashboard.ru:8082/api/total_points_for_specialities?speciality1=${speciality1}&speciality2=${speciality2}&token=${token}&lect=${false}`);
         const result = await response.json();
         setVecStudyMatchTPTeamsData(result);
       }

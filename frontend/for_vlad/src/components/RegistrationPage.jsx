@@ -76,7 +76,7 @@ const register = async () => {
     // Функция для выполнения регистрации по отправке запроса к API
     try {
       // Отправка POST-запроса к API для регистрации
-      const response = await fetch('http://localhost:8090/api/registration_standard', {
+      const response = await fetch('http://moais-dashboard.ru:8082/api/registration_standard', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
