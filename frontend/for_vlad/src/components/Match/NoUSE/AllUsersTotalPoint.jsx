@@ -30,7 +30,7 @@ const AllUsersTotalPoint = ({tokenUsers}) => {
   const fetchAllUsersTotalPointData = async () => {
     try {
         if (tokenUsers!== null) {
-        const response = await fetch(`http://localhost:8090/api/total_points_studs_for_all_teams?token=${tokenUsers}`);
+        const response = await fetch(`http://moais-dashboard.ru:8082/api/total_points_studs_for_all_teams?token=${tokenUsers}`);
         const result = await response.json();
         setAllUsersTotalPointData(result);
 

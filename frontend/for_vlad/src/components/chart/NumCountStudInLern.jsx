@@ -32,14 +32,10 @@ const NumCountStudInLern = ({ teamId,onLessonSelect, numberOfItems}) => {
     const fetchAtendanceNumCountStudInLernData = async () => {
       try {
         if (teamId !== null) {
-          const response = await fetch(`http://localhost:8090/api/attendance_num_for_stud_for_team?id_team=${teamId}`);
+          const response = await fetch(`http://moais-dashboard.ru:8082/api/attendance_num_for_stud_for_team?id_team=${teamId}`);
           const result = await response.json();
-          const dataArray = Object.values(result);
-   
-          // Обновляем состояние с полученными данными
-          setAtendanceNumCountStudInLernData(dataArray);
-
-          setNumberOfday(dataArray.length)
+          setAtendanceNumCountStudInLernData(result);
+          setNumberOfday(result.length)
 
         }
       } catch (error) {
@@ -65,10 +61,11 @@ const NumCountStudInLern = ({ teamId,onLessonSelect, numberOfItems}) => {
     datasets: [
         {
             label: `Кол-во студентов`,
-            data: AtendanceNumCountStudInLernData.map((item) => item.arrival),
+            data: AtendanceNumCountStudInLernData.map((item) => item.Посещаемость),
             backgroundColor: 'rgb(49,141,159, 0.8)',
-            borderColor: 'rgb(0,0,0)',
-            borderWidth: 0,  
+            borderColor: 'rgb(49,141,159, 0.8)',
+            borderWidth: 2,  
+            type: 'line',
           },
     ],
   };

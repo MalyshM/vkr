@@ -102,7 +102,7 @@ const LoginPage = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:8090/api/login_standard', {
+      const response = await fetch('http://moais-dashboard.ru:8082/api/login_standard', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

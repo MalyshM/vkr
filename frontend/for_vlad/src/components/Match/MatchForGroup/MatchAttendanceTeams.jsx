@@ -3,8 +3,8 @@ import { Bar } from 'react-chartjs-2';
 import { Chart } from 'chart.js/auto';
 
 
-const VecStudyMatchAtTeams = ({ speciality1, speciality2, token}) => {
-  const [VecStudyMatchAtTeamsData, setVecStudyMatchAtTeamsData] = useState(null);
+const MatchAttendanceTeams = ({ teamId1, teamId2}) => {
+  const [attendanceData, setAttendanceData] = useState(null);
   const chartRef = useRef(null);
 
   useEffect(() => {
@@ -22,46 +22,46 @@ const VecStudyMatchAtTeams = ({ speciality1, speciality2, token}) => {
   }, []);
 
  
-  console.log('team ID 1 in VecStudyMatchAtTeamsData:', speciality1, 'team ID 2 in VecStudyMatchAtTeamsData:', speciality1, 'token:', token);
+  console.log('team ID 1 in MatchAttendanceTeams:', teamId1, 'team ID 2 in MatchAttendanceTeams:', teamId2);
   
   useEffect(() => {
-  const fetchVecStudyMatchAtTeamsData = async () => {
+  const fetchMetchAttendanceData = async () => {
     try {
-        if (speciality1 !== null && speciality2 !== null) {
-        const response = await fetch(`http://localhost:8090/api/attendance_static_for_specialities?speciality1=${speciality1}&speciality2=${speciality2}&token=${token}&lect=${false}`);
+        if (teamId1 !== null && teamId2 !== null) {
+        const response = await fetch(`http://moais-dashboard.ru:8082/api/attendance_static_stud_for_teams?id_team1=${teamId1}&id_team2=${teamId2}`);
         const result = await response.json();
-        setVecStudyMatchAtTeamsData(result);
+        setAttendanceData(result);
       }
     } catch (error) {
-      console.error('VecStudyMatchAtTeamsData - Error fetching attendance data:', error);
+      console.error('MatchAttendanceTeams - Error fetching attendance data:', error);
     }
   };
-  fetchVecStudyMatchAtTeamsData();
-},[speciality1,speciality2,token]);
+  fetchMetchAttendanceData();
+},[teamId1,teamId2]);
 
 
-if (!VecStudyMatchAtTeamsData) {
+if (!attendanceData) {
     return <div>Loading...</div>;
   }
   
   const colors = {
-    [speciality1]: 'rgba(217,68,58, 0.5)', // Цвет для teamId1
-    [speciality2]: 'rgba(177,185,253, 0.7)', // Цвет для teamId2
+    [teamId1]: 'rgba(217,68,58, 0.5)', // Цвет для teamId1
+    [teamId2]: 'rgba(177,185,253, 0.7)', // Цвет для teamId2
   };
   
     const data = {
-      labels: VecStudyMatchAtTeamsData.map(item => `${item.speciality} - Студент: ${item.id}`),
+      labels: attendanceData.map(item => `${item.id} (${item.team_name})`),
       datasets: [
         {
           label: 'Процент посещения',
-          data: VecStudyMatchAtTeamsData.map(item => item.arrival,),
-          backgroundColor: VecStudyMatchAtTeamsData.map(item => colors[item.speciality]),
+          data: attendanceData.map(item => item.arrival * 100,),
+          backgroundColor: attendanceData.map(item => colors[item.team_id]),
           borderColor: 'rgb(0,174,239)',
           borderWidth: 0,
         },
       ],
     };
-  console.log('fetchVecStudyMatchAtTeamsData:', VecStudyMatchAtTeamsData);
+  console.log('fetchMetchAttendanceData:', attendanceData);
   
   const options = {
     
@@ -74,7 +74,7 @@ if (!VecStudyMatchAtTeamsData) {
         position: 'bottom',
         title: {
           display: true,
-          text: `Студенты направлений ${VecStudyMatchAtTeamsData[0]?.speciality || ''} и ${VecStudyMatchAtTeamsData[1]?.speciality || ''}`,
+          text: `Студенты групп ${attendanceData[0]?.team_name || ''} и ${attendanceData[1]?.team_name || ''}`,
           font: {
             size: 20, // Размер шрифта названия оси X
             fontColor: 'black',
@@ -113,7 +113,7 @@ if (!VecStudyMatchAtTeamsData) {
 
       title: {
         display: true,
-        text: `Посещаемость студентов направлений ${VecStudyMatchAtTeamsData[0]?.speciality || ''} и ${VecStudyMatchAtTeamsData[1]?.speciality || ''}`,
+        text: `Посещаемость студентов групп ${attendanceData[0]?.team_name || ''} и ${attendanceData[1]?.team_name || ''}`,
         font: {
           size: 22,
           fontColor: 'black',
@@ -151,4 +151,4 @@ if (!VecStudyMatchAtTeamsData) {
     return <Bar ref={chartRef} data={data} options={options} />;
   };
   
-export default VecStudyMatchAtTeams;
+export default MatchAttendanceTeams;

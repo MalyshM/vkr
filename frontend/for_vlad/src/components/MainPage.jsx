@@ -33,7 +33,7 @@ const MainPage = () => {
       // 1 ЗАПРОС - ПОЛУЧАЕМ ИНФУ ОБ ЮЗЕРЕ
       try {
         // Отправляем POST-запрос на сервер
-        const response = await fetch(`http://localhost:8090/api/get_current_user_dev?token=${userToken}`, {
+        const response = await fetch(`http://moais-dashboard.ru:8082/api/get_current_user_dev?token=${userToken}`, {
           method: 'POST',
         });
 
@@ -63,7 +63,7 @@ const MainPage = () => {
       // 2 ЗАПРОС - ПОЛУЧАЕМ ИНФУ О КОМАНДАХ ЮЗЕРА
       try {
         // Отправляем GET-запрос для получения данных о командах пользователя
-        const response = await fetch(`http://localhost:8090/api/get_teams_for_user_without_lect?token=${userToken}`, {
+        const response = await fetch(`http://moais-dashboard.ru:8082/api/get_teams_for_user_without_lect?token=${userToken}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

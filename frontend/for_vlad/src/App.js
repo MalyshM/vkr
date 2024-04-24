@@ -10,12 +10,12 @@ import {ChakraProvider } from '@chakra-ui/react'
 import theme from './thems/theme'; 
 
 import GeneralStudPage from './components/InfoAboutStudients/GeneralStudPage';
-import MatchToTeamPage from './components/Match/MatchToTeamPage';
+import MatchToTeamPage from './components/Match/MatchForGroup/MatchToTeamPage';
 
 import Header from "./components/Header";
-import MatchTwoTeamVectorStudy from "./components/VectorStudy/MatchTwoTeamVectorStudy"
-import YourGroup from './components/Match/YourGroup';
-import YourVectorStudy from './components/VectorStudy/YourVectorStudy';
+import MatchTwoTeamVectorStudy from "./components/VectorStudy/Match/MatchTwoTeamVectorStudy"
+import YourGroup from './components/Match/Group/YourGroup';
+import YourVectorStudy from './components/VectorStudy/AllUsers/YourVectorStudy';
 
 import AnalysKr from './components/AnalysKrFolder/AnalysKr';
 import { NumberItemsProvider } from './components/chart/NumberItemsContext';

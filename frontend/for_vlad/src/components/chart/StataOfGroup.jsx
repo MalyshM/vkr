@@ -13,7 +13,7 @@ const StataOfGroup = ({teamId,teamName}) => {
           try {
             if (teamId !== null) {
                 // const params = new URLSearchParams({ id_team: teamId });
-                const response = await fetch(`http://localhost:8090/api/total_marks_for_team?id_team=${teamId}`);
+                const response = await fetch(`http://moais-dashboard.ru:8082/api/total_marks_for_team?id_team=${teamId}`);
                 const result = await response.json();
 
                 // Обновляем состояние с полученными данными

@@ -32,7 +32,7 @@ const MatchTotalPointsTeams = ({ teamId1,teamId2}) => {
   const fetchtotalPointData = async () => {
     try {
         if (teamId1 !== null && teamId2 !== null) {
-        const response = await fetch(`http://localhost:8090/api/total_points_stud_for_teams?id_team1=${teamId1}&id_team2=${teamId2}`);
+        const response = await fetch(`http://moais-dashboard.ru:8082/api/total_points_stud_for_teams?id_team1=${teamId1}&id_team2=${teamId2}`);
         const result = await response.json();
         // Обновляем состояние с полученными данными /api/total_points_stud_for_teams
         setTotalPointData(result);

@@ -12,12 +12,11 @@ const TableOfGroup = ({ teamId, selectedLesson }) => {
     const fetchTableOfGroup = async () => {
       try {
         if (teamId !== null) {
-          const response = await fetch(`http://localhost:8090/api/attendance_num_for_stud_for_team_stat_table?id_team=${teamId}&name_of_lesson=${selectedLesson}`);
+          const response = await fetch(`http://moais-dashboard.ru:8082/api/attendance_num_for_stud_for_team_stat_table?id_team=${teamId}&name_of_lesson=${selectedLesson}`);
           const result = await response.json();
-          const dataArray = Object.values(result);
    
           // Обновляем состояние с полученными данными
-          setTableOfGroupData(dataArray);
+          setTableOfGroupData(result);
         }
       } catch (error) {
         console.error('Error fetching attendanceTotalPoints data:', error);
