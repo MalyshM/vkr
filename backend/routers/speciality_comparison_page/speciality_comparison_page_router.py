@@ -10,6 +10,8 @@ from redis import process_href, save_resp_and_return_it
 from routers.util_funcs import get_teams_for_user_private, get_teams_for_user_private_without_lect, \
     get_teams_for_param_private_without_lect
 
+from routers.util.util_router import get_all_specialities_by_teacher_arr, get_all_specialities
+
 speciality_comparison_page_router = APIRouter(tags=["Speciality comparison page"])
 
 
@@ -324,7 +326,7 @@ async def attendance_static_total_points_studs_for_all_specialities(token: str, 
                                        description=
                                        """
                                                Получает token: str, group_by_speciality, teacher_list (пример "Павлова Елена Александровна,Павлова Елена Александровна")
-                           
+
                                                [
                                                  {
                                                    "stud_speciality": "02.03.03 Математическое обеспечение и администрирование информационных систем", направление
@@ -357,13 +359,21 @@ async def attendance_static_total_points_studs_for_all_specialities(token: str, 
                                        """)
 async def speciality_kr_total_points_attendance_dynamic(token: str, group_by_speciality: bool,
                                                         teacher_list: Optional[str] = None,
+                                                        speciality_list: Optional[str] = None,
                                                         db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
-    teams = await get_teams_for_user_private_without_lect(token, db)
     if teacher_list is not None:
         teacher_arr = teacher_list.split(',')
         teams = await get_teams_for_param_private_without_lect(teacher_arr=teacher_arr, db=db)
+    else:
+        teams = await get_teams_for_user_private_without_lect(token, db)
     teams_true = ', '.join([f"'{team['id']}'" for team in teams])
+    if speciality_list is not None:
+        speciality_list = speciality_list.split(',')
+        speciality_list = ', '.join([f"'{speciality}'" for speciality in speciality_list])
+        speciality_cond = f"AND s.speciality IN ({speciality_list})"
+    else:
+        speciality_cond = ""
     if group_by_speciality:
         fields = """"""
         partition_by = "sub.Stud_speciality, sub.name"
@@ -371,7 +381,7 @@ async def speciality_kr_total_points_attendance_dynamic(token: str, group_by_spe
         fields = """sub.teacher_name,
                     sub.teacher_id,"""
         partition_by = "sub.Stud_speciality, sub.name, sub.teacher_id"
-    href = f"speciality_kr_total_points_attendance_dynamic-{token}--{group_by_speciality}--{teacher_list}"
+    href = f"speciality_kr_total_points_attendance_dynamic-{token}--{group_by_speciality}--{teacher_list}-{speciality_list}"
     LOGGER.info(f"{href} start")
     res = await process_href(href, start_time)
     if res is not None:
@@ -414,6 +424,7 @@ async def speciality_kr_total_points_attendance_dynamic(token: str, group_by_spe
                     INNER JOIN stud s ON s.id = l.stud_id
                     WHERE
                         l.team_id IN ({teams_true})
+                        {speciality_cond}
                 ) AS sub
             WHERE 
                 sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
@@ -430,7 +441,7 @@ async def speciality_kr_total_points_attendance_dynamic(token: str, group_by_spe
                                        description=
                                        """
                                                Получает token: str, group_by_speciality, teacher_list (пример "Павлова Елена Александровна,Павлова Елена Александровна")
-                           
+
                                                [
                                                  {
                                                    "stud_speciality": "02.03.03 Математическое обеспечение и администрирование информационных систем", направление
@@ -459,6 +470,7 @@ async def speciality_kr_total_points_attendance_dynamic(token: str, group_by_spe
                                        """)
 async def speciality_kr_attendance_dynamic(token: str, group_by_speciality: bool,
                                            teacher_list: Optional[str] = None,
+                                           speciality_list: Optional[str] = None,
                                            db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
     teams = await get_teams_for_user_private_without_lect(token, db)
@@ -466,6 +478,12 @@ async def speciality_kr_attendance_dynamic(token: str, group_by_speciality: bool
         teacher_arr = teacher_list.split(',')
         teams = await get_teams_for_param_private_without_lect(teacher_arr=teacher_arr, db=db)
     teams_true = ', '.join([f"'{team['id']}'" for team in teams])
+    if speciality_list is not None:
+        speciality_list = speciality_list.split(',')
+        speciality_list = ', '.join([f"'{speciality}'" for speciality in speciality_list])
+        speciality_cond = f"AND s.speciality IN ({speciality_list})"
+    else:
+        speciality_cond = ""
     if group_by_speciality:
         fields = """"""
         partition_by = "sub.Stud_speciality, sub.name"
@@ -473,7 +491,7 @@ async def speciality_kr_attendance_dynamic(token: str, group_by_speciality: bool
         fields = """sub.teacher_name,
                     sub.teacher_id,"""
         partition_by = "sub.Stud_speciality, sub.name, sub.teacher_id"
-    href = f"speciality_kr_attendance_dynamic-{token}-{group_by_speciality}-{teacher_list}"
+    href = f"speciality_kr_attendance_dynamic-{token}--{group_by_speciality}--{teacher_list}-{speciality_list}"
     LOGGER.info(f"{href} start")
     res = await process_href(href, start_time)
     if res is not None:
@@ -508,6 +526,7 @@ async def speciality_kr_attendance_dynamic(token: str, group_by_speciality: bool
                     INNER JOIN stud s ON s.id = l.stud_id
                     WHERE
                         l.team_id IN ({teams_true})
+                        {speciality_cond}
                 ) AS sub
             WHERE 
                 sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
@@ -524,7 +543,7 @@ async def speciality_kr_attendance_dynamic(token: str, group_by_speciality: bool
                                        description=
                                        """
                                                Получает token: str, group_by_speciality, teacher_list (пример "Павлова Елена Александровна,Павлова Елена Александровна")
-                           
+
                                                [
                                                  {
                                                    "stud_speciality": "02.03.03 Математическое обеспечение и администрирование информационных систем", направление
@@ -553,6 +572,7 @@ async def speciality_kr_attendance_dynamic(token: str, group_by_speciality: bool
                                        """)
 async def speciality_kr_total_points_dynamic(token: str, group_by_speciality: bool,
                                              teacher_list: Optional[str] = None,
+                                             speciality_list: Optional[str] = None,
                                              db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
     teams = await get_teams_for_user_private_without_lect(token, db)
@@ -560,6 +580,12 @@ async def speciality_kr_total_points_dynamic(token: str, group_by_speciality: bo
         teacher_arr = teacher_list.split(',')
         teams = await get_teams_for_param_private_without_lect(teacher_arr=teacher_arr, db=db)
     teams_true = ', '.join([f"'{team['id']}'" for team in teams])
+    if speciality_list is not None:
+        speciality_list = speciality_list.split(',')
+        speciality_list = ', '.join([f"'{speciality}'" for speciality in speciality_list])
+        speciality_cond = f"AND s.speciality IN ({speciality_list})"
+    else:
+        speciality_cond = ""
     if group_by_speciality:
         fields = """"""
         partition_by = "sub.Stud_speciality, sub.name"
@@ -567,7 +593,7 @@ async def speciality_kr_total_points_dynamic(token: str, group_by_speciality: bo
         fields = """sub.teacher_name,
                     sub.teacher_id,"""
         partition_by = "sub.Stud_speciality, sub.name, sub.teacher_id"
-    href = f"speciality_kr_total_points_dynamic-{token}-{group_by_speciality}-{teacher_list}"
+    href = f"speciality_kr_total_points_dynamic-{token}--{group_by_speciality}--{teacher_list}-{speciality_list}"
     LOGGER.info(f"{href} start")
     res = await process_href(href, start_time)
     if res is not None:
@@ -604,6 +630,7 @@ async def speciality_kr_total_points_dynamic(token: str, group_by_speciality: bo
                     INNER JOIN stud s ON s.id = l.stud_id
                     WHERE
                         l.team_id IN ({teams_true})
+                        {speciality_cond}
                 ) AS sub
             WHERE 
                 sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
