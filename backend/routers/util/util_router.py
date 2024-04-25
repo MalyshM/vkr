@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 from starlette.exceptions import HTTPException
 from logger import LOGGER
-from main import app
+from main import *
 from models import connect_db_data
 from redis import process_href, save_resp_and_return_it
 from routers.util_funcs import get_current_user_dev

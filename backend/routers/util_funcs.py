@@ -7,10 +7,10 @@ import jwt
 from passlib.context import CryptContext
 from starlette import status
 from starlette.exceptions import HTTPException
-from backend.logger import LOGGER
-from backend.models import async_session_users
-from backend.redis import process_href, save_resp_and_return_it
-from backend.schemas import TokenData
+from logger import LOGGER
+from models import async_session_users
+from redis import process_href, save_resp_and_return_it
+from schemas import TokenData
 
 SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
 ALGORITHM = "HS256"
