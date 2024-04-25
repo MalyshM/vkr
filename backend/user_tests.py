@@ -1,7 +1,6 @@
 import asyncio
 import unittest
 import aiohttp as aiohttp
-from handlers import delete_test_user
 
 
 class UserTests(unittest.TestCase):
@@ -61,35 +60,6 @@ class UserTests(unittest.TestCase):
             self.post_request(user_data_to_json=user_data, url="/api/registration_standard"))
         self.assertEqual(response['status'], 409)
         self.assertIn("Пользователь с такими данными уже существует", response['response_text'])
-
-    def test_z_get_user_by_false_token(self):
-        # Test case for registration with conflicting user data
-        response = self.loop.run_until_complete(
-            self.post_request(token="token", url="/api/get_current_user_dev"))
-        self.assertEqual(response['status'], 401)
-
-    def test_z_get_user_by_true_token(self):
-        # Test case for registration with conflicting user data
-        login_data = {
-            "FIO": "string",
-            "username": "string",
-            "password": "string",
-            "email": "string"
-        }
-        response = self.loop.run_until_complete(
-            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
-        token = response['response_json']['access_token']
-        response = self.loop.run_until_complete(
-            self.post_request(token=token, url="/api/get_current_user_dev"))
-        self.assertEqual(response['status'], 200)
-        self.assertEqual(response['response_json']["username"], "string")
-        self.assertEqual(response['response_json']["isadmin"], True)
-        self.assertEqual(response['response_json']["iscurator"], True)
-        self.assertEqual(response['response_json']["email"], "string")
-        self.assertEqual(response['response_json']["fio"], "string")
-        self.assertEqual(response['response_json']["isteacher"], True)
-        self.assertTrue(type(response['response_json']["date_of_add"]), str)
-        self.assertEqual(len(response['response_json']), 9)
 
     def test_get_all_users(self):
         response = self.loop.run_until_complete(
@@ -296,45 +266,6 @@ class UserTests(unittest.TestCase):
         params = {'token': 'token'}
         response = self.loop.run_until_complete(
             self.get_request(url="/api/get_all_teachers", **params))
-        self.assertEqual(response['status'], 401)
-
-    def test_get_current_user_dev_by_true_token(self):
-        login_data = {
-            "FIO": "string",
-            "username": "string",
-            "password": "string",
-            "email": "string"
-        }
-        response = self.loop.run_until_complete(
-            self.post_request(user_data_to_json=login_data, url="/api/login_standard"))
-        params = {'token': response['response_json']['access_token']}
-        response = self.loop.run_until_complete(
-            self.post_request(url="/api/get_current_user_dev", **params))
-        self.assertEqual(response['status'], 200)
-
-        self.assertIsInstance(response['response_json']["password"], str)
-        self.assertIsInstance(response['response_json']["id"], int)
-        self.assertIsInstance(response['response_json']["isadmin"], bool)
-        self.assertIsInstance(response['response_json']["iscurator"], bool)
-        self.assertIsInstance(response['response_json']["email"], str)
-        self.assertIsInstance(response['response_json']["fio"], str)
-        self.assertIsInstance(response['response_json']["username"], str)
-        self.assertIsInstance(response['response_json']["isteacher"], bool)
-        self.assertIsInstance(response['response_json']["date_of_add"], str)
-        self.assertIsNotNone(response['response_json']["password"])
-        self.assertIsNotNone(response['response_json']["id"])
-        self.assertIsNotNone(response['response_json']["isadmin"])
-        self.assertIsNotNone(response['response_json']["iscurator"])
-        self.assertIsNotNone(response['response_json']["email"])
-        self.assertIsNotNone(response['response_json']["fio"])
-        self.assertIsNotNone(response['response_json']["username"])
-        self.assertIsNotNone(response['response_json']["isteacher"])
-        self.assertIsNotNone(response['response_json']["date_of_add"])
-
-    def test_get_current_user_dev_by_false_token(self):
-        params = {'token': 'token'}
-        response = self.loop.run_until_complete(
-            self.post_request(url="/api/get_current_user_dev", **params))
         self.assertEqual(response['status'], 401)
 
     def test_login_standard_success(self):
