@@ -6,11 +6,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 from starlette.exceptions import HTTPException
 
-from handlers import get_all_teachers, get_all_specialities
 from logger import LOGGER
 from models import connect_db_data
 from redis import process_href, save_resp_and_return_it
 from routers.util_funcs import get_teams_for_user_private_without_lect
+
+from routers.util.util_router import get_all_teachers, get_all_specialities
 
 kr_page_router = APIRouter(tags=["kr page"])
 
