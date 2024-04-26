@@ -204,7 +204,7 @@ async def get_all_specialities_by_teacher_arr(token: str, teacher_list: str, db:
                              "name": "Павлова Елена Александровна"
                            },
                  """)
-async def get_teams_for_param_without_lect(teacher_arr: str, db):
+async def get_teams_for_param_without_lect(teacher_arr: str, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
     href = f"get_teams_for_param_private_without_lect-{teacher_arr}"
     LOGGER.info(f"{href} start")
