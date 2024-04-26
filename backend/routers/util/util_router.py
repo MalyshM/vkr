@@ -183,6 +183,63 @@ async def get_all_specialities_by_teacher_arr(token: str, teacher_list: str, db:
         LOGGER.error(f"{href} Error {e}")
         raise e
 
+@util_router.get('/api/get_teams_for_param_without_lect', name='Util:get_teams_for_param_without_lect', status_code=status.HTTP_200_OK,
+                 description=
+                 """
+                         Получает token: str
+                         Returns:
+                             Преподаватели
+                         \n
+                         [
+                           {
+                             "id": 8,
+                             "name": "Березовский Артем Константинович"
+                           },
+                           {
+                             "id": 2,
+                             "name": "Трефилин Иван Андреевич"
+                           },
+                           {
+                             "id": 4,
+                             "name": "Павлова Елена Александровна"
+                           },
+                 """)
+async def get_teams_for_param_without_lect(teacher_arr: str, db):
+    start_time = time.time()
+    href = f"get_teams_for_param_private_without_lect-{teacher_arr}"
+    LOGGER.info(f"{href} start")
+    res = await process_href(href, start_time)
+    if res is not None:
+        return res
+    try:
+        res = await db.execute(f"""
+                            select
+                                distinct t.id,
+                                t.name
+                            from
+                                team t
+                            where
+                                t.id in (
+                                select
+                                    distinct l.team_id
+                                from
+                                    lesson l
+                                where
+                                    l.teacher_id in (
+                                    select
+                                        distinct t.id
+                                    from
+                                        teacher t
+                                    where
+                                        t.name = ANY(ARRAY{teacher_arr.split(',')}))
+                                and t.name not ilike '%л%');
+                                    """)
+        result = res.fetchall()
+        return await save_resp_and_return_it(result, href, start_time)
+    except Exception as e:
+        LOGGER.error(f"{href} Error {e}")
+        raise e
+
 @util_router.get('/api/get_all_kr', name='Util:get_all_kr', status_code=status.HTTP_200_OK, description=
 """
         Returns:
