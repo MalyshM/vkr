@@ -399,23 +399,24 @@ async def team_kr_total_points_attendance_dynamic(token: str, group_by_teacher: 
                 found = False
                 for index, result_row in enumerate(result_true):
                     if row_dict['teacher_id'] == result_row['teacher_id']:
-                        result_true[index]['data_mas'].append(float(row_dict['Успеваемость_средняя']))
-                        result_true[index]['data_mas'].append(float(row_dict['Посещаемость_средняя']))
+                        result_true[index]['Успеваемость_средняя'].append(float(row_dict['Успеваемость_средняя']))
+                        result_true[index]['Посещаемость_средняя'].append(float(row_dict['Посещаемость_средняя']))
                         found = True
                         break
                 if not found:
                     result_true.append({
                         'teacher_id': row_dict['teacher_id'],
                         'teacher_name': row_dict['teacher_name'],
-                        'data_mas': [float(row_dict['Успеваемость_средняя']), float(row_dict['Посещаемость_средняя'])]
+                        'Успеваемость_средняя': [float(row_dict['Успеваемость_средняя'])],
+                        'Посещаемость_средняя': [float(row_dict['Посещаемость_средняя'])]
                     })
         else:
             for row_dict in result_dicts:
                 found = False
                 for index, result_row in enumerate(result_true):
                     if row_dict['team_id'] == result_row['team_id']:
-                        result_true[index]['data_mas'].append(float(row_dict['Успеваемость_средняя']))
-                        result_true[index]['data_mas'].append(float(row_dict['Посещаемость_средняя']))
+                        result_true[index]['Успеваемость_средняя'].append(float(row_dict['Успеваемость_средняя']))
+                        result_true[index]['Посещаемость_средняя'].append(float(row_dict['Посещаемость_средняя']))
                         found = True
                         break
                 if not found:
@@ -423,7 +424,8 @@ async def team_kr_total_points_attendance_dynamic(token: str, group_by_teacher: 
                         'team_name': row_dict['team_name'], 'team_id': row_dict['team_id'],
                         'teacher_id': row_dict['teacher_id'],
                         'teacher_name': row_dict['teacher_name'],
-                        'data_mas': [float(row_dict['Успеваемость_средняя']), float(row_dict['Посещаемость_средняя'])]
+                        'Успеваемость_средняя': [float(row_dict['Успеваемость_средняя'])],
+                        'Посещаемость_средняя': [float(row_dict['Посещаемость_средняя'])]
                     })
         return await save_resp_and_return_it(result_true, href, start_time, skip=True)
     except Exception as e:
