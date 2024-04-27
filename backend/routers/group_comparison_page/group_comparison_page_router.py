@@ -291,7 +291,7 @@ async def total_points_studs_for_all_teams(token: str, db: AsyncSession = Depend
                                   description=
                                   """
                                           Получает token: str, group_by_teacher, teacher_list (пример "Павлова Елена Александровна,Павлова Елена Александровна")
-                      
+
                                           [
                                             {
                                               "team_name": "ПиОА П-01.01 Спорт Прогрм", название команды
@@ -392,7 +392,42 @@ async def team_kr_total_points_attendance_dynamic(token: str, group_by_teacher: 
                 sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
             """)
         result = res.fetchall()
-        return await save_resp_and_return_it(result, href, start_time)
+        result_dicts = [row._asdict() for row in result]
+        result_true = []
+        if group_by_teacher:
+            for row_dict in result_dicts:
+                found = False
+                for index, result_row in enumerate(result_true):
+                    if row_dict['teacher_id'] == result_row['teacher_id']:
+                        result_true[index]['Успеваемость_средняя'].append(float(row_dict['Успеваемость_средняя']))
+                        result_true[index]['Посещаемость_средняя'].append(float(row_dict['Посещаемость_средняя']))
+                        found = True
+                        break
+                if not found:
+                    result_true.append({
+                        'teacher_id': row_dict['teacher_id'],
+                        'teacher_name': row_dict['teacher_name'],
+                        'Успеваемость_средняя': [float(row_dict['Успеваемость_средняя'])],
+                        'Посещаемость_средняя': [float(row_dict['Посещаемость_средняя'])]
+                    })
+        else:
+            for row_dict in result_dicts:
+                found = False
+                for index, result_row in enumerate(result_true):
+                    if row_dict['team_id'] == result_row['team_id']:
+                        result_true[index]['Успеваемость_средняя'].append(float(row_dict['Успеваемость_средняя']))
+                        result_true[index]['Посещаемость_средняя'].append(float(row_dict['Посещаемость_средняя']))
+                        found = True
+                        break
+                if not found:
+                    result_true.append({
+                        'team_name': row_dict['team_name'], 'team_id': row_dict['team_id'],
+                        'teacher_id': row_dict['teacher_id'],
+                        'teacher_name': row_dict['teacher_name'],
+                        'Успеваемость_средняя': [float(row_dict['Успеваемость_средняя'])],
+                        'Посещаемость_средняя': [float(row_dict['Посещаемость_средняя'])]
+                    })
+        return await save_resp_and_return_it(result_true, href, start_time, skip=True)
     except Exception as e:
         LOGGER.error(f"{href} Error {e}")
         raise e
@@ -402,7 +437,7 @@ async def team_kr_total_points_attendance_dynamic(token: str, group_by_teacher: 
                                   description=
                                   """
                                           Получает token: str, group_by_teacher, teacher_list (пример "Павлова Елена Александровна,Павлова Елена Александровна")
-                      
+
                                           [
                                             {
                                               "team_name": "ПиОА П-01.01 Спорт Прогрм", название команды
@@ -503,7 +538,7 @@ async def team_kr_total_points_dynamic(token: str, group_by_teacher: bool,
                                   tags=["Group comparison page"], description=
                                   """
                                           Получает token: str, group_by_teacher, teacher_list (пример "Павлова Елена Александровна,Павлова Елена Александровна")
-                      
+
                                           [
                                             {
                                               "team_name": "ПиОА П-01.01 Спорт Прогрм", название команды
