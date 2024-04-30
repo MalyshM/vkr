@@ -459,7 +459,8 @@ async def speciality_kr_total_points_attendance_dynamic(token: str, group_by_spe
                 if kostil_counter == 3:
                     kostil_counter = 0
                 for index, result_row in enumerate(result_true):
-                    if row_dict['team_id'] == result_row['team_id']:
+                    if row_dict['teacher_id'] == result_row['teacher_id'] and row_dict['stud_speciality'] == result_row[
+                        'stud_speciality']:
                         result_true[index]['Успеваемость_средняя' + str(kostil_counter)] = float(
                             row_dict['Успеваемость_средняя'])
                         result_true[index]['Посещаемость_средняя' + str(kostil_counter)] = float(
@@ -602,7 +603,8 @@ async def speciality_kr_attendance_dynamic(token: str, group_by_speciality: bool
                 if kostil_counter == 3:
                     kostil_counter = 0
                 for index, result_row in enumerate(result_true):
-                    if row_dict['team_id'] == result_row['team_id']:
+                    if row_dict['teacher_id'] == result_row['teacher_id'] and row_dict['stud_speciality'] == result_row[
+                        'stud_speciality']:
                         result_true[index]['Посещаемость_средняя' + str(kostil_counter)] = float(
                             row_dict['Посещаемость_средняя'])
                         kostil_counter += 1
@@ -727,7 +729,8 @@ async def speciality_kr_total_points_dynamic(token: str, group_by_speciality: bo
                 if kostil_counter == 3:
                     kostil_counter = 0
                 for index, result_row in enumerate(result_true):
-                    if row_dict['stud_speciality'] == result_row['stud_speciality']:
+                    if row_dict['teacher_id'] == result_row['teacher_id'] and row_dict['stud_speciality'] == result_row[
+                        'stud_speciality']:
                         result_true[index]['Успеваемость_средняя' + str(kostil_counter)] = float(
                             row_dict['Успеваемость_средняя'])
                         kostil_counter += 1
