@@ -392,7 +392,7 @@ async def speciality_kr_total_points_attendance_dynamic(token: str, group_by_spe
                 sub.Stud_speciality,
                 {fields}
                 ROUND(AVG(sub.Успеваемость) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Успеваемость_средняя,
-                ROUND(AVG(sub.dynamical_arrival) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Посещаемость_средняя
+                ROUND(AVG(sub.dynamical_arrival) OVER (PARTITION BY {partition_by}) * 100::DECIMAL, 2) AS Посещаемость_средняя
             FROM
                 (
                     SELECT
@@ -430,7 +430,51 @@ async def speciality_kr_total_points_attendance_dynamic(token: str, group_by_spe
                 sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
             """)
         result = res.fetchall()
-        return await save_resp_and_return_it(result, href, start_time)
+        result_dicts = [row._asdict() for row in result]
+        result_true = []
+        kostil_counter = 0
+        if group_by_speciality:
+            for row_dict in result_dicts:
+                found = False
+                if kostil_counter == 3:
+                    kostil_counter = 0
+                for index, result_row in enumerate(result_true):
+                    if row_dict['stud_speciality'] == result_row['stud_speciality']:
+                        result_true[index]['Успеваемость_средняя' + str(kostil_counter)] = float(
+                            row_dict['Успеваемость_средняя'])
+                        result_true[index]['Посещаемость_средняя' + str(kostil_counter)] = float(
+                            row_dict['Посещаемость_средняя'])
+                        kostil_counter += 1
+                        found = True
+                        break
+                if not found:
+                    result_true.append({
+                        'stud_speciality': row_dict['stud_speciality'],
+                        'Успеваемость_средняя': float(row_dict['Успеваемость_средняя']),
+                        'Посещаемость_средняя': float(row_dict['Посещаемость_средняя'])
+                    })
+        else:
+            for row_dict in result_dicts:
+                found = False
+                if kostil_counter == 3:
+                    kostil_counter = 0
+                for index, result_row in enumerate(result_true):
+                    if row_dict['team_id'] == result_row['team_id']:
+                        result_true[index]['Успеваемость_средняя' + str(kostil_counter)] = float(
+                            row_dict['Успеваемость_средняя'])
+                        result_true[index]['Посещаемость_средняя' + str(kostil_counter)] = float(
+                            row_dict['Посещаемость_средняя'])
+                        kostil_counter += 1
+                        found = True
+                        break
+                if not found:
+                    result_true.append({
+                        'stud_speciality': row_dict['stud_speciality'],
+                        'teacher_name': row_dict['teacher_name'], 'teacher_id': row_dict['teacher_id'],
+                        'Успеваемость_средняя': float(row_dict['Успеваемость_средняя']),
+                        'Посещаемость_средняя': float(row_dict['Посещаемость_средняя'])
+                    })
+        return await save_resp_and_return_it(result_true, href, start_time, skip=True)
     except Exception as e:
         LOGGER.error(f"{href} Error {e}")
         raise e
@@ -501,7 +545,7 @@ async def speciality_kr_attendance_dynamic(token: str, group_by_speciality: bool
             SELECT DISTINCT
                 sub.Stud_speciality,
                 {fields}
-                ROUND(AVG(sub.dynamical_arrival) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Посещаемость_средняя
+                ROUND(AVG(sub.dynamical_arrival) OVER (PARTITION BY {partition_by}) * 100::DECIMAL, 2) AS Посещаемость_средняя
             FROM
                 (
                     SELECT
@@ -532,7 +576,45 @@ async def speciality_kr_attendance_dynamic(token: str, group_by_speciality: bool
                 sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
             """)
         result = res.fetchall()
-        return await save_resp_and_return_it(result, href, start_time)
+        result_dicts = [row._asdict() for row in result]
+        result_true = []
+        kostil_counter = 0
+        if group_by_speciality:
+            for row_dict in result_dicts:
+                found = False
+                if kostil_counter == 3:
+                    kostil_counter = 0
+                for index, result_row in enumerate(result_true):
+                    if row_dict['stud_speciality'] == result_row['stud_speciality']:
+                        result_true[index]['Посещаемость_средняя' + str(kostil_counter)] = float(
+                            row_dict['Посещаемость_средняя'])
+                        kostil_counter += 1
+                        found = True
+                        break
+                if not found:
+                    result_true.append({
+                        'stud_speciality': row_dict['stud_speciality'],
+                        'Посещаемость_средняя': float(row_dict['Посещаемость_средняя'])
+                    })
+        else:
+            for row_dict in result_dicts:
+                found = False
+                if kostil_counter == 3:
+                    kostil_counter = 0
+                for index, result_row in enumerate(result_true):
+                    if row_dict['team_id'] == result_row['team_id']:
+                        result_true[index]['Посещаемость_средняя' + str(kostil_counter)] = float(
+                            row_dict['Посещаемость_средняя'])
+                        kostil_counter += 1
+                        found = True
+                        break
+                if not found:
+                    result_true.append({
+                        'stud_speciality': row_dict['stud_speciality'],
+                        'teacher_name': row_dict['teacher_name'], 'teacher_id': row_dict['teacher_id'],
+                        'Посещаемость_средняя': float(row_dict['Посещаемость_средняя'])
+                    })
+        return await save_resp_and_return_it(result_true, href, start_time, skip=True)
     except Exception as e:
         LOGGER.error(f"{href} Error {e}")
         raise e
@@ -636,7 +718,45 @@ async def speciality_kr_total_points_dynamic(token: str, group_by_speciality: bo
                 sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
             """)
         result = res.fetchall()
-        return await save_resp_and_return_it(result, href, start_time)
+        result_dicts = [row._asdict() for row in result]
+        result_true = []
+        kostil_counter = 0
+        if group_by_speciality:
+            for row_dict in result_dicts:
+                found = False
+                if kostil_counter == 3:
+                    kostil_counter = 0
+                for index, result_row in enumerate(result_true):
+                    if row_dict['stud_speciality'] == result_row['stud_speciality']:
+                        result_true[index]['Успеваемость_средняя' + str(kostil_counter)] = float(
+                            row_dict['Успеваемость_средняя'])
+                        kostil_counter += 1
+                        found = True
+                        break
+                if not found:
+                    result_true.append({
+                        'stud_speciality': row_dict['stud_speciality'],
+                        'Успеваемость_средняя': float(row_dict['Успеваемость_средняя'])
+                    })
+        else:
+            for row_dict in result_dicts:
+                found = False
+                if kostil_counter == 3:
+                    kostil_counter = 0
+                for index, result_row in enumerate(result_true):
+                    if row_dict['team_id'] == result_row['team_id']:
+                        result_true[index]['Успеваемость_средняя' + str(kostil_counter)] = float(
+                            row_dict['Успеваемость_средняя'])
+                        kostil_counter += 1
+                        found = True
+                        break
+                if not found:
+                    result_true.append({
+                        'stud_speciality': row_dict['stud_speciality'],
+                        'teacher_name': row_dict['teacher_name'], 'teacher_id': row_dict['teacher_id'],
+                        'Успеваемость_средняя': float(row_dict['Успеваемость_средняя'])
+                    })
+        return await save_resp_and_return_it(result_true, href, start_time, skip=True)
     except Exception as e:
         LOGGER.error(f"{href} Error {e}")
         raise e

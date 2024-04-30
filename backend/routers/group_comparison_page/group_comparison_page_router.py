@@ -394,29 +394,40 @@ async def team_kr_total_points_attendance_dynamic(token: str, group_by_teacher: 
         result = res.fetchall()
         result_dicts = [row._asdict() for row in result]
         result_true = []
+        kostil_counter = 0
         if group_by_teacher:
             for row_dict in result_dicts:
                 found = False
+                if kostil_counter == 3:
+                    kostil_counter = 0
                 for index, result_row in enumerate(result_true):
                     if row_dict['teacher_id'] == result_row['teacher_id']:
-                        result_true[index]['Успеваемость_средняя'].append(float(row_dict['Успеваемость_средняя']))
-                        result_true[index]['Посещаемость_средняя'].append(float(row_dict['Посещаемость_средняя']))
+                        result_true[index]['Успеваемость_средняя' + str(kostil_counter)] = float(
+                            row_dict['Успеваемость_средняя'])
+                        result_true[index]['Посещаемость_средняя' + str(kostil_counter)] = float(
+                            row_dict['Посещаемость_средняя'])
+                        kostil_counter += 1
                         found = True
                         break
                 if not found:
                     result_true.append({
                         'teacher_id': row_dict['teacher_id'],
                         'teacher_name': row_dict['teacher_name'],
-                        'Успеваемость_средняя': [float(row_dict['Успеваемость_средняя'])],
-                        'Посещаемость_средняя': [float(row_dict['Посещаемость_средняя'])]
+                        'Успеваемость_средняя': float(row_dict['Успеваемость_средняя']),
+                        'Посещаемость_средняя': float(row_dict['Посещаемость_средняя'])
                     })
         else:
             for row_dict in result_dicts:
                 found = False
+                if kostil_counter == 3:
+                    kostil_counter = 0
                 for index, result_row in enumerate(result_true):
                     if row_dict['team_id'] == result_row['team_id']:
-                        result_true[index]['Успеваемость_средняя'].append(float(row_dict['Успеваемость_средняя']))
-                        result_true[index]['Посещаемость_средняя'].append(float(row_dict['Посещаемость_средняя']))
+                        result_true[index]['Успеваемость_средняя' + str(kostil_counter)] = float(
+                            row_dict['Успеваемость_средняя'])
+                        result_true[index]['Посещаемость_средняя' + str(kostil_counter)] = float(
+                            row_dict['Посещаемость_средняя'])
+                        kostil_counter += 1
                         found = True
                         break
                 if not found:
@@ -424,8 +435,8 @@ async def team_kr_total_points_attendance_dynamic(token: str, group_by_teacher: 
                         'team_name': row_dict['team_name'], 'team_id': row_dict['team_id'],
                         'teacher_id': row_dict['teacher_id'],
                         'teacher_name': row_dict['teacher_name'],
-                        'Успеваемость_средняя': [float(row_dict['Успеваемость_средняя'])],
-                        'Посещаемость_средняя': [float(row_dict['Посещаемость_средняя'])]
+                        'Успеваемость_средняя': float(row_dict['Успеваемость_средняя']),
+                        'Посещаемость_средняя': float(row_dict['Посещаемость_средняя'])
                     })
         return await save_resp_and_return_it(result_true, href, start_time, skip=True)
     except Exception as e:
@@ -528,7 +539,47 @@ async def team_kr_total_points_dynamic(token: str, group_by_teacher: bool,
                 sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
             """)
         result = res.fetchall()
-        return await save_resp_and_return_it(result, href, start_time)
+        result_dicts = [row._asdict() for row in result]
+        result_true = []
+        kostil_counter = 0
+        if group_by_teacher:
+            for row_dict in result_dicts:
+                found = False
+                if kostil_counter == 3:
+                    kostil_counter = 0
+                for index, result_row in enumerate(result_true):
+                    if row_dict['teacher_id'] == result_row['teacher_id']:
+                        result_true[index]['Успеваемость_средняя' + str(kostil_counter)] = float(
+                            row_dict['Успеваемость_средняя'])
+                        kostil_counter += 1
+                        found = True
+                        break
+                if not found:
+                    result_true.append({
+                        'teacher_id': row_dict['teacher_id'],
+                        'teacher_name': row_dict['teacher_name'],
+                        'Успеваемость_средняя': float(row_dict['Успеваемость_средняя'])
+                    })
+        else:
+            for row_dict in result_dicts:
+                found = False
+                if kostil_counter == 3:
+                    kostil_counter = 0
+                for index, result_row in enumerate(result_true):
+                    if row_dict['team_id'] == result_row['team_id']:
+                        result_true[index]['Успеваемость_средняя' + str(kostil_counter)] = float(
+                            row_dict['Успеваемость_средняя'])
+                        kostil_counter += 1
+                        found = True
+                        break
+                if not found:
+                    result_true.append({
+                        'team_name': row_dict['team_name'], 'team_id': row_dict['team_id'],
+                        'teacher_id': row_dict['teacher_id'],
+                        'teacher_name': row_dict['teacher_name'],
+                        'Успеваемость_средняя': float(row_dict['Успеваемость_средняя'])
+                    })
+        return await save_resp_and_return_it(result_true, href, start_time, skip=True)
     except Exception as e:
         LOGGER.error(f"{href} Error {e}")
         raise e
@@ -596,7 +647,7 @@ async def team_kr_attendance_dynamic(token: str, group_by_teacher: bool,
                 {fields}
                 sub.teacher_id,
                 sub.teacher_name,
-                ROUND(AVG(sub.dynamical_arrival) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Посещаемость_средняя
+                ROUND(AVG(sub.dynamical_arrival) OVER (PARTITION BY {partition_by}) * 100::DECIMAL, 2) AS Посещаемость_средняя
             FROM
                 (
                     SELECT
@@ -627,7 +678,47 @@ async def team_kr_attendance_dynamic(token: str, group_by_teacher: bool,
                 sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
             """)
         result = res.fetchall()
-        return await save_resp_and_return_it(result, href, start_time)
+        result_dicts = [row._asdict() for row in result]
+        result_true = []
+        kostil_counter = 0
+        if group_by_teacher:
+            for row_dict in result_dicts:
+                found = False
+                if kostil_counter == 3:
+                    kostil_counter = 0
+                for index, result_row in enumerate(result_true):
+                    if row_dict['teacher_id'] == result_row['teacher_id']:
+                        result_true[index]['Посещаемость_средняя' + str(kostil_counter)] = float(
+                            row_dict['Посещаемость_средняя'])
+                        kostil_counter += 1
+                        found = True
+                        break
+                if not found:
+                    result_true.append({
+                        'teacher_id': row_dict['teacher_id'],
+                        'teacher_name': row_dict['teacher_name'],
+                        'Посещаемость_средняя': float(row_dict['Посещаемость_средняя'])
+                    })
+        else:
+            for row_dict in result_dicts:
+                found = False
+                if kostil_counter == 3:
+                    kostil_counter = 0
+                for index, result_row in enumerate(result_true):
+                    if row_dict['team_id'] == result_row['team_id']:
+                        result_true[index]['Посещаемость_средняя' + str(kostil_counter)] = float(
+                            row_dict['Посещаемость_средняя'])
+                        kostil_counter += 1
+                        found = True
+                        break
+                if not found:
+                    result_true.append({
+                        'team_name': row_dict['team_name'], 'team_id': row_dict['team_id'],
+                        'teacher_id': row_dict['teacher_id'],
+                        'teacher_name': row_dict['teacher_name'],
+                        'Посещаемость_средняя': float(row_dict['Посещаемость_средняя'])
+                    })
+        return await save_resp_and_return_it(result_true, href, start_time, skip=True)
     except Exception as e:
         LOGGER.error(f"{href} Error {e}")
         raise e
