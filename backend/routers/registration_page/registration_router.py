@@ -1,13 +1,14 @@
 import time
 from datetime import timedelta, datetime
 
-from fastapi import APIRouter, Depends
+import jwt
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 from starlette.exceptions import HTTPException
 from logger import LOGGER
 from models import connect_db_users, User
-from routers.util_funcs import create_access_token, Hasher
+from routers.util_funcs import create_access_token, Hasher, SECRET_KEY, ALGORITHM, get_user
 from schemas import UserRegistration, UserLogin
 
 registration_router = APIRouter(tags=["Registration/login page"])
@@ -30,7 +31,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
                                   (по сути просто словарь с ключами FIO, username и тд)
                                   Raises:
                                       Если юзер есть, то  raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Пользователь с такими данными уже существует(юзернейм, е-мейл)")
-             
+
                                   Returns:
                                       {"access_token": access_token, "token_type": "bearer"}
                                  \n
@@ -39,7 +40,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
                                    "token_type": "bearer"
                                  }
                           """)
-async def registration_standard(user: UserRegistration, db: AsyncSession = Depends(connect_db_users)):
+async def registration_standard(user: UserRegistration, request: Request, db: AsyncSession = Depends(connect_db_users)):
     start_time = time.time()
     href = f"registration_standard-{user}"
     LOGGER.info(f"{href} start")
@@ -59,7 +60,7 @@ async def registration_standard(user: UserRegistration, db: AsyncSession = Depen
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
             data={"FIO": user.FIO, "isAdmin": user.isAdmin, "isCurator": user.isCurator, "isTeacher": user.isTeacher,
-                  "username": user.username, "password": user.password, "email": user.email},
+                  "username": user.username, "password": user.password, "email": user.email, "IP": request.client.host},
             expires_delta=access_token_expires
         )
         db.add(
@@ -99,7 +100,7 @@ async def registration_standard(user: UserRegistration, db: AsyncSession = Depen
                                    "token_type": "bearer"
                                   }
                           """)
-async def login_standard(user: UserLogin, db: AsyncSession = Depends(connect_db_users)):
+async def login_standard(user: UserLogin, request: Request, db: AsyncSession = Depends(connect_db_users)):
     start_time = time.time()
     href = f"login_standard-{user}"
     LOGGER.info(f"{href} start")
@@ -121,7 +122,8 @@ async def login_standard(user: UserLogin, db: AsyncSession = Depends(connect_db_
         access_token = create_access_token(
             data={"FIO": check_user.fio, "isAdmin": check_user.isadmin, "isCurator": check_user.iscurator,
                   "isTeacher": check_user.isteacher,
-                  "username": check_user.username, "password": check_user.password, "email": check_user.email},
+                  "username": check_user.username, "password": check_user.password, "email": check_user.email,
+                  "IP": request.client.host},
             expires_delta=access_token_expires
         )
         if is_true_login:
@@ -130,6 +132,62 @@ async def login_standard(user: UserLogin, db: AsyncSession = Depends(connect_db_
         else:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                                 detail="Нельзя войти в несуществующий аккаунт/Неправильно введены данные")
+    except HTTPException as e:
+        LOGGER.error(f"{href} Error {e.detail}")
+        raise e
+    except Exception as e:
+        LOGGER.error(f"{href} Error {e}")
+        raise e
+
+
+@registration_router.post('/api/refresh_token', name='Registration:refresh_token', status_code=status.HTTP_200_OK,
+                          description=
+                          """
+                                  Получает token: str
+                                  Raises:
+                                      Если юзера нет, то  HTTPException(
+                                        status_code=status.HTTP_401_UNAUTHORIZED,
+                                        detail="Нерабочий токен",
+                                        headers={"WWW-Authenticate": "Bearer"},
+                                    )
+                                      Если поменялся IP, то raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                                detail="Поменялся IP, нужно войти заново")
+                                  Returns:
+                                      {"access_token": access_token, "token_type": "bearer"}
+                                  \n
+                                  {
+                                   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJGSU8iOiJzdHJpbmciLCJpc0FkbWluIjp0cnVlLCJpc0N1cmF0b3IiOnRydWUsImlzVGVhY2hlciI6dHJ1ZSwidXNlcm5hbWUiOiJzdHJpbmciLCJwYXNzd29yZCI6IiQyYiQxMiREQ3RoSThzUkg1Mm03YXgwYzhyMUQuaEFzSExMcDQuS215NWN2ZUFvWU5PZVluV2F5a1M3ZSIsImVtYWlsIjoic3RyaW5nIiwiZXhwIjoxNzA1MDcwOTMxfQ.7L9hmvkX3hczvzgxkKyxhR0Gntkv1WGfEw4nnVDdfbc",
+                                   "token_type": "bearer"
+                                  }
+                          """)
+async def refresh_token(token: str, request: Request):
+    start_time = time.time()
+    href = f"refresh_token-{token}"
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Нерабочий токен",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    LOGGER.info(f"{href} start")
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user = await get_user(username=payload.get("username"), email=payload.get("email"))
+        if user is None:
+            raise credentials_exception
+        if request.client.host != payload.get("IP"):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                                detail="Поменялся IP, нужно войти заново")
+
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"FIO": user.fio, "isAdmin": user.isadmin, "isCurator": user.iscurator,
+                  "isTeacher": user.isteacher,
+                  "username": user.username, "password": user.password, "email": user.email,
+                  "IP": request.client.host},
+            expires_delta=access_token_expires
+        )
+        LOGGER.info(f"{href} finish {(time.time() - start_time)}")
+        return {"access_token": access_token, "token_type": "bearer"}
     except HTTPException as e:
         LOGGER.error(f"{href} Error {e.detail}")
         raise e
