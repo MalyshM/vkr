@@ -13,6 +13,7 @@ from routers.speciality_comparison_page.speciality_comparison_page_router import
 from routers.group_comparison_page.group_comparison_page_router import group_comparison_page_router
 from routers.student_page.student_page_router import student_page_router
 from routers.main_page.main_page_router import main_page_router
+from routers.scatter_plot_page.scatter_plot_page_router import scatter_plot_page_router
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
 
@@ -37,6 +38,7 @@ def get_application() -> FastAPI:
     application.include_router(registration_router)
     application.include_router(team_router)
     application.include_router(student_router)
+    application.include_router(scatter_plot_page_router)
     return application
 
 
