@@ -376,11 +376,11 @@ async def speciality_kr_total_points_attendance_dynamic(token: str, group_by_spe
         speciality_cond = ""
     if group_by_speciality:
         fields = """"""
-        partition_by = "sub.Stud_speciality, sub.name"
+        partition_by = "group by sub.Stud_speciality, sub.name"
     else:
         fields = """sub.teacher_name,
                     sub.teacher_id,"""
-        partition_by = "sub.Stud_speciality, sub.name, sub.teacher_id"
+        partition_by = "group by sub.Stud_speciality, sub.name, sub.teacher_name, sub.teacher_id"
     href = f"speciality_kr_total_points_attendance_dynamic-{token}--{group_by_speciality}--{teacher_list}-{speciality_list}"
     LOGGER.info(f"{href} start")
     res = await process_href(href, start_time)
@@ -391,8 +391,8 @@ async def speciality_kr_total_points_attendance_dynamic(token: str, group_by_spe
             SELECT DISTINCT
                 sub.Stud_speciality,
                 {fields}
-                ROUND(AVG(sub.Успеваемость) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Успеваемость_средняя,
-                ROUND(AVG(sub.dynamical_arrival) OVER (PARTITION BY {partition_by}) * 100::DECIMAL, 2) AS Посещаемость_средняя
+                ROUND(PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY sub.Успеваемость)::DECIMAL, 2) AS Успеваемость_средняя,
+                ROUND(PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY sub.dynamical_arrival) * 100::DECIMAL, 2) AS Посещаемость_средняя
             FROM
                 (
                     SELECT
@@ -427,7 +427,8 @@ async def speciality_kr_total_points_attendance_dynamic(token: str, group_by_spe
                         {speciality_cond}
                 ) AS sub
             WHERE 
-                sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
+                sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00')
+            {partition_by};
             """)
         result = res.fetchall()
         result_dicts = [row._asdict() for row in result]
@@ -531,11 +532,11 @@ async def speciality_kr_attendance_dynamic(token: str, group_by_speciality: bool
         speciality_cond = ""
     if group_by_speciality:
         fields = """"""
-        partition_by = "sub.Stud_speciality, sub.name"
+        partition_by = "group by sub.Stud_speciality, sub.name"
     else:
         fields = """sub.teacher_name,
                     sub.teacher_id,"""
-        partition_by = "sub.Stud_speciality, sub.name, sub.teacher_id"
+        partition_by = "group by sub.Stud_speciality, sub.name, sub.teacher_name, sub.teacher_id"
     href = f"speciality_kr_attendance_dynamic-{token}--{group_by_speciality}--{teacher_list}-{speciality_list}"
     LOGGER.info(f"{href} start")
     res = await process_href(href, start_time)
@@ -546,7 +547,7 @@ async def speciality_kr_attendance_dynamic(token: str, group_by_speciality: bool
             SELECT DISTINCT
                 sub.Stud_speciality,
                 {fields}
-                ROUND(AVG(sub.dynamical_arrival) OVER (PARTITION BY {partition_by}) * 100::DECIMAL, 2) AS Посещаемость_средняя
+                ROUND(PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY sub.dynamical_arrival) * 100::DECIMAL, 2) AS Посещаемость_средняя
             FROM
                 (
                     SELECT
@@ -574,7 +575,8 @@ async def speciality_kr_attendance_dynamic(token: str, group_by_speciality: bool
                         {speciality_cond}
                 ) AS sub
             WHERE 
-                sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
+                sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00')
+            {partition_by};
             """)
         result = res.fetchall()
         result_dicts = [row._asdict() for row in result]
@@ -672,11 +674,11 @@ async def speciality_kr_total_points_dynamic(token: str, group_by_speciality: bo
         speciality_cond = ""
     if group_by_speciality:
         fields = """"""
-        partition_by = "sub.Stud_speciality, sub.name"
+        partition_by = "group by sub.Stud_speciality, sub.name"
     else:
         fields = """sub.teacher_name,
                     sub.teacher_id,"""
-        partition_by = "sub.Stud_speciality, sub.name, sub.teacher_id"
+        partition_by = "group by sub.Stud_speciality, sub.name, sub.teacher_name, sub.teacher_id"
     href = f"speciality_kr_total_points_dynamic-{token}--{group_by_speciality}--{teacher_list}-{speciality_list}"
     LOGGER.info(f"{href} start")
     res = await process_href(href, start_time)
@@ -687,7 +689,7 @@ async def speciality_kr_total_points_dynamic(token: str, group_by_speciality: bo
             SELECT DISTINCT
                 sub.Stud_speciality,
                 {fields}
-                ROUND(AVG(sub.Успеваемость) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Успеваемость_средняя
+                ROUND(PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY sub.Успеваемость)::DECIMAL, 2) AS Успеваемость_средняя
             FROM
                 (
                     SELECT
@@ -717,7 +719,8 @@ async def speciality_kr_total_points_dynamic(token: str, group_by_speciality: bo
                         {speciality_cond}
                 ) AS sub
             WHERE 
-                sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
+                sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00')
+            {partition_by};
             """)
         result = res.fetchall()
         result_dicts = [row._asdict() for row in result]

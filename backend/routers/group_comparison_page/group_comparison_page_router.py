@@ -337,11 +337,11 @@ async def team_kr_total_points_attendance_dynamic(token: str, group_by_teacher: 
     teams_true = ', '.join([f"'{team['id']}'" for team in teams])
     if group_by_teacher:
         fields = """"""
-        partition_by = "sub.name, sub.teacher_id"
+        partition_by = "group by sub.name, sub.teacher_id, sub.teacher_name"
     else:
         fields = """sub.team_name,
                     sub.team_id,"""
-        partition_by = "sub.name, sub.teacher_id, sub.team_id"
+        partition_by = "group by sub.name, sub.teacher_id, sub.teacher_name, sub.team_name, sub.team_id"
     href = f"team_kr_total_points_attendance_dynamic-{token}-{group_by_teacher}-{teacher_list}"
     LOGGER.info(f"{href} start")
     res = await process_href(href, start_time)
@@ -353,8 +353,8 @@ async def team_kr_total_points_attendance_dynamic(token: str, group_by_teacher: 
                 {fields}
                 sub.teacher_id,
                 sub.teacher_name,
-                ROUND(AVG(sub.Успеваемость) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Успеваемость_средняя,
-                ROUND(AVG(sub.dynamical_arrival) OVER (PARTITION BY {partition_by}) * 100::DECIMAL, 2) AS Посещаемость_средняя
+                ROUND(PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY sub.Успеваемость)::DECIMAL, 2) AS Успеваемость_средняя,
+                ROUND(PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY sub.dynamical_arrival) * 100::DECIMAL, 2) AS Посещаемость_средняя
             FROM
                 (
                     SELECT
@@ -389,7 +389,8 @@ async def team_kr_total_points_attendance_dynamic(token: str, group_by_teacher: 
                         l.team_id IN ({teams_true})
                 ) AS sub
             WHERE
-                sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
+                sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00')
+            {partition_by};
             """)
         result = res.fetchall()
         result_dicts = [row._asdict() for row in result]
@@ -490,11 +491,11 @@ async def team_kr_total_points_dynamic(token: str, group_by_teacher: bool,
     teams_true = ', '.join([f"'{team['id']}'" for team in teams])
     if group_by_teacher:
         fields = """"""
-        partition_by = "sub.name, sub.teacher_id"
+        partition_by = "group by sub.name, sub.teacher_id, sub.teacher_name"
     else:
         fields = """sub.team_name,
                     sub.team_id,"""
-        partition_by = "sub.name, sub.teacher_id, sub.team_id"
+        partition_by = "group by sub.name, sub.teacher_id, sub.teacher_name, sub.team_name, sub.team_id"
     href = f"team_kr_total_points_dynamic-{token}-{group_by_teacher}--{teacher_list}"
     LOGGER.info(f"{href} start")
     res = await process_href(href, start_time)
@@ -506,7 +507,7 @@ async def team_kr_total_points_dynamic(token: str, group_by_teacher: bool,
                 {fields}
                 sub.teacher_id,
                 sub.teacher_name,
-                ROUND(AVG(sub.Успеваемость) OVER (PARTITION BY {partition_by})::DECIMAL, 2) AS Успеваемость_средняя
+                ROUND(PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY sub.Успеваемость)::DECIMAL, 2) AS Успеваемость_средняя
             FROM
                 (
                     SELECT
@@ -536,7 +537,8 @@ async def team_kr_total_points_dynamic(token: str, group_by_teacher: bool,
                         l.team_id IN ({teams_true})
                 ) AS sub
             WHERE
-                sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
+                sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00')
+                {partition_by};
             """)
         result = res.fetchall()
         result_dicts = [row._asdict() for row in result]
@@ -631,11 +633,11 @@ async def team_kr_attendance_dynamic(token: str, group_by_teacher: bool,
     teams_true = ', '.join([f"'{team['id']}'" for team in teams])
     if group_by_teacher:
         fields = """"""
-        partition_by = "sub.name, sub.teacher_id"
+        partition_by = "group by sub.name, sub.teacher_id, sub.teacher_name"
     else:
         fields = """sub.team_name,
                     sub.team_id,"""
-        partition_by = "sub.name, sub.teacher_id, sub.team_id"
+        partition_by = "group by sub.name, sub.teacher_id, sub.teacher_name, sub.team_name, sub.team_id"
     href = f"team_kr_attendance_dynamic-{token}-{group_by_teacher}--{teacher_list}"
     LOGGER.info(f"{href} start")
     res = await process_href(href, start_time)
@@ -647,7 +649,7 @@ async def team_kr_attendance_dynamic(token: str, group_by_teacher: bool,
                 {fields}
                 sub.teacher_id,
                 sub.teacher_name,
-                ROUND(AVG(sub.dynamical_arrival) OVER (PARTITION BY {partition_by}) * 100::DECIMAL, 2) AS Посещаемость_средняя
+                ROUND(PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY sub.dynamical_arrival) * 100::DECIMAL, 2) AS Посещаемость_средняя
             FROM
                 (
                     SELECT
@@ -675,7 +677,8 @@ async def team_kr_attendance_dynamic(token: str, group_by_teacher: bool,
                         l.team_id IN ({teams_true})
                 ) AS sub
             WHERE
-                sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00');
+                sub.name IN ('Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00')
+                {partition_by};
             """)
         result = res.fetchall()
         result_dicts = [row._asdict() for row in result]
