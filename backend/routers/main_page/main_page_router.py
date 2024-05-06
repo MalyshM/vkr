@@ -97,18 +97,34 @@ async def total_points_attendance_per_stud_for_team(id_team: int, db: AsyncSessi
         return res
     try:
         result_query = await db.execute(f"""
-            select *, avg(sub."Успеваемость") over (partition by "Посещаемость_средняя") as "Успеваемость_средняя"
-            from
-            (select distinct
-                (select s.name from stud s where s.id=l.stud_id) as "stud_name",
-                (select s.id from stud s where s.id=l.stud_id) as "stud_id",
-                ROUND(count(id) filter (where l.arrival ='П') over (partition by stud_id) / count(id) over (partition by stud_id)::DECIMAL, 2) as "Посещаемость",
-                ROUND((sum(l.mark_for_work) over (partition by stud_id) + sum(l.test) over (partition by stud_id))::DECIMAL, 2) as "Успеваемость",
-                ROUND(count(id) filter (where l.arrival ='П') over (partition by team_id) / count(id) over (partition by team_id)::DECIMAL, 2) as "Посещаемость_средняя"
-            from
-                lesson l
-            where
-                l.team_id = {id_team}) as sub
+            SELECT *
+            FROM (
+                SELECT
+                    ROUND(PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY sub."Успеваемость")::DECIMAL, 2) AS "Успеваемость_средняя",
+                    ROUND(PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY sub."Посещаемость") * 100::DECIMAL, 2) AS "Посещаемость_средняя"
+                FROM (
+                    SELECT DISTINCT
+                        (SELECT s.name FROM stud s WHERE s.id = l.stud_id) AS "stud_name",
+                        (SELECT s.id FROM stud s WHERE s.id = l.stud_id) AS "stud_id",
+                        ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY stud_id) / COUNT(id) OVER (PARTITION BY stud_id)::DECIMAL, 2) AS "Посещаемость",
+                        ROUND((SUM(l.mark_for_work) OVER (PARTITION BY stud_id) + SUM(l.test) OVER (PARTITION BY stud_id))::DECIMAL, 2) AS "Успеваемость"
+                    FROM
+                        lesson l
+                    WHERE
+                        l.team_id = {id_team}
+                ) AS sub
+            ) AS sub,
+            (
+                SELECT DISTINCT
+                    (SELECT s.name FROM stud s WHERE s.id = l.stud_id) AS "stud_name",
+                    (SELECT s.id FROM stud s WHERE s.id = l.stud_id) AS "stud_id",
+                    ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY stud_id) / COUNT(id) OVER (PARTITION BY stud_id)::DECIMAL, 2) AS "Посещаемость",
+                    ROUND((SUM(l.mark_for_work) OVER (PARTITION BY stud_id) + SUM(l.test) OVER (PARTITION BY stud_id))::DECIMAL, 2) AS "Успеваемость"
+                FROM
+                    lesson l
+                WHERE
+                    l.team_id = {id_team}
+            ) AS sub1;
         """)
         result = result_query.fetchall()
         return await save_resp_and_return_it(result, href, start_time)
@@ -209,7 +225,7 @@ async def total_marks_for_team(id_team: int, db: AsyncSession = Depends(connect_
                     ELSE 'неудовл.'
                 END AS mark,
                 ROUND(COUNT(*) / count_all::DECIMAL, 2) AS percent,
-                ROUND(AVG(Успеваемость)::DECIMAL, 2) AS avg_total_points
+                ROUND(PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY sub."Успеваемость")::DECIMAL, 2) AS avg_total_points
             FROM
                 (
                 SELECT DISTINCT
