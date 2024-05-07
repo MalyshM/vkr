@@ -7,7 +7,7 @@ import { Tabs, TabList, TabPanels, Tab, TabPanel } from '@chakra-ui/react'
 
 import MatchAttendanceTeams from './MatchAttendanceTeams';
 import MatchTotalPointsTeams from './MatchTotalPointsTeams';
-import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
+import { fetchWithTokenRefresh } from '../../RefreshToken';
 
 
 const MatchToTeamPage = () => {

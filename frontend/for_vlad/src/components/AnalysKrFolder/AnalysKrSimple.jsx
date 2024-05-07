@@ -3,7 +3,7 @@ import { Chart } from 'chart.js/auto';
 import { Text } from '@chakra-ui/react';
 import { BoxPlotChart } from '@sgratzl/chartjs-chart-boxplot';
 
-import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
+import { fetchWithTokenRefresh } from '../RefreshToken';
 
 const AnalysKrSimple = ({ tokenUsers, type, kr }) => {
   const [AnalysKrSimpleData, setAnalysKrSimpleData] = useState(null);

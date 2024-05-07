@@ -4,7 +4,7 @@ import {  Table, Thead, Tbody, Tr, Th, Td, IconButton, Box } from "@chakra-ui/re
 import { ChevronUpIcon, ChevronDownIcon } from '@chakra-ui/icons';
 import {TableContainer,Text} from '@chakra-ui/react'
 
-import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
+import { fetchWithTokenRefresh } from '../RefreshToken';
 
 const TableOfGroup = ({ teamId, selectedLesson }) => {
   const [TableOfGroupData, setTableOfGroupData] = useState(null);

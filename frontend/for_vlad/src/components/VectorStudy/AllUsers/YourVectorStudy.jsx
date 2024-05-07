@@ -4,7 +4,7 @@ import { useAuth } from '../../useAuth';
 
 import VecStudyAllusersAtTp from './VecStudyAllusersAtTp';
 
-import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
+import { fetchWithTokenRefresh } from '../../RefreshToken';
 
 const YourVectorStudy = () => {
     const { userToken } = useAuth();

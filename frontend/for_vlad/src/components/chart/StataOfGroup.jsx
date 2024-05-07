@@ -5,7 +5,7 @@ import 'chartjs-plugin-datalabels';
 import { Avatar } from '@chakra-ui/react'
 import styled from 'styled-components';
 
-import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
+import { fetchWithTokenRefresh } from '../RefreshToken';
 
 const StataOfGroup = ({teamId,teamName}) => {
     const [stataOfGroupData, setStataOfGroupData] = useState(null);
