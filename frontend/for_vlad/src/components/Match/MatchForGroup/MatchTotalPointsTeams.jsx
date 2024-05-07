@@ -1,9 +1,14 @@
 import React, { useEffect, useRef ,useState} from 'react';
+
+import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
+
 import { Bar } from 'react-chartjs-2';
 import { Chart } from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 Chart.register(ChartDataLabels);
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js" integrity="sha512-JPcRR8yFa8mmCsfrw4TNte1ZvF1e3+1SdGMslZvmrzDYxS69J7J49vkFL8u6u8PlPJK+H3voElBtUCzaXj+6ig==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
 
 const MatchTotalPointsTeams = ({ teamId1,teamId2}) => {
   const [totalPointData, setTotalPointData] = useState(null);
@@ -32,7 +37,7 @@ const MatchTotalPointsTeams = ({ teamId1,teamId2}) => {
   const fetchtotalPointData = async () => {
     try {
         if (teamId1 !== null && teamId2 !== null) {
-        const response = await fetch(`http://moais-dashboard.ru:8082/api/total_points_stud_for_teams?id_team1=${teamId1}&id_team2=${teamId2}`);
+        const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/total_points_stud_for_teams?id_team1=${teamId1}&id_team2=${teamId2}`);
         const result = await response.json();
         // Обновляем состояние с полученными данными /api/total_points_stud_for_teams
         setTotalPointData(result);

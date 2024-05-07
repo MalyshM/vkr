@@ -8,6 +8,7 @@ import { Tabs, TabList, TabPanels, Tab, TabPanel } from '@chakra-ui/react'
 import VecStudyMatchAtTeams from './VecStudyMatchAtTeams';
 import VecStudyMatchTPTeams from './VecStudyMatchTPTeams';
 
+import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
 
 const MatchTwoTeamVectorStudy = () => {
     const { userToken } = useAuth();
@@ -25,7 +26,7 @@ const MatchTwoTeamVectorStudy = () => {
     }
       try {
         // Отправляем GET-запрос для получения данных о командах пользователя
-        const response = await fetch(`http://moais-dashboard.ru:8082/api/get_all_specialities?token=${userToken}`, {
+        const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_all_specialities?token=${userToken}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

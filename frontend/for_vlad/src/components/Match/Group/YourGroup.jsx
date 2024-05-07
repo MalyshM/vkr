@@ -6,26 +6,22 @@ import { Link } from 'react-router-dom';
 import { Tabs, TabList, TabPanels, Tab, TabPanel } from '@chakra-ui/react'
 import { Checkbox, CheckboxGroup } from '@chakra-ui/react'
 import { List, ListItem, MenuOptionGroup, MenuItemOption, MenuDivider } from "@chakra-ui/react";
-
-
-// import AllUsersAtenadance from './AllUsersAtenadance';
-// import AllUsersTotalPoint from './AllUsersTotalPoint';
 import AllUsersAtendenceTotalPointsWitchGroup from './AllUsersAtendenceTotalPointsWitchGroup';
 
+import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
 
 const YourGroup = () => {
     const { userToken } = useAuth();
     const [choiseGroupTeacher_, setChoiseGroupTeacher] = useState(false);
-    
-    const [teachersData, setTeachers ] = useState(null);
 
+    const [teachersData, setTeachers ] = useState(null);
     const [selectedTeachers, setSelectedTeachers] = useState([]);
 
     useEffect(() => {
       const fetchAllTeachersData = async () => {
         try {
             if (userToken!== null) {
-            const response = await fetch (`http://moais-dashboard.ru:8082/api/get_all_teachers?token=${userToken}`);
+            const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_all_teachers?token=${userToken}`);
             const result = await response.json();
             setTeachers(result);              
           }
@@ -47,6 +43,17 @@ const YourGroup = () => {
       }
     };
 
+  //   const handleTeacherSelect = (teacherName) => {
+  //     setSelectedTeachers(prevSelected => {
+  //         if (prevSelected.includes(teacherName)) {
+  //             return prevSelected.filter(name => name !== teacherName);
+  //         } else {
+  //             return [...prevSelected, teacherName];
+  //         }
+  //     });
+  // };
+
+
   const handleCheckboxChange = (event) => {
     setChoiseGroupTeacher(event.target.checked); 
     };
@@ -56,9 +63,7 @@ const YourGroup = () => {
       console.log('Selected teachers:', selectedTeachers);
     };
 
-    // const handleApplySelection = () => {
-    //   onSelect(selectedTeachers);
-    // };
+    
 
 
  
@@ -66,7 +71,13 @@ return(
 <>
   <Box p={6} display="flex" justifyContent={'space-between'}>
     <Heading as="h2" size="lg">Посещаемость и успеваемость студентов после каждой КР</Heading>
-      
+  
+    <Checkbox
+      onChange={handleCheckboxChange}
+      isChecked={choiseGroupTeacher_} // Устанавливаем значение чекбокса в соответствии с текущим состоянием
+      >
+        {choiseGroupTeacher_ ? 'Группировать по преподавателям' : 'Без группировки'}
+    </Checkbox>
 
     <Menu closeOnSelect={false}>
       <MenuButton as={Button} colorScheme="blue">
@@ -84,18 +95,26 @@ return(
           </MenuItem>
         ))}
       </MenuList>
-      {/* <Button colorScheme="green" onClick={handleApplySelection}>Применить</Button> */}
     </Menu>
-
-    <Checkbox
-      onChange={handleCheckboxChange}
-      isChecked={choiseGroupTeacher_} // Устанавливаем значение чекбокса в соответствии с текущим состоянием
-      >
-        {choiseGroupTeacher_ ? 'Группировать по преподавателям' : 'Без группировки'}
-    </Checkbox>
 
 
   </Box>
+
+
+  <Box ml={6} mr={6} display="flex" justifyContent={'space-between'}>
+
+  {/* {teachersData && teachersData.map((teacher) => (
+                    <Checkbox
+                        key={teacher.id}
+                        isChecked={selectedTeachers.includes(teacher.name)}
+                        onChange={() => handleTeacherSelect(teacher.name)}
+                    >
+                        {teacher.name}
+                    </Checkbox>
+                ))} */}
+
+  
+    </Box>
 
   
 

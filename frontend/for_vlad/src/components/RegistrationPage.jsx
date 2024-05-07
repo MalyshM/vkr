@@ -24,11 +24,11 @@ import { Flex, Spacer, Center,Box, Heading, FormControl, FormLabel, Input, Butto
 import { useToast } from '@chakra-ui/react';
 import { CloseIcon} from '@chakra-ui/icons'
 
+import { fetchWithTokenRefresh } from './RefreshToken';
 
 const RegistrationPage = () => {
-  // Состояния для отслеживания значений полей ввода и сообщений об ответе
   const [FIO, setFIO] = useState('');
-  const [role, setRole] = useState(''); // Состояние для хранения выбранной роли
+  const [role, setRole] = useState(''); 
 
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCurator, setIsCurator] = useState(false);
@@ -76,7 +76,7 @@ const register = async () => {
     // Функция для выполнения регистрации по отправке запроса к API
     try {
       // Отправка POST-запроса к API для регистрации
-      const response = await fetch('http://moais-dashboard.ru:8082/api/registration_standard', {
+      const response = await fetchWithTokenRefresh('http://moais-dashboard.ru:8082/api/registration_standard', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -113,7 +113,7 @@ const register = async () => {
   };
 
 return (
-  <Center bg="#72b5bb" h="100vh">
+  <Center bg="#00aeef" h="100vh">
     <Box
       // maxW="md"
       width='500px'
@@ -138,11 +138,11 @@ return (
 
           <FormLabel>Роль:</FormLabel>
 
-          <RadioGroup onChange={(value) => handleRoleChange(value)} value={role} checked={'teal'} >
+          <RadioGroup onChange={(value) => handleRoleChange(value)} value={role} checked={'blue'} >
 
-            <Radio colorScheme='teal'  mr={5} value="admin">Админ</Radio>
-            <Radio colorScheme='teal'  mr={5} value="teacher">Преподаватель</Radio>
-            <Radio colorScheme='teal' value="curator">Куратор</Radio>
+            <Radio colorScheme='blue'  mr={5} value="admin">Админ</Radio>
+            <Radio colorScheme='blue'  mr={5} value="teacher">Преподаватель</Radio>
+            <Radio colorScheme='blue' value="curator">Куратор</Radio>
 
           </RadioGroup>
 
@@ -199,7 +199,7 @@ return (
       </FormControl>
       </form>
 
-      <Button width='450px' colorScheme="teal" onClick={register}>
+      <Button width='450px' colorScheme="blue" onClick={register}>
         Подтвердить
       </Button>
       

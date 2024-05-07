@@ -11,6 +11,7 @@ import NumCountStudInLern from './chart/NumCountStudInLern';
 import StataOfGroup from './chart/StataOfGroup';
 import TableOfGroup from './chart/TableOfGroup';
 
+import { fetchWithTokenRefresh } from './RefreshToken';
 
 const MainPage = () => {
   const [isHovered, setIsHovered] = useState(false);
@@ -23,35 +24,6 @@ const MainPage = () => {
 
   const [selectedLessonMainPage, setSelectedLessonMainPage] = useState(null);
 
-    const fetchUserData = async () => {
-      // Функция для отправки запроса на сервер
-      if (!userToken) {
-        console.error('Токен пользователя отсутствует');
-        return;
-      }
-      
-      // 1 ЗАПРОС - ПОЛУЧАЕМ ИНФУ ОБ ЮЗЕРЕ
-      try {
-        // Отправляем POST-запрос на сервер
-        const response = await fetch(`http://moais-dashboard.ru:8082/api/get_current_user_dev?token=${userToken}`, {
-          method: 'POST',
-        });
-
-        if (response.ok) {
-          // Если запрос успешен, получаем данные и обновляем состояние
-          const userData = await response.json();
-          console.log('User Data:', userData);
-          setUserData(userData);
-        } else {
-          // Если запрос неудачен, выводим ошибку в консоль
-          console.error('Не удалось получить данные пользователя.');
-          console.log('userToken: ', userToken);
-        }
-      } catch (error) {
-        // Обрабатываем ошибку в случае неудачного запроса
-        console.error('Ошибка при получении пользовательских данных:', error);
-      }
-    };
     // ПОЛУЧИЛИ ИНФУ ОБ ЮЗЕРЕ (1 ЗАПРОС)
 
     const fetchUserTeams = async () => {
@@ -63,7 +35,7 @@ const MainPage = () => {
       // 2 ЗАПРОС - ПОЛУЧАЕМ ИНФУ О КОМАНДАХ ЮЗЕРА
       try {
         // Отправляем GET-запрос для получения данных о командах пользователя
-        const response = await fetch(`http://moais-dashboard.ru:8082/api/get_teams_for_user_without_lect?token=${userToken}`, {
+        const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_teams_for_user_without_lect?token=${userToken}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -88,7 +60,7 @@ const MainPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       // Функция для запуска запроса, вызывается при монтировании компонент
-      await fetchUserData();
+      // await fetchUserData();
       await fetchUserTeams();
       };
   
@@ -139,93 +111,61 @@ const MainPage = () => {
   };
   
 
-  
 return (
-  <>
-     
+  <Flex direction="column" minHeight="90vh">
+    
+    <Flex justifyContent="flex-end" alignItems="center" p={2}>
+      <Select width='270px' borderWidth={1} fontFamily='Trebuchet MS'
+        placeholder="Выберите вашу группу"
+        borderColor='black'
+        _active={{ borderColor: "black" }} 
+        _hover={{ color: "blue" }}
+        _selected={{ bg: "black.500", borderColor: "red.500", color: "white" }}
+        onChange={(e) => handleTeamChange(e.target.value, e.target.selectedOptions[0].label)}
+        value={selectedTeam}>
+          {Array.isArray(userTeams) ? (
+            userTeams.map((team) => (
+              <option key={team.id} value={team.id}>
+                {team.name}
+              </option>
+            ))
+          ) : (
+            <option disabled>No teams available</option>
+          )}
+      </Select>
 
-           {/* </Box> */}
-           {/* <div style={{  display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}> */}
-            <Flex justifyContent={'flex-end'} alignItems={'center'} p={2}>
-              
-            <Select width='270px' borderWidth={1}  fontFamily={'Trebuchet MS'}
-              placeholder="Выберите вашу группу"
-              borderColor='teal'
-              _active={{ borderColor: "teal" }} 
-              _hover={{ color: "teal" }}
-              _selected={{ bg: "teal.500", borderColor: "red.500", color: "white" }}
+      <Tooltip mr={4} borderRadius='lg' fontFamily='Trebuchet MS' label={getRoleTooltip(userData)} fontSize='md'>
+        <Avatar bg='gray.500' ml={3} mr={3} 
+          onMouseEnter={() => console.log('Mouse entered')}
+          onMouseLeave={() => console.log('Mouse left')}
+        />
+      </Tooltip>
+    </Flex>
 
+    <Flex flex="1" flexDirection={{ base: 'column', md: 'row' }}>
+      <Box flex="1" minWidth={{ base: '100%', md: '70%' }} p={4}>
+        {selectedTeam && <AtendenceTotalPoints teamId={selectedTeam} teamName={selectedTeamName} />}
+      </Box>
 
-              onChange={(e) => handleTeamChange(e.target.value, e.target.selectedOptions[0].label)}
-              value={selectedTeam}>
-                
+      <Box flex="1" minWidth={{ base: '100%', md: '30%' }} p={4}>
+        {selectedTeam && <StataOfGroup teamId={selectedTeam} teamName={selectedTeamName} />}
+      </Box>
+    </Flex>
 
-              {Array.isArray(userTeams) ? (
-                userTeams.map((team) => (
-                  <option key={team.id} value={team.id}>
-                    {team.name}
-                  </option>
-                ))
-              ) : (
-                <option disabled>No teams available</option>
-              )}
-            </Select>
+    <Flex flex="1" flexDirection={{ base: 'column', md: 'row' }}>
+      <Box flex="1" minWidth={{ base: '100%', md: '60%' }} p={4}>
+        {selectedTeam && <NumCountStudInLern teamId={selectedTeam} teamName={selectedTeamName} onLessonSelect={handleLessonSelect} />}
+      </Box>
 
-              
-            
-            <Tooltip mr={4} borderRadius={'lg'} fontFamily={'Trebuchet MS'} label={getRoleTooltip(userData)} fontSize='md'>
-            <Avatar bg='gray.500' ml={3} mr={3} 
-              onMouseEnter={() => console.log('Mouse entered')}
-              onMouseLeave={() => console.log('Mouse left')}
-              // Другие пропсы для Avatar
-            />
-          </Tooltip>
-
-          </Flex>
-            {/* </div> */}
-
-            
-
-      <Flex direction="column" height="80vh">
-        <Flex ml={6} flex="1">
-
-          <Box flex="2" h={[350]}>
-            {/* <Box h={'380'} bg={'white'} borderRadius={20}> */}
-              {selectedTeam && <AtendenceTotalPoints teamId={selectedTeam} teamName={selectedTeamName}  />}
-            {/* </Box> */}
-          </Box>
-
-          
-          <Box ml={4} mr={6} flex="1" h={[350]}>
-            {/* <Box h={'380'} bg={'white'} borderRadius={20}> */}
-            {selectedTeam && <StataOfGroup teamId={selectedTeam} teamName={selectedTeamName} />}
-            {/* </Box>     */}
-          </Box>
-          
+      <Box flex="1" minWidth={{ base: '100%', md: '40%' }} p={4}>
+        {selectedTeam && <TableOfGroup teamName={selectedTeamName} teamId={selectedTeam} selectedLesson={selectedLessonMainPage}/>}
+      </Box>
+    </Flex>
+  </Flex>
+);
 
 
-
-        </Flex  >
-
-        <Flex ml={6} flex="1">
-
-          <Box flex="2" h={[350]}>
-            {/* <Box mt={16} h={'380'} bg={'white'} borderRadius={20}> */}
-              {selectedTeam && <NumCountStudInLern teamId={selectedTeam} teamName={selectedTeamName} onLessonSelect={handleLessonSelect} />}
-            {/* </Box> */}
-          </Box>
-
-          <Box ml={4} mr={6} flex="1" h={[350]}>
-          {/* <Box h={'350'} bg={'white'} borderRadius={20}> */}
-            {selectedTeam && <TableOfGroup teamName={selectedTeamName} teamId={selectedTeam} selectedLesson={selectedLessonMainPage}/>}
-          {/* </Box> */}
-          </Box>
-
-        </Flex>
-     </Flex>
-      </> 
-      
-      );};
+    };
 
 
 export default MainPage;

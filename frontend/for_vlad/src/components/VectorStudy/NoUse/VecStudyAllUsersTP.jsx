@@ -3,8 +3,8 @@ import { Bar } from 'react-chartjs-2';
 import { Chart } from 'chart.js/auto';
 import 'chartjs-plugin-datalabels'; // Импортируйте плагин
 
-const VecStudyAllUsersAt = ({tokenUsers}) => {
-  const [VecStudyAllUsersAtData, setVecStudyAllUsersAtData] = useState(null);
+const VecStudyAllUsersTP = ({tokenUsers}) => {
+  const [VecStudyAllUsersTPData, setVecStudyAllUsersTPData] = useState(null);
   const chartRef = useRef(null);
   const [count, setCount] = useState(null); // Новый стейт для данных о командах
 
@@ -24,26 +24,26 @@ const VecStudyAllUsersAt = ({tokenUsers}) => {
   }, []);
 
  
-  console.log('VecStudyAllUsersAt-token:', tokenUsers,);
+  console.log('VecStudyAllUsersTP-token:', tokenUsers,);
   
   useEffect(() => {
-  const fetchVecStudyAllUsersAtData = async () => {
+  const fetchVecStudyAllUsersTPData = async () => {
     try {
         if (tokenUsers!== null) {
-        const response = await fetch(`http://moais-dashboard.ru:8082/api/attendance_static_stud_for_all_specialities?token=${tokenUsers}&lect=${false}`);
+        const response = await fetch(`http://moais-dashboard.ru:8082/api/total_points_studs_for_all_specialities?token=${tokenUsers}&lect=${false}`);
         const result = await response.json();
-        setVecStudyAllUsersAtData(result); 
+        setVecStudyAllUsersTPData(result);  
         setCount(result.length);
       }
     } catch (error) {
       console.error('VecStudyAllUsersAt - Error fetching attendance data:', error);
     }
   };
-  fetchVecStudyAllUsersAtData();
+  fetchVecStudyAllUsersTPData();
 },[tokenUsers]);
 
 
-if (!VecStudyAllUsersAtData) {
+if (!VecStudyAllUsersTPData) {
     return <div>Loading...</div>;
   }
 
@@ -77,15 +77,14 @@ if (!VecStudyAllUsersAtData) {
     'NaN': 'rgb(255, 128, 128, 0.5)',
   };
 
-  const sortedData = VecStudyAllUsersAtData.sort((a, b) => b.arrival - a.arrival);
-
+  const sortedData = VecStudyAllUsersTPData.sort((a, b) => b.avg_total_points - a.avg_total_points);
 
   const data = {
-    labels: sortedData.map(item => `${item.Stud_speciality} - кол-во студентов: ${item.studs_in_speciality}`),
+    labels: sortedData.map(item => `${item.stud_speciality} - кол-во студентов: ${item.studs_in_speciality}`),
     datasets: [
       {
-        label: 'Процент посещаемости',
-        data: sortedData.map(item => item.arrival),
+        label: 'Баллы',
+        data: sortedData.map(item => item.avg_total_points),
         backgroundColor: sortedData.map(item => uniqueTeachersColors[item.Stud_speciality]),
         borderColor: 'rgb(0,174,239)',
         borderWidth: 0,
@@ -118,7 +117,7 @@ if (!VecStudyAllUsersAtData) {
         position: 'left',
         title: {
           display: true,
-          text: 'Процент посещаемости',
+          text: 'Баллы',
           font: {
             size: 20, // Размер шрифта названия оси X
             fontColor: 'black',
@@ -131,21 +130,20 @@ if (!VecStudyAllUsersAtData) {
       datalabels: {
         display: true,
         font: {
-          weight: 'normal'
+          weight: "normal",
         },
-        align: 'end', // Выравнивание текста
-        anchor: 'end', // Анкер (точка прикрепления) текста
+        anchor: 'end',
+        align: 'end',
         color: 'black', // Цвет текста
         formatter: (value, context) => {
-          return `${sortedData[context.dataIndex].arrival.toFixed(0)}%\nкол-во:${sortedData[context.dataIndex].studs_in_speciality}`;
+          return `${sortedData[context.dataIndex].avg_total_points.toFixed(0)} Б\nкол-во:${sortedData[context.dataIndex].studs_in_speciality}`;
         },
-        
       },
 
 
     title: {
         display: true,
-        text: `Посещаемость ваших направлений, кол-во: ${count}`,
+                text: `Успеваемость ваших направлений, кол-во: ${count}`,
         font: {
           size: 22,
           fontColor: 'black',
@@ -183,7 +181,7 @@ if (!VecStudyAllUsersAtData) {
       duration: 2000,
     },
   };
-  console.log('fetchAVecStudyAllUsersAtData:', VecStudyAllUsersAtData);
+  console.log('fetchVecStudyAllUsersTPData:', VecStudyAllUsersTPData);
   
     return(<>
 
@@ -191,4 +189,4 @@ if (!VecStudyAllUsersAtData) {
   </>) 
     
   };
-export default VecStudyAllUsersAt;
+export default VecStudyAllUsersTP;

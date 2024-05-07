@@ -6,6 +6,8 @@ import { Flex, Text, NumberInput, NumberInputField, NumberInputStepper, NumberIn
 import { ChakraProvider, Button, Box } from '@chakra-ui/react';
 import { useNumberItems } from './NumberItemsContext';
 
+import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
+
 import 'chartjs-plugin-trendline';
 
 const AtendenceTotalPoints = ({teamId,teamName}) => {
@@ -19,7 +21,7 @@ const AtendenceTotalPoints = ({teamId,teamName}) => {
   const [totalPointsAvg, setTotalPointsAvg] = useState(null);
   const [arrivalAvg, setArrivalAvg] = useState(null);
 
-  const [successColor, setSuccessColor] = useState('rgba(86, 173, 192, 1)');
+  const [successColor, setSuccessColor] = useState('rgba(0,174,239, 1)');
   const [attendanceColor, setAttendanceColor] = useState('rgba(223, 88, 87, 1) ');
 
   const [numberOfItems ,setNumberOfItems] = useState(null)
@@ -37,11 +39,12 @@ const handleButtonClick = (sortType) => {
 
   // Обновляем цвет графика в зависимости от выбранной кнопки
   if (sortType === 'Успеваемость') {
-    setSuccessColor('rgba(86, 173, 192, 1)'); 
+    setSuccessColor('rgba(0,174,239, 1)'); 
+
     setAttendanceColor('rgba(223, 88, 87, 1)');
   } else {
     setSuccessColor('rgba(223, 88, 87, 1)');
-    setAttendanceColor('rgba(86, 173, 192, 1)')
+    setAttendanceColor('rgba(0,174,239, 1)')
 };
 };
 
@@ -59,7 +62,7 @@ const handleButtonClick = (sortType) => {
     const fetchAtendanceTotalPointsData = async () => {
       try {
         if (teamId !== null) { 
-          const response = await fetch(`http://moais-dashboard.ru:8082/api/total_points_attendance_per_stud_for_team?id_team=${teamId}`);
+          const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/total_points_attendance_per_stud_for_team?id_team=${teamId}`);
           const result = await response.json();
 
           console.log('Total_points_attendance_per_stud_for_team:', result);
@@ -241,13 +244,76 @@ onClick: handleChartClick,
 return (
 <>
 
-<Flex align="center" justifyContent='space-around' mb={3}>
+<Flex align="center" justifyContent='space-between' mb={3}>
+
+  <Flex align="center" justifyContent='space-between' >
+
+    <Text mr={4} fontFamily={'Trebuchet MS'}>Выберите режим:</Text> 
+
+    <Flex >
+    <Button 
+      fontFamily={'Trebuchet MS'}
+      as='samp'
+      colorScheme={sortBy === 'Успеваемость' ? 'blue' : 'transparent'}
+      onClick={() => handleButtonClick('Успеваемость')}
+      size="md"
+      color={sortBy === 'Успеваемость' ? 'white' : 'black'} 
+    >
+      Успеваемость
+    </Button>
+    <Button 
+      fontFamily={'Trebuchet MS'} 
+      as='samp'
+      colorScheme={sortBy === 'Посещаемость' ? 'blue' : 'transparent'}
+      onClick={() => handleButtonClick('Посещаемость')}
+      size="md"
+      color={sortBy === 'Посещаемость' ? 'white' : 'black'} 
+    >
+      Посещаемость
+    </Button>
+    </Flex>
+    
+  </Flex>
+
+  <Flex align="center"> 
+    <Text bg={'white'} fontFamily={'Trebuchet MS'} borderColor={'rgba(0, 28, 172, 1)'} mr={2} p={2} borderWidth={2} borderRadius={6}>Среднее посещение: {Math.round(arrivalAvg * 100)}%</Text>
+    
+    <Text bg={'white'} fontFamily={'Trebuchet MS'} borderColor={'rgb(255,100,50)'} mr={2} p={2} borderWidth={2} borderRadius={6}>Средний балл: {totalPointsAvg.toFixed(2)}</Text>
+  </Flex>
+  <Flex>
+    <Text fontFamily={'Trebuchet MS'} ml={10}>Установите порог:</Text>
+    
+    <NumberInput
+      bg={'white'}
+      borderColor={'teal'}
+      fontFamily={'Trebuchet MS'}
+      borderWidth={0}
+      ml={2}
+      min={0}
+      max={100}
+      maxW={24} 
+      value={threshold}
+      onChange={(valueAsString, valueAsNumber) => setThreshold(valueAsNumber)}
+    >
+      <NumberInputField />
+      <NumberInputStepper>
+        <NumberIncrementStepper />
+        <NumberDecrementStepper />
+      </NumberInputStepper>
+    </NumberInput> 
+   
+  </Flex>
+
+</Flex>
+
+
+{/* <Flex align="center" justifyContent='space-around' mb={3}>
 
 <Flex align="center">
-        <Text fontFamily={'Trebuchet MS'} mr={2}>Выберите режим:</Text> 
+        <Text fontFamily={'Trebuchet MS'} >Выберите режим:</Text> 
         <Button fontFamily={'Trebuchet MS'}
           as='samp'
-          colorScheme={sortBy === 'Успеваемость' ? 'teal' : 'transparent'}
+          colorScheme={sortBy === 'Успеваемость' ? 'blue' : 'transparent'}
           onClick={() => handleButtonClick('Успеваемость')}
           size="md"
           color={sortBy  === 'Успеваемость' ? 'white' : 'black'} 
@@ -257,9 +323,9 @@ return (
           Успеваемость
         </Button>
 
-        <Button fontFamily={'Trebuchet MS'} ml={0}
+        <Button fontFamily={'Trebuchet MS'} 
         as='samp'
-          colorScheme={sortBy === 'Посещаемость' ? 'teal' : 'transparent'}
+          colorScheme={sortBy === 'Посещаемость' ? 'blue' : 'transparent'}
           onClick={() => handleButtonClick('Посещаемость')}
           size="md"
           color={sortBy  === 'Посещаемость' ? 'white' : 'black'} 
@@ -268,7 +334,7 @@ return (
         >
           Посещаемость
         </Button>
-      </Flex>
+  </Flex>
 
   <Flex align="center">
   <Text bg={'white'} fontFamily={'Trebuchet MS'} borderColor={'rgba(0, 28, 172, 1)'} mr={2} p={2} borderWidth={2} borderRadius={6}>Среднее посещение: {Math.round(arrivalAvg * 100)}%</Text>
@@ -299,8 +365,8 @@ return (
   </Flex>
 
   
-  </Flex>
-  <Box h={'368'} bg={'white'} borderRadius={20}>
+  </Flex> */}
+    <Box h={'40vh'} bg={'white'} borderRadius={20}>
       <Bar ref={chartRef} data={data} options={options} />
     </Box>
     

@@ -7,7 +7,7 @@ import { Tabs, TabList, TabPanels, Tab, TabPanel } from '@chakra-ui/react'
 
 import MatchAttendanceTeams from './MatchAttendanceTeams';
 import MatchTotalPointsTeams from './MatchTotalPointsTeams';
-
+import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
 
 
 const MatchToTeamPage = () => {
@@ -27,7 +27,7 @@ const MatchToTeamPage = () => {
     }
       try {
         // Отправляем GET-запрос для получения данных о командах пользователя
-        const response = await fetch(`http://moais-dashboard.ru:8082/api/get_teams_for_user_without_lect?token=${userToken}`, {
+        const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_teams_for_user_without_lect?token=${userToken}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

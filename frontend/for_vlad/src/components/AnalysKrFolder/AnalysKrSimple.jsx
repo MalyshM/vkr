@@ -3,6 +3,8 @@ import { Chart } from 'chart.js/auto';
 import { Text } from '@chakra-ui/react';
 import { BoxPlotChart } from '@sgratzl/chartjs-chart-boxplot';
 
+import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
+
 const AnalysKrSimple = ({ tokenUsers, type, kr }) => {
   const [AnalysKrSimpleData, setAnalysKrSimpleData] = useState(null);
   const chartRef = useRef(null);
@@ -11,7 +13,7 @@ const AnalysKrSimple = ({ tokenUsers, type, kr }) => {
     const fetchAnalysKrSimpleData = async () => {
       try {
         if (type !== null && kr !== null) {
-          const response = await fetch(`http://moais-dashboard.ru:8082/api/kr_analyse_simple?type_group_by=${type}&kr=${kr}&token=${tokenUsers}`);
+          const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/kr_analyse_simple?type_group_by=${type}&kr=${kr}&token=${tokenUsers}`);
           const result = await response.json();
           setAnalysKrSimpleData(result);
         }
@@ -22,7 +24,6 @@ const AnalysKrSimple = ({ tokenUsers, type, kr }) => {
     fetchAnalysKrSimpleData();
   }, [type, kr, tokenUsers]);
   // console.log('test AnalysKrSimple - ', tokenUsers, type, kr)
-  console.log('NEW AnalysKrSimpleData - ', AnalysKrSimpleData)
 
   useEffect(() => {
     if (AnalysKrSimpleData) {

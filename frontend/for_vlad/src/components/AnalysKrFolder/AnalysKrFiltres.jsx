@@ -3,6 +3,8 @@ import { Chart } from 'chart.js/auto';
 import { Text } from '@chakra-ui/react';
 import { BoxPlotChart } from '@sgratzl/chartjs-chart-boxplot';
 
+import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
+
 const AnalysKrFiltres = ({ tokenUsers, type, kr, teacher,speciality,team }) => {
   const [AnalysKrFiltresData, setAnalysKrFiltresData] = useState(null);
   const chartRef = useRef(null);
@@ -11,7 +13,7 @@ const AnalysKrFiltres = ({ tokenUsers, type, kr, teacher,speciality,team }) => {
     const fetchAnalysKrFiltresData = async () => {
       try {
         if (tokenUsers !== null ) {
-            const response = await fetch(`http://moais-dashboard.ru:8082/api/kr_analyse_with_filters?type_select=${type}&kr=${kr}&token=${tokenUsers}${teacher?`&teacher=${teacher}`:''}${speciality?`&speciality='${speciality}'`:''}${team?`&team=${team}`:''}`);
+            const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/kr_analyse_with_filters?type_select=${type}&kr=${kr}&token=${tokenUsers}${teacher?`&teacher=${teacher}`:''}${speciality?`&speciality='${speciality}'`:''}${team?`&team=${team}`:''}`);
  
           const result = await response.json();
           setAnalysKrFiltresData(result);
@@ -23,26 +25,11 @@ const AnalysKrFiltres = ({ tokenUsers, type, kr, teacher,speciality,team }) => {
     fetchAnalysKrFiltresData();
   }, [type, kr, tokenUsers,teacher,speciality,team]);
 
-  
-  // console.log("tokenUsers - ", tokenUsers)
-  // console.log("type - ", type)
-  // console.log("kr - ", kr)
-  console.log("teacher - ", teacher)
-  console.log("speciality - ", speciality )
-  console.log("team - ", team)
-  // console.log("AnalysKrFiltresData - ", AnalysKrFiltresData)
-
-  console.log('NEW2 AnalysKrFiltresData - ', AnalysKrFiltresData)
-
   useEffect(() => {
     if (Array.isArray(AnalysKrFiltresData)) {
-      // const labels = Object.keys(AnalysKrFiltresData);
-      // const data = Object.values(AnalysKrFiltresData);
-      
+ 
       const labels = AnalysKrFiltresData.map(item => item.team_name || item.speciality || item.teacher_name );
       const data = AnalysKrFiltresData.map(item => item.test_mark_list);
-      
-
 
       const boxplotData = {
         labels: labels,

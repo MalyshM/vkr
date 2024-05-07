@@ -1,7 +1,7 @@
 import React, { useEffect, useRef ,useState} from 'react';
 import { Bar } from 'react-chartjs-2';
 import { Chart } from 'chart.js/auto';
-
+import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
 
 const MatchAttendanceTeams = ({ teamId1, teamId2}) => {
   const [attendanceData, setAttendanceData] = useState(null);
@@ -28,7 +28,7 @@ const MatchAttendanceTeams = ({ teamId1, teamId2}) => {
   const fetchMetchAttendanceData = async () => {
     try {
         if (teamId1 !== null && teamId2 !== null) {
-        const response = await fetch(`http://moais-dashboard.ru:8082/api/attendance_static_stud_for_teams?id_team1=${teamId1}&id_team2=${teamId2}`);
+        const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/attendance_static_stud_for_teams?id_team1=${teamId1}&id_team2=${teamId2}`);
         const result = await response.json();
         setAttendanceData(result);
       }

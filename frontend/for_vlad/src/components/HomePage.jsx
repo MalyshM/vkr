@@ -6,7 +6,7 @@ import { Box, Button, Heading ,Center,} from '@chakra-ui/react';
 const HomePage = () => {
 
     return (
-    <Center bg='#72b5bb' h="100vh"position="relative" >
+    <Center bg='#00aeef' h="100vh"position="relative" >
       
 
         <Box
@@ -29,7 +29,7 @@ const HomePage = () => {
           <Heading as="h1" size="xl" mb={6}  fontFamily="Trebuchet MS">
             Добро пожаловать!
           </Heading>
-          <Button w='200px' colorScheme="teal" variant="solid" size="lg" m="2" as={Link} to="/login">
+          <Button w='200px' colorScheme="blue" variant="solid" size="lg" m="2" as={Link} to="/login">
             Войти
           </Button>
           <Button  colorScheme="blackAlpha" variant='solid' size="lg" m="2" as={Link} to="/register">
