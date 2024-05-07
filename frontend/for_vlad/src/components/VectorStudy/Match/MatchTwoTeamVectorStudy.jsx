@@ -8,7 +8,7 @@ import { Tabs, TabList, TabPanels, Tab, TabPanel } from '@chakra-ui/react'
 import VecStudyMatchAtTeams from './VecStudyMatchAtTeams';
 import VecStudyMatchTPTeams from './VecStudyMatchTPTeams';
 
-import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
+import { fetchWithTokenRefresh } from '../../RefreshToken';
 
 const MatchTwoTeamVectorStudy = () => {
     const { userToken } = useAuth();

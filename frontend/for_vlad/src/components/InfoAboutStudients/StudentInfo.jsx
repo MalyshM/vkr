@@ -3,7 +3,7 @@ import {  Table, Thead, Tbody, Tr, Th, Td, IconButton, chakra } from "@chakra-ui
 import { ChevronUpIcon, ChevronDownIcon } from '@chakra-ui/icons';
 import {TableContainer,Text,Flex} from '@chakra-ui/react'
 
-import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
+import { fetchWithTokenRefresh } from '../RefreshToken';
 
 const StudentInfo = ({ studentId, teamName }) => {
   const [StudentInfoData, setStudentInfo] = useState(null);

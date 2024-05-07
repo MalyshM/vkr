@@ -1,7 +1,7 @@
 import React, { useEffect, useRef ,useState} from 'react';
 import { Bar } from 'react-chartjs-2';
 import { Chart } from 'chart.js/auto';
-import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
+import { fetchWithTokenRefresh } from '../../RefreshToken';
 
 const VecStudyMatchTPTeams = ({ speciality1, speciality2, token}) => {
   const [VecStudyMatchTPTeamsData, setVecStudyMatchTPTeamsData] = useState(null);

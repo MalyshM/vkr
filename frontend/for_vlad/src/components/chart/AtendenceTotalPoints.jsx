@@ -6,7 +6,7 @@ import { Flex, Text, NumberInput, NumberInputField, NumberInputStepper, NumberIn
 import { ChakraProvider, Button, Box } from '@chakra-ui/react';
 import { useNumberItems } from './NumberItemsContext';
 
-import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
+import { fetchWithTokenRefresh } from '../RefreshToken';
 
 import 'chartjs-plugin-trendline';
 

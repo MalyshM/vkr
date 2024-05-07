@@ -7,7 +7,7 @@ import { useNavigate  } from 'react-router-dom';
 import { Box } from "@chakra-ui/react";
 import { useNumberItems } from './NumberItemsContext';
 
-import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
+import { fetchWithTokenRefresh } from '../RefreshToken';
 
 const NumCountStudInLern = ({ teamId,onLessonSelect, numberOfItems}) => {
   const numberOfItemsRef = useNumberItems();

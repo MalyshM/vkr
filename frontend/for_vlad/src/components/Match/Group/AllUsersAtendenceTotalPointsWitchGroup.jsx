@@ -6,7 +6,7 @@ import { useNavigate  } from 'react-router-dom';
 import { Text } from '@chakra-ui/react'
 // import { Legend } from 'react-chartjs-2';
 
-import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
+import { fetchWithTokenRefresh } from '../../RefreshToken';
 
 const AllUsersAtendenceTotalPointsWitchGroup = ({tokenUsers, choiseGroupTeacher, selectedTeachers, allTeacherForLegend}) => {
   const [AllUsersAtendenceTotalPointsWitchGroupData, setAllUsersAtendenceTotalPointsWitchGroupData] = useState(null);

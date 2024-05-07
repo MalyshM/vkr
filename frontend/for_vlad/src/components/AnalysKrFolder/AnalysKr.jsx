@@ -1,7 +1,8 @@
 import React, { useState,useEffect} from 'react';
 import { Box, Flex, Select ,Heading} from '@chakra-ui/react';
 import { useAuth } from '../useAuth';
-import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
+import { fetchWithTokenRefresh } from '../RefreshToken';
+// import { fetchWithTokenRefresh } from '/frontend/for_vlad/src/components/RefreshToken';
 import AnalysKrSimple from './AnalysKrSimple'
 import AnalysKrFiltres from './AnalysKrFiltres'
 
