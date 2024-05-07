@@ -3,6 +3,8 @@ import {  Table, Thead, Tbody, Tr, Th, Td, IconButton, chakra } from "@chakra-ui
 import { ChevronUpIcon, ChevronDownIcon } from '@chakra-ui/icons';
 import {TableContainer,Text,Flex} from '@chakra-ui/react'
 
+import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
+
 const StudentInfo = ({ studentId, teamName }) => {
   const [StudentInfoData, setStudentInfo] = useState(null);
 
@@ -10,7 +12,7 @@ const StudentInfo = ({ studentId, teamName }) => {
     const fetchStudentInfo = async () => {
       try {
         if (studentId !== null) {
-          const response = await fetch(`http://moais-dashboard.ru:8082/api/get_student?id_stud=${studentId}`);
+          const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_student?id_stud=${studentId}`);
           const result = await response.json();
    
           // Обновляем состояние с полученными данными

@@ -7,6 +7,7 @@ import { useNavigate  } from 'react-router-dom';
 import { Box } from "@chakra-ui/react";
 import { useNumberItems } from './NumberItemsContext';
 
+import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
 
 const NumCountStudInLern = ({ teamId,onLessonSelect, numberOfItems}) => {
   const numberOfItemsRef = useNumberItems();
@@ -32,7 +33,7 @@ const NumCountStudInLern = ({ teamId,onLessonSelect, numberOfItems}) => {
     const fetchAtendanceNumCountStudInLernData = async () => {
       try {
         if (teamId !== null) {
-          const response = await fetch(`http://moais-dashboard.ru:8082/api/attendance_num_for_stud_for_team?id_team=${teamId}`);
+          const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/attendance_num_for_stud_for_team?id_team=${teamId}`);
           const result = await response.json();
           setAtendanceNumCountStudInLernData(result);
           setNumberOfday(result.length)
@@ -159,7 +160,7 @@ const options = {
 
 return (<>
   
-  <Box  h={[330]} mt={14} bg={'white'} borderRadius={20}>
+  <Box  h={'34vh'} bg={'white'} borderRadius={20}>
   <Bar ref={chartRef} data={data} options={options} />
 </Box>
   {/* {selectedLesson && <TableOfGroup teamId={teamId} selectedLesson={selectedLesson} />} */}

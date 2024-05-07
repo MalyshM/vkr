@@ -1,7 +1,7 @@
 import React, { useEffect, useRef ,useState} from 'react';
 import { Bar } from 'react-chartjs-2';
 import { Chart } from 'chart.js/auto';
-
+import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
 
 const VecStudyMatchTPTeams = ({ speciality1, speciality2, token}) => {
   const [VecStudyMatchTPTeamsData, setVecStudyMatchTPTeamsData] = useState(null);
@@ -28,7 +28,7 @@ const VecStudyMatchTPTeams = ({ speciality1, speciality2, token}) => {
   const fetchVecStudyMatchTPTeamsData = async () => {
     try {
         if (speciality1 !== null && speciality2 !== null) {
-        const response = await fetch(`http://moais-dashboard.ru:8082/api/total_points_for_specialities?speciality1=${speciality1}&speciality2=${speciality2}&token=${token}&lect=${false}`);
+        const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/total_points_for_specialities?speciality1=${speciality1}&speciality2=${speciality2}&token=${token}&lect=${false}`);
         const result = await response.json();
         setVecStudyMatchTPTeamsData(result);
       }

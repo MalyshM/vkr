@@ -4,7 +4,9 @@ import { Chart } from 'chart.js/auto';
 import 'chartjs-plugin-datalabels'; // Импортируйте плагин
 import { useNavigate  } from 'react-router-dom';
 import { Text } from '@chakra-ui/react'
-import { Legend } from 'react-chartjs-2';
+// import { Legend } from 'react-chartjs-2';
+
+import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
 
 const AllUsersAtendenceTotalPointsWitchGroup = ({tokenUsers, choiseGroupTeacher, selectedTeachers, allTeacherForLegend}) => {
   const [AllUsersAtendenceTotalPointsWitchGroupData, setAllUsersAtendenceTotalPointsWitchGroupData] = useState(null);
@@ -37,7 +39,7 @@ const AllUsersAtendenceTotalPointsWitchGroup = ({tokenUsers, choiseGroupTeacher,
   const fetchAllUsersAtendenceTotalPointsWitchGroupData = async () => {
     try {
         if (tokenUsers!== null) {
-        const response = await fetch (`http://moais-dashboard.ru:8082/api/team_kr_total_points_attendance_dynamic?token=${tokenUsers}&group_by_teacher=${choiseGroupTeacher}${selectedTeachers ? `&teacher_list=${selectedTeachers.join(',')}` : ''}`);
+        const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/team_kr_total_points_attendance_dynamic?token=${tokenUsers}&group_by_teacher=${choiseGroupTeacher}${selectedTeachers ? `&teacher_list=${selectedTeachers.join(',')}` : ''}`);
 
         const result = await response.json();
         setAllUsersAtendenceTotalPointsWitchGroupData(result);  
@@ -53,13 +55,9 @@ const AllUsersAtendenceTotalPointsWitchGroup = ({tokenUsers, choiseGroupTeacher,
 
 console.log('NEW AllUsersAtendenceTotalPointsWitchGroupData - ', AllUsersAtendenceTotalPointsWitchGroupData)
 
-console.log('allTeacherForLegend: ', allTeacherForLegend)
+// console.log('allTeacherForLegend: ', allTeacherForLegend)
 
-if (!AllUsersAtendenceTotalPointsWitchGroupData) {
-    return <div>Loading...</div>;
-  }
-
-  const colorsByTeacherId = {
+const colorsByTeacherId = {
     1: '#ef2424', //
     2: '#f8e136', //
     3: '#36f85d', //
@@ -78,55 +76,129 @@ if (!AllUsersAtendenceTotalPointsWitchGroupData) {
     13: '#333333', // 
 };
 
+if (!AllUsersAtendenceTotalPointsWitchGroupData) {
+    return <div>Loading...</div>;
+  }
 
-    const data = {
-        labels: AllUsersAtendenceTotalPointsWitchGroupData.map(item => item.team_name),
-        datasets: [
-            {
-                label: 'Средняя посещаемость',
-                data: AllUsersAtendenceTotalPointsWitchGroupData.map(item => Math.round(item.Посещаемость_средняя*100)),
-                backgroundColor: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => colorsByTeacherId[item.teacher_id]),
-                borderWidth: 1,
+
+  const data = {
+    labels: AllUsersAtendenceTotalPointsWitchGroupData.map(item => {
+      if (item.team_name) {
+          return `${item.teacher_name} - ${item.team_name}`;
+      } else {
+          return item.teacher_name;
+      }
+  }),
+
+    datasets: [
+        {
+            label: ` Средняя посещаемость (после 1й КР)`,
+            data: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => item.Посещаемость_средняя),
+            backgroundColor: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => colorsByTeacherId[item.teacher_id]),
+            borderWidth: 1,
+    
+        },
+        {
+            label: `Средняя успеваемость (после 1й КР)`,
+            data: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => item.Успеваемость_средняя),
+            backgroundColor: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => colorsByTeacherId[item.teacher_id]),
+            borderWidth: 1,        
+        },
+        {
+          label: `Средняя посещаемость (после 2й КР)`,
+          data: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => item.Посещаемость_средняя0),
+          backgroundColor: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => colorsByTeacherId[item.teacher_id]),
+          borderWidth: 1,
+  
+      },
+      {
+          label: `Средняя успеваемость (после 2й КР)`,
+          data: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => item.Успеваемость_средняя0),
+          backgroundColor: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => colorsByTeacherId[item.teacher_id]),
+          borderWidth: 1,        
+      },
+      {
+        label: `Средняя посещаемость (после 3й КР)`,
+        data: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => item.Посещаемость_средняя1),
+        backgroundColor: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => colorsByTeacherId[item.teacher_id]),
+        borderWidth: 1,
+
+    },
+    {
+        label: `Средняя успеваемость (после 3й КР)`,
+        data: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => item.Успеваемость_средняя1),
+        backgroundColor: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => colorsByTeacherId[item.teacher_id]),
+        borderWidth: 1,        
+    },
+    {
+      label: `Средняя посещаемость (после аттестации)`,
+      data: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => item.Посещаемость_средняя2),
+      backgroundColor: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => colorsByTeacherId[item.teacher_id]),
+      borderWidth: 1,
+
+  },
+  {
+      label: `Средняя успеваемость (после аттестации)`,
+      data: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => item.Успеваемость_средняя2),
+      backgroundColor: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => colorsByTeacherId[item.teacher_id]),
+      borderWidth: 1,        
+  },
         
-            },
-            {
-                label: 'Средняя успеваемость',
-                data: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => item.Успеваемость_средняя),
-                backgroundColor: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => colorsByTeacherId[item.teacher_id]),
-                borderWidth: 1,        
-            },
-            
-        ],
-    };
+    ],
+}; 
+
     
     const options = {
+
+    //   tooltips: {
+    //     display: true,
+    //     callbacks: {
+    //       label: function(tooltipItem, data) {
+    //         const dataset = data.datasets[tooltipItem.datasetIndex];
+    //         const value = dataset.data[tooltipItem.index];
+    //         const teamName = AllUsersAtendenceTotalPointsWitchGroupData[tooltipItem.index].team_name;
+    //         // return `${teamName}: ${dataset.label}: ${value}`;
+    //         }
+    //     }
+    // },
+
         // onClick: handleTeleportGroup,
         scales: {
         x: {
             grouped: true, 
-            ticks: {
-                display: true,
-        },
+        //     ticks: {
+        //         display: true,
+        // },
+        ticks: {
+          display: true,         
+          padding: 0,
+          labelOffset: 0,
+          minRotation: 0,
+          // maxRotation: 99,
+          // maxTicksLimit: 10,
+          
+      },
+      
             type: 'category',
             position: 'bottom',
             title: {
                 display: true,
                 text: 'Все группы',
                 font: {
-                    size: 20, // Размер шрифта названия оси X
+                    size: 20, 
                     fontColor: 'black',
                     family: 'Trebuchet MS'
                 },
             },
         },
         y: {
-            type: 'linear', // изменение типа шкалы на категорию
+            type: 'linear', 
             position: 'left',
             title: {
             display: true,
             text: 'Баллы/успеваемость',
             font: {
-                size: 20, // Размер шрифта названия оси X
+                size: 20, 
                 fontColor: 'black',
                 family: 'Trebuchet MS'
             },
@@ -136,6 +208,7 @@ if (!AllUsersAtendenceTotalPointsWitchGroupData) {
         plugins: {
         datalabels: {
             display: true,
+
             anchor: 'end',
             align: 'end',
             color: 'black', // Цвет текста
@@ -157,26 +230,29 @@ if (!AllUsersAtendenceTotalPointsWitchGroupData) {
         },
     
         legend: {
-            display: true,
-            position: 'bottom',
-            labels: {
-                usePointStyle: true,
-                generateLabels: function(chart) {
-                    const labels = [];
-                    selectedTeachers.forEach((teacherId) => {
-                      labels.push({
-                        text: teacherId, // Здесь можете использовать teacherId или имя преподавателя из других источников
-                        fillStyle: colorsByTeacherId[teacherId] 
-                      });
-                    });
-                    return labels;
-               
+          display: true,
+          position: 'bottom',
+          labels: {
+              usePointStyle: true,
+              generateLabels: function(chart) {
+                  const uniqueTeacherNames = new Set();
+                  const labels = [];
+                  AllUsersAtendenceTotalPointsWitchGroupData.forEach((item) => {
+                      if (!uniqueTeacherNames.has(item.teacher_name)) {
+                          uniqueTeacherNames.add(item.teacher_name);
+                          labels.push({
+                              text: item.teacher_name,
+                              fillStyle: colorsByTeacherId[item.teacher_id]
+                          });
+                      }
+                  });
+                  return labels; 
       },
     },
+    events: [], 
 
-            
-        },
-        },
+  },
+},
 
         maintainAspectRatio: false,
         layout: {
@@ -202,12 +278,10 @@ if (!AllUsersAtendenceTotalPointsWitchGroupData) {
     // }, [AllUsersAtendenceTotalPointsWitchGroupData]);
   
     return(<>
-    <div>
-        {choiseGroupTeacher}
-    </div>
       <Bar ref={chartRef} data={data} options={options} />;
       
   </>) 
     
   };
 export default AllUsersAtendenceTotalPointsWitchGroup;
+

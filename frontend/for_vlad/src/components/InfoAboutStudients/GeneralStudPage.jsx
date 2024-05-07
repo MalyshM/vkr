@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams,Link } from 'react-router-dom';
 import { Line } from 'react-chartjs-2';
 
+import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
+
 import { Box, Button, Heading, Menu, MenuButton, MenuList, MenuItem ,Avatar} from '@chakra-ui/react'
 import { HamburgerIcon ,LockIcon ,CloseIcon,StarIcon, ArrowUpDownIcon,ArrowBackIcon} from '@chakra-ui/icons';
 
@@ -28,7 +30,7 @@ const GeneralStudPage = () => {
           `http://moais-dashboard.ru:8082/api/attendance_static_for_stud_for_team?id_team=${teamId}&id_stud=${studentId}`
         ];
 
-        const responses = await Promise.all(urls.map(url => fetch(url)));
+        const responses = await Promise.all(urls.map(url => fetchWithTokenRefresh(url)));
         const data = await Promise.all(responses.map(response => response.json()));
 
         setAttendanceData(data[0]);
@@ -336,47 +338,74 @@ const GeneralStudPage = () => {
     }; 
 
 
-  return (<>
+    return (
 
-<Flex direction="column" height="90vh">
+      <Flex direction="column" minHeight="90vh">
 
-  <Flex mt={10} flex="1">
+            <Flex flex="1" flexDirection={{ base: 'column', md: 'row' }}>
 
-    <Box ml={5} mr={5} h={[400]} bg={'white'} borderRadius={20} flex="1">
-      <Flex mt={14} direction="column" alignItems="center" justifyContent="center">
-        <Avatar size="2xl" src="https://bit.ly/broken-link" mr={5} />
-        {studentId && <StudentInfo studentId={studentId} teamName={teamName} />}
+              <Box h={'40vh'} flex="1" minWidth={{ base: '100%', md: '50%' }} p={4}>
+
+              <Flex mt={14} direction="column" alignItems="center" justifyContent="center">
+                  <Avatar size="2xl" src="https://bit.ly/broken-link" mr={5} />
+                  {studentId && <StudentInfo studentId={studentId} teamName={teamName} />}
+                </Flex>
+              </Box>
+
+              
+              <Box h={'40vh'} flex="1" minWidth={{ base: '100%', md: '50%' }} p={4}>
+                <Line data={chartAttendanceData} options={OptionsChartAttendance} />
+              </Box>
+              
+            </Flex>
+
+            <Flex flex="1" flexDirection={{ base: 'column', md: 'row' }}>
+
+              <Box h={'40vh'} flex="1" minWidth={{ base: '100%', md: '50%' }} p={4}>
+                {<Line data={chartStaticData} options={OptionsStaticChart} />}
+              </Box>
+
+              <Box h={'40vh'} flex="1"  minWidth={{ base: '100%', md: '50%' }} p={4}>
+                {<Line data={charDynamictData} options={OptionsDynamicChart}/>}
+              </Box>
+
+          </Flex>
+
       </Flex>
 
-    </Box>
-    <Box mr={5}  bg={'white'} borderRadius={20} flex="1" h={[400]}>
-      <Line data={chartAttendanceData} options={OptionsChartAttendance} />
-    </Box>
-
-  </Flex>
-
-
-
-  <Flex flex="1">
-    <Box bg={'white'} borderRadius={20} flex="1" h={[400]}  ml={5} mr={5} >
-      <Line data={chartStaticData} options={OptionsStaticChart} />
-    </Box>
-
-
-    <Box mr={5} bg={'white'} borderRadius={20} flex="1" h={[400]}>
-      <Line data={charDynamictData} options={OptionsDynamicChart} />  
-    </Box>
-  </Flex>
-
-
-
-</Flex>
-
-{/* <Box h={'380'} bg={'white'} borderRadius={20}> */}
-
+      // <Flex direction="column" height="90vh">
     
-     
-     </>);
+      //   <Flex mt={10} justifyContent="space-around">
+
+      //     <Box mr={5} h={[400]} bg={'white'} borderRadius={20} flex="1">
+
+      //       <Flex mt={14} direction="column" alignItems="center" justifyContent="center">
+      //         <Avatar size="2xl" src="https://bit.ly/broken-link" mr={5} />
+      //         {studentId && <StudentInfo studentId={studentId} teamName={teamName} />}
+      //       </Flex>
+      //     </Box>
+
+      //     <Box ml={5} h={[400]} bg={'white'} borderRadius={20} flex="1">
+      //       <Line data={chartAttendanceData} options={OptionsChartAttendance} />
+      //     </Box>
+
+      //   </Flex>
+    
+      //   <Flex mt={5} justifyContent="space-around">
+
+      //     <Box mr={5} h={[400]} bg={'white'} borderRadius={20} flex="1">
+      //       <Line data={chartStaticData} options={OptionsStaticChart} />
+      //     </Box>
+
+      //     <Box ml={5} h={[400]} bg={'white'} borderRadius={20} flex="1">
+      //       <Line data={charDynamictData} options={OptionsDynamicChart} />
+      //     </Box>
+      
+      //   </Flex>
+    
+      // </Flex>
+    );
+    
 };
 
 export default GeneralStudPage;

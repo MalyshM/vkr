@@ -4,6 +4,8 @@ import {  Table, Thead, Tbody, Tr, Th, Td, IconButton, Box } from "@chakra-ui/re
 import { ChevronUpIcon, ChevronDownIcon } from '@chakra-ui/icons';
 import {TableContainer,Text} from '@chakra-ui/react'
 
+import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
+
 const TableOfGroup = ({ teamId, selectedLesson }) => {
   const [TableOfGroupData, setTableOfGroupData] = useState(null);
   const [sortColumn, setSortColumn] = useState({ key: '', ascending: true });
@@ -12,7 +14,7 @@ const TableOfGroup = ({ teamId, selectedLesson }) => {
     const fetchTableOfGroup = async () => {
       try {
         if (teamId !== null) {
-          const response = await fetch(`http://moais-dashboard.ru:8082/api/attendance_num_for_stud_for_team_stat_table?id_team=${teamId}&name_of_lesson=${selectedLesson}`);
+          const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/attendance_num_for_stud_for_team_stat_table?id_team=${teamId}&name_of_lesson=${selectedLesson}`);
           const result = await response.json();
    
           // Обновляем состояние с полученными данными
@@ -47,8 +49,8 @@ console.log("dataArray - ", TableOfGroupData)
 
   return (<>
 
-    <Box borderWidth={0} mt={14} p={2}  borderColor='lavender' h={'330'} bg={'white'} borderRadius={20} >
-    <Text ml={5} as={'b'} color='#808080' fontFamily={'Trebuchet MS'} fontSize='xl'>{selectedLesson ? `Встреча: ${selectedLesson}` : 'Выберите встречу'}</Text>
+    <Box borderWidth={0}  p={2}  borderColor='lavender'h={'34vh'} bg={'white'} borderRadius={20} >
+    <Text  as={'b'} p={2} color='#808080' fontFamily={'Trebuchet MS'} fontSize='xl'>{selectedLesson ? `Название встречи: ${selectedLesson}` : 'Выберите встречу'}</Text>
 
     {/* <Text as={'b'} color='#808080' fontFamily={'Trebuchet MS'} fontSize='2xl'>Оценки группы {teamName}</Text> */}
 

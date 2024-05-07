@@ -20,6 +20,7 @@ import YourVectorStudy from './components/VectorStudy/AllUsers/YourVectorStudy';
 import AnalysKr from './components/AnalysKrFolder/AnalysKr';
 import { NumberItemsProvider } from './components/chart/NumberItemsContext';
 
+import ScaterPlotPage from './components/Scatter_Plot/ScaterPlotPage';
 
 function App() {
 
@@ -42,6 +43,7 @@ function App() {
         <Route path="/your_group" element={<YourGroup/>} />
         <Route path="/your_vectorstudy" element={<YourVectorStudy/>} />
         <Route path="/analys_kr" element={<AnalysKr/>} />
+        <Route path="/scater_plot" element={<ScaterPlotPage/>}/>
 
 
       </Routes>

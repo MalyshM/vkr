@@ -35,9 +35,9 @@ const Header = () => {
   }
 
   return (
-    <Flex h={90} p={4}
+    <Flex h={70} p={4}
     // backgroundImage="linear-gradient(to right, #6260DB, #4CAF50)" 
-    bg="#56adc0" color="white" justify="space-between" align="center">
+    bg="#00aeef" color="white" justify="space-between" align="center">
       <Text fontSize='sm' as='b' ml={5} mr={'auto'} >Данные актуальны на {formatDate(currentDate)} </Text>
       <Box borderRadius='lg'>
         <Menu>
@@ -50,7 +50,7 @@ const Header = () => {
                     <MenuItem color="black" as={Link} to="/your_vectorstudy" >Ваши направления</MenuItem>
                     <MenuItem color="black" as={Link} to="/match2team_vectorstudy" >Сравнение по направлениям</MenuItem>
                 </MenuList>
-
+            <Button variant='ghost' as={Link} to="/scater_plot" color="white" _hover={{ color: "black" }} _active={{ bg: "transparent" }}>Диаграмма рассеяния</Button>
             <Button variant='ghost' as={Link} to="/" color="white" _hover={{ color: "black" }} _active={{ bg: "transparent" }}>Выход</Button>
 
         </Menu>

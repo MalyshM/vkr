@@ -5,7 +5,7 @@ import { Box, Heading, FormControl, FormLabel, Input, Button,Center} from '@chak
 import { useToast } from '@chakra-ui/react';
 import { Flex, Spacer } from '@chakra-ui/react'
 import { CloseIcon } from '@chakra-ui/icons'
-
+import { fetchWithTokenRefresh } from './RefreshToken';
 
 const LoginPage = () => {
 
@@ -102,7 +102,7 @@ const LoginPage = () => {
     }
 
     try {
-      const response = await fetch('http://moais-dashboard.ru:8082/api/login_standard', {
+      const response = await fetchWithTokenRefresh('http://moais-dashboard.ru:8082/api/login_standard', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -133,7 +133,7 @@ const LoginPage = () => {
 
 
 return (
-  <Center bg="#72b5bb" h="100vh">
+  <Center bg="#00aeef" h="100vh">
     <Box
       // maxW="md"
       // height='500px'
@@ -243,7 +243,7 @@ return (
       </FormControl>
       </form>
 
-      <Button mt='30px' w='450px' colorScheme="teal" onClick={login}>
+      <Button mt='30px' w='450px' colorScheme="blue" onClick={login}>
         Войти
       </Button>
       

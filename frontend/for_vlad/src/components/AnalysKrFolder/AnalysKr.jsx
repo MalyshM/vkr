@@ -1,19 +1,15 @@
 import React, { useState,useEffect} from 'react';
-
 import { Box, Flex, Select ,Heading} from '@chakra-ui/react';
 import { useAuth } from '../useAuth';
-
+import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
 import AnalysKrSimple from './AnalysKrSimple'
 import AnalysKrFiltres from './AnalysKrFiltres'
-
-
-// просто пишем делаем запрос - по токену, блять его тоже передавать, крч пробуем токен передать, а потом запрос пишем и получаем data и засовываем в 2 селекта с проверкой на !одинаковые команды
 
 const AnalysRr = () => {
     const { userToken } = useAuth();
     const [userTeams, setUserTeams] = useState(null); // Новый стейт для данных о командах
 
-    const [selectedNameTeacher, setSelectedNameTeacher] = useState(null);
+    const [selectedNameTeacher, setSelectedNameTeacher] = useState('');
     const [nameTeachers, setNameTeachers] = useState(null);
 
     const [speciality, setSpeciality] = useState(null);
@@ -21,9 +17,6 @@ const AnalysRr = () => {
 
     const [team, setTeam] = useState(null);
     const [selectedTeam, setSelectedTeam] = useState(null);
-
-
-
 
     const [selectedKRSimple, setSelectedKRSimple] = useState(null);
     const [KRSimple, setKRSimple] = useState(null);
@@ -34,12 +27,14 @@ const AnalysRr = () => {
     const [selectedModeSimple, setSelectedModeSimple] = useState(null);
     const [selectedModeFiltr, setSelectedModeFiltr] = useState(null);
 
+    const [teamForCoiseTeacher, set_teamForCoiseTeacher] = useState(null);
 
+    const [selectedNameTeacherString, setSelectedNameTeacherString] = useState(''); // фмо препода
 
 
   const fetchNameKR = async () => {
   try {
-    const response = await fetch('http://moais-dashboard.ru:8082/api/get_all_kr');
+    const response = await fetchWithTokenRefresh('http://moais-dashboard.ru:8082/api/get_all_kr');
     const result = await response.json();
     setKRSimple(result);
     setKRFiltr(result);
@@ -55,7 +50,7 @@ const AnalysRr = () => {
 
 const fetchAllTeachers = async () => {
     try {
-      const response = await fetch(`http://moais-dashboard.ru:8082/api/get_all_teachers?token=${userToken}`);
+      const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_all_teachers?token=${userToken}`);
       const result = await response.json();
       setNameTeachers(result);
   
@@ -68,7 +63,7 @@ const fetchAllTeachers = async () => {
 
   const fetchAllSpeciality = async () => {
     try {
-      const response = await fetch(`http://moais-dashboard.ru:8082/api/get_all_specialities?token=${userToken}`);
+      const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_all_specialities?token=${userToken}`);
       const result = await response.json();
       setSpeciality(result);
   
@@ -81,7 +76,7 @@ const fetchAllTeachers = async () => {
 
   const fetchAllTeam = async () => {
     try {
-      const response = await fetch(`http://moais-dashboard.ru:8082/api/get_teams_for_user_without_lect?token=${userToken}`);
+      const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_teams_for_user_without_lect?token=${userToken}`);
       const result = await response.json();
       setTeam(result);
   
@@ -92,13 +87,26 @@ const fetchAllTeachers = async () => {
     }
   };
 
+  const fetchTeamForChooseTeacher = async () => {
+    try {
+      const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_all_specialities_by_teacher_arr?token=${userToken}&teacher_list=${selectedNameTeacher}`);
+      const result = await response.json();
+      set_teamForCoiseTeacher(result);
+  
+      console.log('TEAM FOR CHOOSE TEACHER:', result);
+  
+  } catch (error) {
+      console.error('Error fetching data from fetchTeamForChooseTeacger:', error);
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
-      // await fetchUserTeams();
       await fetchNameKR();
       await fetchAllTeachers();
       await fetchAllSpeciality();
       await fetchAllTeam();
+      await fetchTeamForChooseTeacher();
       
     }
 
@@ -118,7 +126,16 @@ const fetchAllTeachers = async () => {
 
   const handleNameTeachersChange = (value) => {
     setSelectedNameTeacher(value);
-  }
+
+    console.log('selectedNameTeacher: ', selectedNameTeacher)
+    console.log('selectedNameTeacherString: ', selectedNameTeacherString)
+  };
+
+  // const handleNameTeachersString = (value) => {
+  //   setSelectedNameTeacherString(value);
+  //   console.log('selectedNameTeacher: ', selectedNameTeacherString)
+  // }
+  
 
   const handleModeChangeSimple = (event) => {
     const newMode = parseInt(event.target.value, 10);
@@ -144,7 +161,7 @@ return(
     <Heading as="h1" size="lg">Анализ Контрольных работ</Heading>
 
     <Box ml={'auto'} mr={4} w="250px" borderRadius="lg" boxShadow="lg">
-          <Select borderColor='teal'
+          <Select borderColor='black'
             placeholder="Выберите контрольную работу"
             onChange={(e) => handleKRChangeSimple(e.target.value)}
             value={selectedKRSimple}>
@@ -164,7 +181,7 @@ return(
 
         <Box mr={4} w="330px" borderRadius="lg" boxShadow="lg">
         <Select
-            borderColor='teal'
+            borderColor='black'
             id="modeSelectSimple"
             value={selectedModeSimple}
             onChange={handleModeChangeSimple}
@@ -189,7 +206,7 @@ return(
       <Flex ml="auto" >
 
         <Box mr={4} w="290px" borderRadius="lg" boxShadow="lg">
-          <Select borderColor='teal'
+          <Select borderColor='black'
             placeholder="Выберите контрольную работу"
             onChange={(e) => handleKRChangeFiltr(e.target.value)}
             value={selectedKRFiltr}>
@@ -210,7 +227,7 @@ return(
 
         <Box mr={4} w="200px" borderRadius="lg" boxShadow="lg">
         <Select
-            borderColor='teal'
+            borderColor='black'
             id="modeSelectFiltr"
             value={selectedModeFiltr}
             onChange={handleModeChangeFiltr}
@@ -226,8 +243,9 @@ return(
 
 
         <Box w="360px" borderRadius="lg" boxShadow="lg" mr={3}>
-          <Select borderColor='teal'
+          <Select borderColor='black'
             placeholder="Дополнительно выберите преподавателя"
+
             onChange={(e) => handleNameTeachersChange(e.target.value)}
             value={selectedNameTeacher}>
 
@@ -240,11 +258,13 @@ return(
             ) : (
               <option disabled>No teacher available</option>
             )}
+
+           
           </Select>
         </Box>
 
         <Box  w="330px" borderRadius="lg" boxShadow="lg" mr={3}>
-          <Select borderColor='teal'
+          <Select borderColor='black'
             placeholder="Дополнительно выберите направление"
             onChange={(e) => handleSpecialityChange(e.target.value)}
             value={selectedSpeciality}>
@@ -262,7 +282,7 @@ return(
         </Box>
 
         <Box  w="330px" borderRadius="lg" boxShadow="lg" mr={3}>
-          <Select borderColor='teal'
+          <Select borderColor='black'
             placeholder="Дополнительно выберите группу"
             onChange={(e) => handleTeamChange(e.target.value)}
             value={selectedTeam}>

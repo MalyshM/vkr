@@ -1,9 +1,11 @@
 import React, { useEffect, useRef ,useState} from 'react';
-import { Doughnut, Pie, PolarArea } from 'react-chartjs-2';
-import { Flex, Box,Switch,Text, NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, Center, Spacer  } from '@chakra-ui/react';
+import { Doughnut } from 'react-chartjs-2';
+import { Flex, Box,Text } from '@chakra-ui/react';
 import 'chartjs-plugin-datalabels';
-import { Avatar, AvatarBadge, AvatarGroup } from '@chakra-ui/react'
+import { Avatar } from '@chakra-ui/react'
 import styled from 'styled-components';
+
+import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
 
 const StataOfGroup = ({teamId,teamName}) => {
     const [stataOfGroupData, setStataOfGroupData] = useState(null);
@@ -13,7 +15,7 @@ const StataOfGroup = ({teamId,teamName}) => {
           try {
             if (teamId !== null) {
                 // const params = new URLSearchParams({ id_team: teamId });
-                const response = await fetch(`http://moais-dashboard.ru:8082/api/total_marks_for_team?id_team=${teamId}`);
+                const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/total_marks_for_team?id_team=${teamId}`);
                 const result = await response.json();
 
                 // Обновляем состояние с полученными данными
@@ -107,18 +109,11 @@ const StataOfGroup = ({teamId,teamName}) => {
         
       };
      
-
-      
-    
       return (<>
-          
+            
+          {/* <Flex h={'370'} bg={'white'} borderRadius={20} mr={6} mt={14} borderWidth={0} p={2} borderColor='lavender' direction="column" align="center"> */}
 
-          {/* <Box mb={5} w={[1500]} maxW='2xl' borderWidth="3px" borderRadius="lg" boxShadow="xl">
-            <Line data={chartAttendanceData} options={OptionsChartAttendance} />
-          </Box> */}
-            
-            
-          <Flex h={'370'} bg={'white'} borderRadius={20} mr={6} mt={14} borderWidth={0} p={2} borderColor='lavender' direction="column" align="center">
+          <Flex  bg={'white'} borderRadius={20}  borderWidth={0} borderColor='lavender' direction="column" align="center">
 
             <Flex>
               <Text as={'b'} color='#808080' fontFamily={'Trebuchet MS'} fontSize='2xl'>Оценки группы {teamName}</Text>
@@ -126,7 +121,8 @@ const StataOfGroup = ({teamId,teamName}) => {
             
             <Flex alignItems={'center'}>
 
-          <Flex mb={10} direction="column" ml={5} mt={10}>
+          {/* <Flex mb={10} direction="column" ml={5} mt={10}> */}
+          <Flex  direction="column" >
             {stataOfGroupData.map((item, index) => (
               <Flex alignItems="center" key={item.mark} >
                 <Box
@@ -143,7 +139,8 @@ const StataOfGroup = ({teamId,teamName}) => {
             ))}
             </Flex>
 
-            <Box flex="1" height='370' >
+            <Box flex="1" h={'42vh'} >
+            {/* <Box > */}
                 <Doughnut data={chartData} options={options} />
             </Box>
             </Flex>
