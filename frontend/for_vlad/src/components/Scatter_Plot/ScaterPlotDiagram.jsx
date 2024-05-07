@@ -3,7 +3,7 @@ import { Chart } from 'chart.js/auto';
 import { Text } from '@chakra-ui/react';
 import { BoxPlotChart } from '@sgratzl/chartjs-chart-boxplot';
 import { Scatter } from 'react-chartjs-2';
-import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
+import { fetchWithTokenRefresh } from '../RefreshToken';
 
 const ScaterPlotDiagram = ({ tokenUsers, type_group_by , teacher_list, speciality_list,team_list }) => {
 

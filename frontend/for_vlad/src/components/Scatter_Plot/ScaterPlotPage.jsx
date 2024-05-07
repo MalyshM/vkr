@@ -1,6 +1,7 @@
 import React, { useState,useEffect} from 'react';
-import { useAuth } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/useAuth';
+// import { useAuth } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/useAuth';
 import ScaterPlotDiagram from './ScaterPlotDiagram'
+import { useAuth } from '../useAuth';
 import {fetchWithTokenRefresh} from '../RefreshToken'
 // import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
 import {Heading,Select,Box,Flex} from '@chakra-ui/react';
