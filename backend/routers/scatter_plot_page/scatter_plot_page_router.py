@@ -15,31 +15,49 @@ scatter_plot_page_router = APIRouter(tags=["scatter plot page"])
 
 
 @scatter_plot_page_router.get('/api/stud_scatter_plot', name='Plot:plot', status_code=status.HTTP_200_OK,
-                    description=
-                    """
-                            Получает token: str, type: int, kr: str,
-                            Returns:
-                                Словарь с ключами(преподаватели/аправления/команды)
-                            \n
-                            {
-                              "Трефилин Иван Андреевич": [
-                                12,
-                                0,
-                                14.43,
-                                3,
-                                6.83,
-                                12.3,
-                                2,
-                    """)
-async def stud_scatter_plot(token: str, type_group_by: int,teacher_list: Optional[str] = None,
-                                  speciality_list: Optional[str] = None, team_list: Optional[str] = None,
+                              description=
+                              """
+                                      Получает token: str, type_group_by: int, teacher_list: Optional[str] = None,
+                                      speciality_list: Optional[str] = None, team_list: Optional[str] = None
+                                      raises:
+                                        HTTPException(status_code=status.HTTP_409_CONFLICT,
+                                        detail="Неправильно выбран тип 0 - Группировка по командам, 1 - " +
+                                        "Группировка по направлениям, 2 - Группировка по преподавателям")
+                                      Returns:
+                                          Словарь с ключами(преподаватели/аправления/команды)
+                                        \n
+                                        [
+                                          {
+                                            "result1": [
+                                              {
+                                                "Успеваемость": 91,
+                                                "Посещаемость": 90,
+                                                "stud_id": 299
+                                              },
+                                              {
+                                                "Успеваемость": 77,
+                                                "Посещаемость": 95,
+                                                "stud_id": 927
+                                              }
+                                            ],
+                                            "team_id": 2, - team_id/spesiclity/teacher_id
+                                            "name": "Аттестация00" - название майлстоуна
+                                          },
+                                        ]
+                                  """)
+async def stud_scatter_plot(token: str, type_group_by: int, teacher_list: Optional[str] = None,
+                            speciality_list: Optional[str] = None, team_list: Optional[str] = None,
                             db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
-    teams = await get_teams_for_user_private_without_lect(token, db)
-    if teacher_list is not None:
+    if team_list is not None:
+        teams_true = ', '.join([team for team in team_list.split(',')])
+    elif teacher_list is not None:
         teacher_arr = teacher_list.split(',')
         teams = await get_teams_for_param_private_without_lect(teacher_arr=teacher_arr, db=db)
-    teams_true = ', '.join([f"'{team['id']}'" for team in teams])
+        teams_true = ', '.join([f"'{team['id']}'" for team in teams])
+    else:
+        teams = await get_teams_for_user_private_without_lect(token, db)
+        teams_true = ', '.join([f"'{team['id']}'" for team in teams])
     if speciality_list is not None:
         speciality_list = speciality_list.split(',')
         speciality_list = ', '.join([f"'{speciality}'" for speciality in speciality_list])
@@ -127,34 +145,47 @@ async def stud_scatter_plot(token: str, type_group_by: int,teacher_list: Optiona
         raise e
 
 
-@scatter_plot_page_router.get('/api/median_scatter_plot', name='Plot:plot', status_code=status.HTTP_200_OK,
-                    description=
-                    """
-                            Получает token: str, type: int, kr: str,
-                            Returns:
-                                Словарь с ключами(преподаватели/аправления/команды)
-                            \n
-                            {
-                              "Трефилин Иван Андреевич": [
-                              
-                              ]
-                    """)
-async def median_scatter_plot(token: str, type_group_by: int,teacher_list: Optional[str] = None,
+@scatter_plot_page_router.get('/api/scatter_plot_by_section', name='Plot:plot', status_code=status.HTTP_200_OK,
+                              description=
+                              """
+                                      Получает token: str, type_group_by: int, teacher_list: Optional[str] = None,
+                                      speciality_list: Optional[str] = None, team_list: Optional[str] = None
+                                      raises:
+                                        HTTPException(status_code=status.HTTP_409_CONFLICT,
+                                        detail="Неправильно выбран тип 0 - Группировка по командам, 1 - " +
+                                        "Группировка по направлениям, 2 - Группировка по преподавателям")
+                                      Returns:
+                                          Словарь с ключами(преподаватели/аправления/команды)
+                                        \n
+                                        [
+                                          {
+                                            "Медианная_посещаемость": 86,
+                                            "Медианная_успеваемость": 68,
+                                            "teacher_id": 2, - team_id/spesiclity/teacher_id
+                                            "name": "Аттестация00"
+                                          },
+                                        ]
+                                  """)
+async def scatter_plot_by_section(token: str, type_group_by: int, teacher_list: Optional[str] = None,
                                   speciality_list: Optional[str] = None, team_list: Optional[str] = None,
-                            db: AsyncSession = Depends(connect_db_data)):
+                                  db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
-    teams = await get_teams_for_user_private_without_lect(token, db)
-    if teacher_list is not None:
+    if team_list is not None:
+        teams_true = ', '.join([team for team in team_list.split(',')])
+    elif teacher_list is not None:
         teacher_arr = teacher_list.split(',')
         teams = await get_teams_for_param_private_without_lect(teacher_arr=teacher_arr, db=db)
-    teams_true = ', '.join([f"'{team['id']}'" for team in teams])
+        teams_true = ', '.join([f"'{team['id']}'" for team in teams])
+    else:
+        teams = await get_teams_for_user_private_without_lect(token, db)
+        teams_true = ', '.join([f"'{team['id']}'" for team in teams])
     if speciality_list is not None:
         speciality_list = speciality_list.split(',')
         speciality_list = ', '.join([f"'{speciality}'" for speciality in speciality_list])
         speciality_cond = f"AND s.speciality IN ({speciality_list})"
     else:
         speciality_cond = ""
-    href = f"stud_scatter_plot-{token}-{type_group_by}-{teacher_list}-{speciality_list}-{team_list}"
+    href = f"scatter_plot_by_section-{token}-{type_group_by}-{teacher_list}-{speciality_list}-{team_list}"
     LOGGER.info(f"{href} start")
     match type_group_by:
         case 0:
@@ -178,16 +209,8 @@ async def median_scatter_plot(token: str, type_group_by: int,teacher_list: Optio
     try:
         res = await db.execute(f"""
             SELECT 
-                json_agg(
-                    json_build_object(
-                        'Медианная_посещаемость', percentile_cont(0.5) 
-                        WITHIN GROUP (ORDER BY sub.Посещаемость) 
-                        OVER (PARTITION BY {fill_query_str}),
-                        'Медианная_успеваемость', percentile_cont(0.5) 
-                        WITHIN GROUP (ORDER BY sub.Успеваемость)
-                        OVER (PARTITION BY {fill_query_str}),
-                    )
-                ) AS result1,
+                PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY sub.Посещаемость) as Медианная_посещаемость,
+                PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY sub.Успеваемость) as Медианная_успеваемость,
                 {fill_query_str},
                 sub.name
             FROM (
@@ -236,4 +259,3 @@ async def median_scatter_plot(token: str, type_group_by: int,teacher_list: Optio
     except Exception as e:
         LOGGER.error(f"{href} Error {e}")
         raise e
-
