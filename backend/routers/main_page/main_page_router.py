@@ -42,7 +42,7 @@ async def attendance_per_stud_for_team(id_team: int, db: AsyncSession = Depends(
             select distinct
                 (select s.name from stud s where s.id=l.stud_id) as "stud_name",
                 (select s.id from stud s where s.id=l.stud_id) as "stud_id",
-                ROUND(count(id) filter (where l.arrival ='П') over (partition by stud_id) / count(id) over (partition by stud_id)::DECIMAL, 2) as "Посещаемость"
+                ROUND(count(id) filter (where l.arrival ='П') over (partition by stud_id) * 100 / count(id) over (partition by stud_id)::DECIMAL, 2) as "Посещаемость"
             from
                 lesson l
             where
@@ -101,12 +101,12 @@ async def total_points_attendance_per_stud_for_team(id_team: int, db: AsyncSessi
             FROM (
                 SELECT
                     ROUND(PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY sub."Успеваемость")::DECIMAL, 2) AS "Успеваемость_средняя",
-                    ROUND(PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY sub."Посещаемость") * 100::DECIMAL, 2) AS "Посещаемость_средняя"
+                    ROUND(PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY sub."Посещаемость")::DECIMAL, 2) AS "Посещаемость_средняя"
                 FROM (
                     SELECT DISTINCT
                         (SELECT s.name FROM stud s WHERE s.id = l.stud_id) AS "stud_name",
                         (SELECT s.id FROM stud s WHERE s.id = l.stud_id) AS "stud_id",
-                        ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY stud_id) / COUNT(id) OVER (PARTITION BY stud_id)::DECIMAL, 2) AS "Посещаемость",
+                        ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY stud_id) * 100 / COUNT(id) OVER (PARTITION BY stud_id)::DECIMAL, 2) AS "Посещаемость",
                         ROUND((SUM(l.mark_for_work) OVER (PARTITION BY stud_id) + SUM(l.test) OVER (PARTITION BY stud_id))::DECIMAL, 2) AS "Успеваемость"
                     FROM
                         lesson l
@@ -118,7 +118,7 @@ async def total_points_attendance_per_stud_for_team(id_team: int, db: AsyncSessi
                 SELECT DISTINCT
                     (SELECT s.name FROM stud s WHERE s.id = l.stud_id) AS "stud_name",
                     (SELECT s.id FROM stud s WHERE s.id = l.stud_id) AS "stud_id",
-                    ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY stud_id) / COUNT(id) OVER (PARTITION BY stud_id)::DECIMAL, 2) AS "Посещаемость",
+                    ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY stud_id) * 100 / COUNT(id) OVER (PARTITION BY stud_id)::DECIMAL, 2) AS "Посещаемость",
                     ROUND((SUM(l.mark_for_work) OVER (PARTITION BY stud_id) + SUM(l.test) OVER (PARTITION BY stud_id))::DECIMAL, 2) AS "Успеваемость"
                 FROM
                     lesson l
@@ -346,7 +346,7 @@ async def attendance_num_for_stud_for_team_stat_table(id_team: int, name_of_less
                 (SELECT s.name FROM stud s WHERE s.id = l.stud_id) AS stud_name,
                 (SELECT s.id FROM stud s WHERE s.id = l.stud_id) AS id,
                 l.name,
-                ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / COUNT(id) OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::DECIMAL, 2) AS Посещаемость,
+                ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) * 100 / COUNT(id) OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::DECIMAL, 2) AS Посещаемость,
                 ROUND((SUM(l.mark_for_work) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) + SUM(l.test) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW))::DECIMAL, 2) AS Успеваемость,
                 l.arrival
               FROM
