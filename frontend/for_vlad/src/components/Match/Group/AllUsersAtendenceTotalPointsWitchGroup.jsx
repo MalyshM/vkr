@@ -150,19 +150,7 @@ if (!AllUsersAtendenceTotalPointsWitchGroupData) {
     
     const options = {
 
-    //   tooltips: {
-    //     display: true,
-    //     callbacks: {
-    //       label: function(tooltipItem, data) {
-    //         const dataset = data.datasets[tooltipItem.datasetIndex];
-    //         const value = dataset.data[tooltipItem.index];
-    //         const teamName = AllUsersAtendenceTotalPointsWitchGroupData[tooltipItem.index].team_name;
-    //         // return `${teamName}: ${dataset.label}: ${value}`;
-    //         }
-    //     }
-    // },
-
-        // onClick: handleTeleportGroup,
+    // onClick: handleTeleportGroup,
         scales: {
         x: {
             grouped: true, 

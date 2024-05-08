@@ -20,6 +20,7 @@
     "chartjs-plugin-datalabels": "^2.2.0",
     "chartjs-plugin-trendline": "^2.0.5",
     "framer-motion": "^10.16.16",
+    "plotly.js": "^2.32.0",
     "plotly.js-basic-dist": "^2.32.0",
     "react": "^18.2.0",
     "react-chartjs-2": "^5.2.0",
