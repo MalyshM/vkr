@@ -128,7 +128,7 @@ const handleButtonClick = (sortType) => {
       },
       {
         label: 'Посещаемость',
-        data: attendanceTotalPointsData.map(item => Math.round(item.Посещаемость*100)),
+        data: attendanceTotalPointsData.map(item => Math.round(item.Посещаемость)),
         backgroundColor: attendanceColor,
         borderWidth: 0,
 
@@ -144,7 +144,7 @@ const handleButtonClick = (sortType) => {
     },
     {
       label: 'Arrival Avg',
-      data: Array(attendanceTotalPointsData.length).fill(Math.round(arrivalAvg*100)),
+      data: Array(attendanceTotalPointsData.length).fill(Math.round(arrivalAvg)),
       borderColor: 'rgb(255,100,50)',
       borderWidth: 3,
       fill: false,
@@ -276,9 +276,9 @@ return (
   </Flex>
 
   <Flex align="center"> 
-    <Text bg={'white'} fontFamily={'Trebuchet MS'} borderColor={'rgba(0, 28, 172, 1)'} mr={2} p={2} borderWidth={2} borderRadius={6}>Среднее посещение: {Math.round(arrivalAvg * 100)}%</Text>
+    <Text bg={'white'} fontFamily={'Trebuchet MS'} borderColor={'rgba(0, 28, 172, 1)'} mr={3} p={2} borderWidth={2} borderRadius={6}>Медиана поещаемости:{Math.round(arrivalAvg)}%</Text>
     
-    <Text bg={'white'} fontFamily={'Trebuchet MS'} borderColor={'rgb(255,100,50)'} mr={2} p={2} borderWidth={2} borderRadius={6}>Средний балл: {totalPointsAvg.toFixed(2)}</Text>
+    <Text bg={'white'} fontFamily={'Trebuchet MS'} borderColor={'rgb(255,100,50)'} mr={3} p={2} borderWidth={2} borderRadius={6}>Медиана Успеваемости:{totalPointsAvg.toFixed(2)}</Text>
   </Flex>
   <Flex>
     <Text fontFamily={'Trebuchet MS'} ml={10}>Установите порог:</Text>

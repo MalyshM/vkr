@@ -10,6 +10,60 @@ const ScaterPlotPage = () => {
 
     const { userToken } = useAuth();
 
+    
+    const fetchTeamForTeacher = async () => {
+        try {
+          const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_teams_for_user_without_lect?token=${userToken}`);
+          const result = await response.json();
+          SetTeamData(result);
+      
+          console.log('fetchTeamForTeacher:', result);
+      
+      } catch (error) {
+          console.error('Error fetching data from fetchTeamForTeacher:', error);
+        }
+      };
+
+      const fetchSpecialityForTeacher = async () => {
+        try {
+          const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_all_specialities?token=${userToken}`);
+          const result = await response.json();
+          SetSpecialityData(result);
+      
+          console.log('fetchSpecialityForTeacher:', result);
+      
+      } catch (error) {
+          console.error('Error fetching data from fetchSpecialityForTeacher:', error);
+        }
+      };
+
+      const fetchTeacher = async () => {
+        try {
+          const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_all_teachers_unique?token=${userToken}`);
+          const result = await response.json();
+          SetTeacherData(result);
+      
+          console.log('fetchTeacher:', result);
+      
+      } catch (error) {
+          console.error('Error fetching data from fetchTeacher:', error);
+        }
+      };
+
+      useEffect(() => {
+        const fetchData = async () => {
+          await fetchTeamForTeacher();
+          await fetchSpecialityForTeacher();
+          await fetchTeacher();
+         
+          
+        }
+    
+        if (userToken) {
+          fetchData();
+        }
+      }, [userToken]);
+
     const [TeamData, SetTeamData] = useState(null); //save team on request
     const [SelectedTeam, setSelectedTeam] = useState(null); //save choise team after click
 
@@ -27,22 +81,18 @@ const ScaterPlotPage = () => {
     
   
     const handleTeamChange = (value) => {
-    setSelectedTeam(value);
-    };
+        setSelectedTeam(value);};
 
-  //   const handleModeChange = (event) => {
-  //     const newMode = Number(event.target.value);
-  //     setSelectedMode(newMode || 0); // Если newMode преобразуется в falsy значение, устанавливаем 0
-  // };
+    const handleTeacherChange = (value) => {
+        setSelectedTeacher(value);};
+
+    const handleSpecialityChange = (value) => {
+        setSelectedSpeciality(value);};
   
-      const handleModeChange = (event) => {
+    const handleModeChange = (event) => {
         const newMode = parseInt(event.target.value, 10);
-        setSelectedMode(newMode);
-      };
+        setSelectedMode(newMode);};
   
-   
-    console.log('SelectedMode - ',SelectedMode)
-
 return( 
 <>
 
@@ -57,11 +107,11 @@ return(
             <Select mr={4} width='270px' borderWidth={1} fontFamily='Trebuchet MS'
                 placeholder="Выберите группу"
                 borderColor='black'
-                _active={{ borderColor: "black" }} 
-                _hover={{ color: "blue" }}
-                _selected={{ bg: "black.500", borderColor: "red.500", color: "white" }}
+                // _active={{ borderColor: "black" }} 
+                // _hover={{ color: "blue" }}
+                // _selected={{ bg: "black.500", borderColor: "red.500", color: "white" }}
                 onChange={(e) => handleTeamChange(e.target.value, e.target.selectedOptions[0].label)}
-
+                disabled 
                 value={SelectedTeam}>
 
                 {Array.isArray(TeamData) ? (
@@ -71,7 +121,7 @@ return(
                     </option>
                     ))
                 ) : (
-                    <option disabled>message disabled - handleTeamChange</option>
+                    <option disabled>data is not arrive</option>
                 )}
             </Select>
 
@@ -81,18 +131,18 @@ return(
                 _active={{ borderColor: "black" }} 
                 _hover={{ color: "blue" }}
                 _selected={{ bg: "black.500", borderColor: "red.500", color: "white" }}
-                onChange={(e) => handleTeamChange(e.target.value, e.target.selectedOptions[0].label)}
+                onChange={(e) => handleTeacherChange(e.target.value, e.target.selectedOptions[0].label)}
 
-                value={SelectedTeam}>
+                value={SelectedTeacher}>
 
-                {Array.isArray(TeamData) ? (
-                    TeamData.map((team) => (
-                    <option key={team.id} value={team.id}>
-                        {team.name}
+                {Array.isArray(TeacherData) ? (
+                    TeacherData.map((teacher) => (
+                    <option key={teacher.id} value={teacher.name}>
+                        {teacher.name}
                     </option>
                     ))
                 ) : (
-                    <option disabled>message disabled - handleTeamChange</option>
+                    <option disabled>data is not arrive</option>
                 )}
             </Select>
 
@@ -102,18 +152,18 @@ return(
                 _active={{ borderColor: "black" }} 
                 _hover={{ color: "blue" }}
                 _selected={{ bg: "black.500", borderColor: "red.500", color: "white" }}
-                onChange={(e) => handleTeamChange(e.target.value, e.target.selectedOptions[0].label)}
+                onChange={(e) => handleSpecialityChange(e.target.value, e.target.selectedOptions[0].label)}
 
-                value={SelectedTeam}>
+                value={SelectedSpeciality}>
 
-                {Array.isArray(TeamData) ? (
-                    TeamData.map((team) => (
-                    <option key={team.id} value={team.id}>
-                        {team.name}
+                {Array.isArray(SpecialityData) ? (
+                    SpecialityData.map((spec) => (
+                    <option key={spec.speciality} value={spec.speciality}>
+                        {spec.speciality}
                     </option>
                     ))
                 ) : (
-                    <option disabled>message disabled - handleTeamChange</option>
+                    <option disabled>data is not arrive</option>
                 )}
             </Select> 
 
@@ -141,9 +191,9 @@ return(
             {SelectedMode && <ScaterPlotDiagram
             tokenUsers={userToken}
             type_group_by={SelectedMode} 
-            teacher_list={teacher_list}
-            speciality_list={speciality_list}
-            team_list={team_list} 
+            teacher_list={SelectedTeacher}
+            speciality_list={SelectedSpeciality}
+            team_list={SelectedTeam} 
             />}
 
         </Box>
