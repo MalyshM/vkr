@@ -101,6 +101,7 @@ async def stud_scatter_plot(token: str, type_group_by: int, teacher_list: Option
                     )
                 ) AS result1,
                 sub.name,
+                sub.lesson_counter,
                 {query_field}
             FROM (
                 SELECT 
@@ -117,19 +118,24 @@ async def stud_scatter_plot(token: str, type_group_by: int, teacher_list: Option
                         )
                     )::DECIMAL, 2) AS Успеваемость,
                     ROUND((
-                        COUNT(l.id) FILTER (WHERE l.arrival = 'П') OVER (
+                        ROUND(COUNT(l.id) FILTER (WHERE l.arrival = 'П') OVER (
                             PARTITION BY l.stud_id 
                             ORDER BY l.id 
                             ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-                        ) * 100 /
+                        )::DECIMAL, 2) /
                         COUNT(l.id) OVER (
                             PARTITION BY l.stud_id 
                             ORDER BY l.id 
                             ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-                        )
+                        ) * 100
                     )::DECIMAL, 2) AS Посещаемость,
                     l.name,
                     l.stud_id,
+                    COUNT(l.name) OVER (
+                            PARTITION BY l.team_id, l.stud_id 
+                            ORDER BY l.id 
+                            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+                        ) as lesson_counter,
                     {sub_query_field}
                 FROM lesson l
                 {speciality_join}
@@ -140,7 +146,7 @@ async def stud_scatter_plot(token: str, type_group_by: int, teacher_list: Option
                 'Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00'
             )
             {group_by}
-            sub.name;
+            sub.name, sub.lesson_counter;
         """)
         result = res.fetchall()
         return await save_resp_and_return_it(result, href, start_time)
@@ -221,6 +227,7 @@ async def scatter_plot_by_section(token: str, type_group_by: int, teacher_list: 
                 PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY sub.Посещаемость) as Медианная_посещаемость,
                 PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY sub.Успеваемость) as Медианная_успеваемость,
                 sub.name,
+                sub.lesson_counter,
                 {query_field}
             FROM (
                 SELECT 
@@ -237,19 +244,24 @@ async def scatter_plot_by_section(token: str, type_group_by: int, teacher_list: 
                         )
                     )::DECIMAL, 2) AS Успеваемость,
                     ROUND((
-                        COUNT(l.id) FILTER (WHERE l.arrival = 'П') OVER (
+                        ROUND(COUNT(l.id) FILTER (WHERE l.arrival = 'П') OVER (
                             PARTITION BY l.stud_id 
                             ORDER BY l.id 
                             ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-                        ) * 100 /
+                        )::DECIMAL, 2) /
                         COUNT(l.id) OVER (
                             PARTITION BY l.stud_id 
                             ORDER BY l.id 
                             ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-                        )
+                        ) * 100
                     )::DECIMAL, 2) AS Посещаемость,
                     l.name,
                     l.stud_id,
+                    COUNT(l.name) OVER (
+                            PARTITION BY l.team_id, l.stud_id 
+                            ORDER BY l.id 
+                            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+                        ) as lesson_counter,
                     {sub_query_field}
                 FROM lesson l
                 {speciality_join}
@@ -260,7 +272,7 @@ async def scatter_plot_by_section(token: str, type_group_by: int, teacher_list: 
                 'Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00'
             )
             {group_by}
-            sub.name;
+            sub.name, sub.lesson_counter;
         """)
         result = res.fetchall()
         return await save_resp_and_return_it(result, href, start_time)
