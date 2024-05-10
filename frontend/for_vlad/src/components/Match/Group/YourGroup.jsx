@@ -43,25 +43,17 @@ const YourGroup = () => {
       }
     };
 
-  //   const handleTeacherSelect = (teacherName) => {
-  //     setSelectedTeachers(prevSelected => {
-  //         if (prevSelected.includes(teacherName)) {
-  //             return prevSelected.filter(name => name !== teacherName);
-  //         } else {
-  //             return [...prevSelected, teacherName];
-  //         }
-  //     });
-  // };
+ 
 
 
   const handleCheckboxChange = (event) => {
     setChoiseGroupTeacher(event.target.checked); 
     };
 
-    const onSelect = (selectedTeachers) => {
-      // Здесь можете сделать что-то с выбранными преподавателями
-      console.log('Selected teachers:', selectedTeachers);
-    };
+    // const onSelect = (selectedTeachers) => {
+    //   // Здесь можете сделать что-то с выбранными преподавателями
+    //   console.log('Selected teachers:', selectedTeachers);
+    // };
 
     
 
@@ -74,7 +66,7 @@ return(
   
     <Checkbox
       onChange={handleCheckboxChange}
-      isChecked={choiseGroupTeacher_} // Устанавливаем значение чекбокса в соответствии с текущим состоянием
+      isChecked={choiseGroupTeacher_} 
       >
         {choiseGroupTeacher_ ? 'Группировать по преподавателям' : 'Без группировки'}
     </Checkbox>
@@ -99,22 +91,6 @@ return(
 
 
   </Box>
-
-
-  <Box ml={6} mr={6} display="flex" justifyContent={'space-between'}>
-
-  {/* {teachersData && teachersData.map((teacher) => (
-                    <Checkbox
-                        key={teacher.id}
-                        isChecked={selectedTeachers.includes(teacher.name)}
-                        onChange={() => handleTeacherSelect(teacher.name)}
-                    >
-                        {teacher.name}
-                    </Checkbox>
-                ))} */}
-
-  
-    </Box>
 
   
 

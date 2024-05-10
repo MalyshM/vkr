@@ -3,80 +3,82 @@ import Plot from 'react-plotly.js';
 import { fetchWithTokenRefresh } from '../RefreshToken';
 import {Heading,Select,Box,Flex} from '@chakra-ui/react';
 
-const ScatterPlotDiagram = ({ tokenUsers, type_group_by, teacher_list, speciality_list, team_list }) => {
-  const [scatterPlotData, setScatterPlotData] = useState(null);
+const ScaterPlotBySection = ({ tokenUsers, type_group_by, teacher_list, speciality_list, team_list }) => {
+  const [ScaterPlotBySectionData, setScatterPlotData] = useState(null);
   const [selectedName, setSelectedName] = useState(null);
 
   const handleNameSelect = value => { // click on select for choose name of learn meeting
     setSelectedName(value);
   };
 
-  // console.log('test teacher_list - ', teacher_list)
-  // console.log('test team_list - ', team_list)
-  // console.log('test speciality_list - ', speciality_list)
+  console.log('test teacher_list - ', teacher_list)
+  console.log('test team_list - ', team_list)
+  console.log('test speciality_list - ', speciality_list)
 
 
   useEffect(() => {
-    const fetchScatterPlot = async () => {
+    const fetchScaterPlotBySection = async () => {
       try {
         if (tokenUsers !== null) {
           if (type_group_by === 3) {
             type_group_by = 0;
           }
-          const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/stud_scatter_plot?token=${tokenUsers}&type_group_by=${type_group_by}${teacher_list ? `&teacher_list=${Array.isArray(teacher_list) ? teacher_list.join(',') : teacher_list}` : ''}${speciality_list ? `&speciality_list=${Array.isArray(speciality_list) ? speciality_list.join(',') : speciality_list}` : ''}${team_list ? `&team_list=${Array.isArray(team_list) ? team_list.join(',') : team_list}` : ''}`);
+          const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/scatter_plot_by_section?token=${tokenUsers}&type_group_by=${type_group_by}${teacher_list ? `&teacher_list=${Array.isArray(teacher_list) ? teacher_list.join(',') : teacher_list}` : ''}${speciality_list ? `&speciality_list=${Array.isArray(speciality_list) ? speciality_list.join(',') : speciality_list}` : ''}${team_list ? `&team_list=${Array.isArray(team_list) ? team_list.join(',') : team_list}` : ''}`);
           const result = await response.json();
           setScatterPlotData(result);
         }
       } catch (error) {
-        console.error('ScatterPlotData - Error fetching ScatterPlotData:', error);
+        console.error('ScaterPlotBySection - Error fetching ScaterPlotBySection:', error);
       }
     };
-    fetchScatterPlot();
+    fetchScaterPlotBySection();
   }, [tokenUsers, type_group_by, teacher_list, speciality_list, team_list]);
 
-  // console.log('scatterPlotData after request - ', scatterPlotData)
+  console.log('ScaterPlotBySection after request - ', ScaterPlotBySectionData)
 
-  if (!scatterPlotData) {
+  if (!ScaterPlotBySectionData) {
     return <div>Loading...</div>;
   }
 
-  const uniqueNames = [...new Set(scatterPlotData.map(item => item.name))]; // get name of learn meeting (kr) from object's array
+  const uniqueNames = [...new Set(ScaterPlotBySectionData.map(item => item.name))]; // get name of learn meeting (kr) from object's array
 
-  const filteredData = scatterPlotData.filter(item => item.name === selectedName);
+  const filteredData = ScaterPlotBySectionData.filter(item => item.name === selectedName);
 
-  // console.log('filteredData - ', filteredData)
+  console.log('filteredData - ', filteredData)
 
 
-  const data = [];
   const teamColors = {};
-
-  filteredData.forEach((item, index) => {
+  
+  const data = filteredData.map(item => {
     const teamId = item.team_id;
     const speciality = item.speciality;
-    const teacher_id
-    = item.teacher_id;
-
-    let label = ""; 
-
+    const teacher_id = item.teacher_id;
+    
+    let label = "";
+    
     if (teamId) {
       label = `Team ${teamId}`;
     } else if (speciality) {
       label = `${speciality}`;
-    } else if (teacher_id
-    ) {
-      label = `Teacher ${teacher_id
-      }`;
+    } else if (teacher_id) {
+      label = `Teacher ${teacher_id}`;
     }
-
-    const key = `${label}`;   
-
+    
+    const key = `${label}`;
+    
     if (!(key in teamColors)) {
-      teamColors[key] = `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`;
-    }
+        teamColors[key] = `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`;
+      }
 
-    const trace = {
-      x: [],
-      y: [],
+
+      const xValue = item['Медианная_посещаемость'];
+      const yValue = item['Медианная_успеваемость'];
+
+      
+    
+    return {
+      x: [xValue], // Создаем массив с одним элементом, чтобы хранить значение x для каждого объекта
+    y: [yValue],
       mode: 'markers',
       type: 'scatter',
       marker: {
@@ -85,18 +87,14 @@ const ScatterPlotDiagram = ({ tokenUsers, type_group_by, teacher_list, specialit
       },
       name: label,
     };
-
-    item.result1.forEach(student => {
-      trace.x.push(student['Посещаемость']);
-      trace.y.push(student['Успеваемость']);
-    });
-
-    data.push(trace);
   });
+
+  console.log('data in section-',data)
 
   const layout = {
     width: 890, // Ширина окна
     height: 730, // Высота окна
+
     responsive: true,
     legend: {
       display: true,
@@ -104,13 +102,13 @@ const ScatterPlotDiagram = ({ tokenUsers, type_group_by, teacher_list, specialit
 
     },
     title: {
-      text: 'Студенты',
+      text: 'Группы',
     },
     xaxis: {
-      title: 'Посещаемость', 
+      title: 'Медианная посещаемость', 
     },
     yaxis: {
-      title: 'Успеваемость',
+      title: 'Медианная успеваемость',
     },
     hovermode: 'closest',
     hoverlabel: {
@@ -122,13 +120,12 @@ const ScatterPlotDiagram = ({ tokenUsers, type_group_by, teacher_list, specialit
   const config = {
     displayModeBar: false
   };
-  
+
   return (
     <>
      
 <Select
   borderRadius="lg" 
-  boxShadow="lg"
   mr={4}
   width='270px'
   borderWidth={1}
@@ -161,4 +158,4 @@ const ScatterPlotDiagram = ({ tokenUsers, type_group_by, teacher_list, specialit
   );
 };
 
-export default ScatterPlotDiagram;
+export default ScaterPlotBySection;
