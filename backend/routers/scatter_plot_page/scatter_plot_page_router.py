@@ -68,14 +68,17 @@ async def stud_scatter_plot(token: str, type_group_by: int, teacher_list: Option
     LOGGER.info(f"{href} start")
     match type_group_by:
         case 0:
-            fill_query_str = 'sub.team_id'
-            fill_query_str2 = 'group by sub.team_id,'
+            query_field = 'sub.team_id'
+            sub_query_field = "(SELECT t.name FROM team t WHERE t.id = l.team_id) AS team_id"
+            group_by = 'group by sub.team_id,'
         case 1:
-            fill_query_str = 'sub.speciality'
-            fill_query_str2 = 'group by sub.speciality,'
+            query_field = 'sub.speciality'
+            sub_query_field = "(SELECT s.speciality FROM stud s WHERE s.id = l.stud_id)"
+            group_by = 'group by sub.speciality,'
         case 2:
-            fill_query_str = 'sub.teacher_id'
-            fill_query_str2 = 'group by sub.teacher_id,'
+            query_field = 'sub.teacher_id'
+            sub_query_field = "(SELECT t.name FROM team t WHERE t.id = l.teacher_id) AS teacher_id"
+            group_by = 'group by sub.teacher_id,'
         case _:
             e = HTTPException(status_code=status.HTTP_409_CONFLICT,
                               detail="Неправильно выбран тип 0 - Группировка по командам, 1 - " +
@@ -95,8 +98,8 @@ async def stud_scatter_plot(token: str, type_group_by: int, teacher_list: Option
                         'stud_id', sub.stud_id
                     )
                 ) AS result1,
-                {fill_query_str},
-                sub.name
+                sub.name,
+                {query_field}
             FROM (
                 SELECT 
                     ROUND((
@@ -125,9 +128,7 @@ async def stud_scatter_plot(token: str, type_group_by: int, teacher_list: Option
                     )::DECIMAL, 2) AS Посещаемость,
                     l.name,
                     l.stud_id,
-                    l.team_id,
-                    l.teacher_id,
-                    (SELECT s.speciality FROM stud s WHERE s.id = l.stud_id)
+                    {sub_query_field}
                 FROM lesson l
                 WHERE l.team_id IN ({teams_true})
                 {speciality_cond}
@@ -135,7 +136,7 @@ async def stud_scatter_plot(token: str, type_group_by: int, teacher_list: Option
             WHERE sub.name IN (
                 'Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00'
             )
-            {fill_query_str2}
+            {group_by}
             sub.name;
         """)
         result = res.fetchall()
@@ -189,14 +190,17 @@ async def scatter_plot_by_section(token: str, type_group_by: int, teacher_list: 
     LOGGER.info(f"{href} start")
     match type_group_by:
         case 0:
-            fill_query_str = 'sub.team_id'
-            fill_query_str2 = 'group by sub.team_id,'
+            query_field = 'sub.team_id'
+            sub_query_field = "(SELECT t.name FROM team t WHERE t.id = l.team_id) AS team_id"
+            group_by = 'group by sub.team_id,'
         case 1:
-            fill_query_str = 'sub.speciality'
-            fill_query_str2 = 'group by sub.speciality,'
+            query_field = 'sub.speciality'
+            sub_query_field = "(SELECT s.speciality FROM stud s WHERE s.id = l.stud_id)"
+            group_by = 'group by sub.speciality,'
         case 2:
-            fill_query_str = 'sub.teacher_id'
-            fill_query_str2 = 'group by sub.teacher_id,'
+            query_field = 'sub.teacher_id'
+            sub_query_field = "(SELECT t.name FROM team t WHERE t.id = l.teacher_id) AS teacher_id"
+            group_by = 'group by sub.teacher_id,'
         case _:
             e = HTTPException(status_code=status.HTTP_409_CONFLICT,
                               detail="Неправильно выбран тип 0 - Группировка по командам, 1 - " +
@@ -211,8 +215,8 @@ async def scatter_plot_by_section(token: str, type_group_by: int, teacher_list: 
             SELECT 
                 PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY sub.Посещаемость) as Медианная_посещаемость,
                 PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY sub.Успеваемость) as Медианная_успеваемость,
-                {fill_query_str},
-                sub.name
+                sub.name,
+                {query_field}
             FROM (
                 SELECT 
                     ROUND((
@@ -241,9 +245,7 @@ async def scatter_plot_by_section(token: str, type_group_by: int, teacher_list: 
                     )::DECIMAL, 2) AS Посещаемость,
                     l.name,
                     l.stud_id,
-                    l.team_id,
-                    l.teacher_id,
-                    (SELECT s.speciality FROM stud s WHERE s.id = l.stud_id)
+                    {sub_query_field}
                 FROM lesson l
                 WHERE l.team_id IN ({teams_true})
                 {speciality_cond}
@@ -251,7 +253,7 @@ async def scatter_plot_by_section(token: str, type_group_by: int, teacher_list: 
             WHERE sub.name IN (
                 'Организация функций30', 'Коллекции. Работа с файлами20', 'Управляющие конструкции50', 'Аттестация00'
             )
-            {fill_query_str2}
+            {group_by}
             sub.name;
         """)
         result = res.fetchall()
