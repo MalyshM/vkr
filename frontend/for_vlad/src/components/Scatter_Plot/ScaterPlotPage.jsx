@@ -1,14 +1,24 @@
 import React, { useState,useEffect} from 'react';
-// import { useAuth } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/useAuth';
 import ScaterPlotDiagram from './ScaterPlotDiagram'
+import ScaterPlotBySection from './ScaterPlotBySection';
 import { useAuth } from '../useAuth';
 import {fetchWithTokenRefresh} from '../RefreshToken'
-// import { fetchWithTokenRefresh } from 'D:/2newvkr/vkr_true/frontend/for_vlad/src/components/RefreshToken';
-import {Heading,Select,Box,Flex} from '@chakra-ui/react';
+import {Checkbox,Flex,Box,Select, Spacer ,Heading,Text,Button,  Menu, MenuButton, MenuList, MenuItem, Center} from '@chakra-ui/react';
 
 const ScaterPlotPage = () => {
 
     const { userToken } = useAuth();
+
+    const [TeamData, SetTeamData] = useState(null); //save team on request
+    const [SelectedTeam, setSelectedTeam] = useState([]); //save choise team after click
+
+    const [TeacherData, SetTeacherData] = useState(null); // save teaher on request
+    const [SelectedTeacher, setSelectedTeacher] = useState([]); //save choise team after click
+    
+    const [SpecialityData, SetSpecialityData] = useState(null); //save speciality on request
+    const [SelectedSpeciality, setSelectedSpeciality] = useState([]); //save choise speciality after click
+
+    const [SelectedMode, setSelectedMode] = useState(null);
 
     
     const fetchTeamForTeacher = async () => {
@@ -64,30 +74,39 @@ const ScaterPlotPage = () => {
         }
       }, [userToken]);
 
-    const [TeamData, SetTeamData] = useState(null); //save team on request
-    const [SelectedTeam, setSelectedTeam] = useState(null); //save choise team after click
+    // const handleTeamChange = (value) => {
+    //     setSelectedTeam(value);};
 
-    const [TeacherData, SetTeacherData] = useState(null); // save teaher on request
-    const [SelectedTeacher, setSelectedTeacher] = useState(null); //save choise team after click
-    
-    const [SpecialityData, SetSpecialityData] = useState(null); //save speciality on request
-    const [SelectedSpeciality, setSelectedSpeciality] = useState(null); //save choise speciality after click
+    // const handleTeacherChange = (value) => {
+    //     setSelectedTeacher(value);};
 
-    const [SelectedMode, setSelectedMode] = useState(null);
+    const handleTeacherSelect = (teacherId) => {
+        if (SelectedTeacher.includes(teacherId)) {
+            setSelectedTeacher(SelectedTeacher.filter((id) => id !== teacherId));
+        } else {
+            setSelectedTeacher([...SelectedTeacher, teacherId]);
+        }
+    };
 
-    const [teacher_list] = useState();
-    const [speciality_list] = useState();
-    const [team_list] = useState();
-    
-  
-    const handleTeamChange = (value) => {
-        setSelectedTeam(value);};
+    const handleTeamSelect = (team_id) => {
+        if (SelectedTeam.includes(team_id)) {
+            setSelectedTeam(SelectedTeam.filter((id) => id !== team_id));
+        } else {
+            setSelectedTeam([...SelectedTeam, team_id]);
+        }
+    };
 
-    const handleTeacherChange = (value) => {
-        setSelectedTeacher(value);};
+    const handleSpecialitySelect = (speciality) => {
+        if (SelectedSpeciality.includes(speciality)) {
+            setSelectedSpeciality(SelectedSpeciality.filter((speciality) => speciality !== speciality));
+        } else {
+            setSelectedSpeciality([...SelectedSpeciality, speciality]);
+        }
+    };
 
-    const handleSpecialityChange = (value) => {
-        setSelectedSpeciality(value);};
+ 
+    // const handleSpecialityChange = (value) => {
+    //     setSelectedSpeciality(value);};
   
     const handleModeChange = (event) => {
         const newMode = parseInt(event.target.value, 10);
@@ -95,110 +114,115 @@ const ScaterPlotPage = () => {
   
 return( 
 <>
+<Box p={4} display="flex" justifyContent={'start'} alignItems={'center'} >
 
 <Heading p={4} as="h2" size="lg">Диаграмма рассеяния</Heading>
 
-     <Flex 
-    // minHeight="100vh"
-    direction="column">
+            <Box mr={4} borderRadius="lg" boxShadow="l">
+                <Select 
+                    borderColor='black'
+                    _active={{ borderColor: "black" }} 
+                        _hover={{ color: "blue" }}
+                        _selected={{ bg: "black.500", borderColor: "red.500", color: "white" }}
+                    id="modeSelectSimple"
+                    value={SelectedMode}
+                    onChange={handleModeChange}
+                    placeholder="Выбери режим"
+                >
+                    <option value={3}>По группам</option>
+                    <option value={1}>По направлениям</option>
+                    <option value={2}>По преподавателям</option>
+                </Select>
+            </Box>
 
-    <Box p={4} display="flex" justifyContent={'start'} >
+                <Menu closeOnSelect={false}>
+                    <MenuButton mr={4} as={Button} colorScheme="blue">
+                        Выбрать группы
+                    </MenuButton>
+                    <MenuList minWidth="240px">
+                    {TeamData && TeamData.map((team) => (
+                        <MenuItem key={team.id}>
+                            <Checkbox
+                            isChecked={SelectedTeam.includes(team.id)}
+                            onChange={() => handleTeamSelect(team.id)}
+                            >
+                            {team.name}
+                            </Checkbox>
+                        </MenuItem>
+                        ))}
+                    </MenuList>
+                </Menu>
 
-            <Select mr={4} width='270px' borderWidth={1} fontFamily='Trebuchet MS'
-                placeholder="Выберите группу"
-                borderColor='black'
-                // _active={{ borderColor: "black" }} 
-                // _hover={{ color: "blue" }}
-                // _selected={{ bg: "black.500", borderColor: "red.500", color: "white" }}
-                onChange={(e) => handleTeamChange(e.target.value, e.target.selectedOptions[0].label)}
-                disabled 
-                value={SelectedTeam}>
+                <Menu closeOnSelect={false}>
+                    <MenuButton mr={4} as={Button} colorScheme="blue">
+                        Выбрать преподавателей
+                    </MenuButton>
+                    <MenuList minWidth="240px">
+                    {TeacherData && TeacherData.map((teacher) => (
+                        <MenuItem key={teacher.id}>
+                            <Checkbox
+                            isChecked={SelectedTeacher.includes(teacher.name)}
+                            onChange={() => handleTeacherSelect(teacher.name)}
+                            >
+                            {teacher.name}
+                            </Checkbox>
+                        </MenuItem>
+                        ))}
+                    </MenuList>
+                </Menu>
 
-                {Array.isArray(TeamData) ? (
-                    TeamData.map((team) => (
-                    <option key={team.id} value={team.id}>
-                        {team.name}
-                    </option>
-                    ))
-                ) : (
-                    <option disabled>data is not arrive</option>
-                )}
-            </Select>
 
-            <Select mr={4} width='270px' borderWidth={1} fontFamily='Trebuchet MS'
-                placeholder="Выберите преподавателя"
-                borderColor='black'
-                _active={{ borderColor: "black" }} 
-                _hover={{ color: "blue" }}
-                _selected={{ bg: "black.500", borderColor: "red.500", color: "white" }}
-                onChange={(e) => handleTeacherChange(e.target.value, e.target.selectedOptions[0].label)}
-
-                value={SelectedTeacher}>
-
-                {Array.isArray(TeacherData) ? (
-                    TeacherData.map((teacher) => (
-                    <option key={teacher.id} value={teacher.name}>
-                        {teacher.name}
-                    </option>
-                    ))
-                ) : (
-                    <option disabled>data is not arrive</option>
-                )}
-            </Select>
-
-            <Select width='270px' borderWidth={1} fontFamily='Trebuchet MS'
-                placeholder="Выберите направление"
-                borderColor='black'
-                _active={{ borderColor: "black" }} 
-                _hover={{ color: "blue" }}
-                _selected={{ bg: "black.500", borderColor: "red.500", color: "white" }}
-                onChange={(e) => handleSpecialityChange(e.target.value, e.target.selectedOptions[0].label)}
-
-                value={SelectedSpeciality}>
-
-                {Array.isArray(SpecialityData) ? (
-                    SpecialityData.map((spec) => (
-                    <option key={spec.speciality} value={spec.speciality}>
-                        {spec.speciality}
-                    </option>
-                    ))
-                ) : (
-                    <option disabled>data is not arrive</option>
-                )}
-            </Select> 
-
-            <Box ml={4} w="330px" borderRadius="lg" boxShadow="lg">
-        <Select 
-            borderColor='black'
-            _active={{ borderColor: "black" }} 
-                _hover={{ color: "blue" }}
-                _selected={{ bg: "black.500", borderColor: "red.500", color: "white" }}
-            id="modeSelectSimple"
-            value={SelectedMode}
-            onChange={handleModeChange}
-            placeholder="Выбери режим"
-        >
-            <option value={3}>По группам</option>
-            <option value={1}>По направлениям</option>
-            <option value={2}>По преподавателям</option>
-        </Select>
+                <Menu closeOnSelect={false}>
+                    <MenuButton
+                        mr={4}
+                        as={Button}
+                        colorScheme="blue"
+                        isDisabled={true}
+                    >
+                        Выбрать направления
+                    </MenuButton>
+                    <MenuList minWidth="240px">
+                        {SpecialityData && SpecialityData.map((spec) => (
+                            <MenuItem key={spec.id}>
+                                <Checkbox
+                                    isChecked={SelectedSpeciality.includes(spec.speciality)}
+                                    onChange={() => handleTeacherSelect(spec.speciality)}
+                                    isDisabled={true}
+                                >
+                                    {spec.speciality}
+                                </Checkbox>
+                            </MenuItem>
+                        ))}
+                    </MenuList>
+                </Menu>
         </Box>
 
-        </Box>
-    
-
+        <Flex>
         <Box flex="1" p={2}>
             {SelectedMode && <ScaterPlotDiagram
             tokenUsers={userToken}
             type_group_by={SelectedMode} 
-            teacher_list={SelectedTeacher}
-            speciality_list={SelectedSpeciality}
-            team_list={SelectedTeam} 
+            teacher_list={SelectedTeacher.length > 0 ? SelectedTeacher : ''}
+            speciality_list={SelectedSpeciality.length > 0 ? SelectedSpeciality : ''}
+            team_list={SelectedTeam.length > 0 ? SelectedTeam : ''}
+
             />}
 
         </Box>
+
+        <Box flex="1" p={2}>
+            {SelectedMode && <ScaterPlotBySection
+            tokenUsers={userToken}
+            type_group_by={SelectedMode} 
+            teacher_list={SelectedTeacher.length > 0 ? SelectedTeacher : ''}
+            speciality_list={SelectedSpeciality.length > 0 ? SelectedSpeciality : ''}
+            team_list={SelectedTeam.length > 0 ? SelectedTeam : ''}
+
+            />}
+
+        </Box>
+        </Flex>
     
-    </Flex>
 
 
     </>)
