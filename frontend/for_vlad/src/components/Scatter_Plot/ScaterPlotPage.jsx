@@ -177,7 +177,7 @@ return(
                         mr={4}
                         as={Button}
                         colorScheme="blue"
-                        isDisabled={true}
+                        // isDisabled={true}
                     >
                         Выбрать направления
                     </MenuButton>
@@ -186,8 +186,8 @@ return(
                             <MenuItem key={spec.id}>
                                 <Checkbox
                                     isChecked={SelectedSpeciality.includes(spec.speciality)}
-                                    onChange={() => handleTeacherSelect(spec.speciality)}
-                                    isDisabled={true}
+                                    onChange={() => handleSpecialitySelect(spec.speciality)}
+                                    // isDisabled={false}
                                 >
                                     {spec.speciality}
                                 </Checkbox>

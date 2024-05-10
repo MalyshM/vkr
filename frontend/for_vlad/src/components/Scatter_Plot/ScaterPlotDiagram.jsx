@@ -11,11 +11,6 @@ const ScatterPlotDiagram = ({ tokenUsers, type_group_by, teacher_list, specialit
     setSelectedName(value);
   };
 
-  // console.log('test teacher_list - ', teacher_list)
-  // console.log('test team_list - ', team_list)
-  // console.log('test speciality_list - ', speciality_list)
-
-
   useEffect(() => {
     const fetchScatterPlot = async () => {
       try {
@@ -109,6 +104,12 @@ const ScatterPlotDiagram = ({ tokenUsers, type_group_by, teacher_list, specialit
     xaxis: {
       title: 'Посещаемость', 
     },
+    xaxis2: {
+      title: 'Вторая ось X',
+      overlaying: 'x',
+      // side: 'top',
+    },
+
     yaxis: {
       title: 'Успеваемость',
     },
