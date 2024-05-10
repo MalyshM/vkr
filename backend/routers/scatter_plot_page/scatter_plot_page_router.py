@@ -62,8 +62,10 @@ async def stud_scatter_plot(token: str, type_group_by: int, teacher_list: Option
         speciality_list = speciality_list.split(',')
         speciality_list = ', '.join([f"'{speciality}'" for speciality in speciality_list])
         speciality_cond = f"AND s.speciality IN ({speciality_list})"
+        speciality_join = "INNER JOIN stud s on s.id = l.stud_id"
     else:
         speciality_cond = ""
+        speciality_join = ""
     href = f"stud_scatter_plot-{token}-{type_group_by}-{teacher_list}-{speciality_list}-{team_list}"
     LOGGER.info(f"{href} start")
     match type_group_by:
@@ -130,6 +132,7 @@ async def stud_scatter_plot(token: str, type_group_by: int, teacher_list: Option
                     l.stud_id,
                     {sub_query_field}
                 FROM lesson l
+                {speciality_join}
                 WHERE l.team_id IN ({teams_true})
                 {speciality_cond}
             ) AS sub
@@ -184,8 +187,10 @@ async def scatter_plot_by_section(token: str, type_group_by: int, teacher_list: 
         speciality_list = speciality_list.split(',')
         speciality_list = ', '.join([f"'{speciality}'" for speciality in speciality_list])
         speciality_cond = f"AND s.speciality IN ({speciality_list})"
+        speciality_join = "INNER JOIN stud s on s.id = l.stud_id"
     else:
         speciality_cond = ""
+        speciality_join = ""
     href = f"scatter_plot_by_section-{token}-{type_group_by}-{teacher_list}-{speciality_list}-{team_list}"
     LOGGER.info(f"{href} start")
     match type_group_by:
@@ -247,6 +252,7 @@ async def scatter_plot_by_section(token: str, type_group_by: int, teacher_list: 
                     l.stud_id,
                     {sub_query_field}
                 FROM lesson l
+                {speciality_join}
                 WHERE l.team_id IN ({teams_true})
                 {speciality_cond}
             ) AS sub
