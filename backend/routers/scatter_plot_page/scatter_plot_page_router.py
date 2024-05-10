@@ -79,7 +79,7 @@ async def stud_scatter_plot(token: str, type_group_by: int, teacher_list: Option
             group_by = 'group by sub.speciality,'
         case 2:
             query_field = 'sub.teacher_id'
-            sub_query_field = "(SELECT t.name FROM team t WHERE t.id = l.teacher_id) AS teacher_id"
+            sub_query_field = "(SELECT t.name FROM teacher t WHERE t.id = l.teacher_id) AS teacher_id"
             group_by = 'group by sub.teacher_id,'
         case _:
             e = HTTPException(status_code=status.HTTP_409_CONFLICT,
@@ -210,7 +210,7 @@ async def scatter_plot_by_section(token: str, type_group_by: int, teacher_list: 
             group_by = 'group by sub.speciality,'
         case 2:
             query_field = 'sub.teacher_id'
-            sub_query_field = "(SELECT t.name FROM team t WHERE t.id = l.teacher_id) AS teacher_id"
+            sub_query_field = "(SELECT t.name FROM teacher t WHERE t.id = l.teacher_id) AS teacher_id"
             group_by = 'group by sub.teacher_id,'
         case _:
             e = HTTPException(status_code=status.HTTP_409_CONFLICT,
