@@ -123,7 +123,8 @@ async def get_all_specialities(token: str, db: AsyncSession = Depends(connect_db
         raise e
 
 
-@util_router.get('/api/get_all_specialities_by_teacher_arr', name='Util:get_all_specialities_by_teacher_arr', status_code=status.HTTP_200_OK,
+@util_router.get('/api/get_all_specialities_by_teacher_arr', name='Util:get_all_specialities_by_teacher_arr',
+                 status_code=status.HTTP_200_OK,
                  description=
                  """
                          Получает token: str
@@ -141,7 +142,8 @@ async def get_all_specialities(token: str, db: AsyncSession = Depends(connect_db
                              "speciality": "35.03.10 Ландшафтная архитектура"
                            },
                  """)
-async def get_all_specialities_by_teacher_arr(token: str, teacher_list: str, db: AsyncSession = Depends(connect_db_data)):
+async def get_all_specialities_by_teacher_arr(token: str, teacher_list: str,
+                                              db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
     user = await get_current_user_dev(token)
     href = f"get_all_specialities_by_teacher_arr-{token}-{teacher_list}"
@@ -183,7 +185,9 @@ async def get_all_specialities_by_teacher_arr(token: str, teacher_list: str, db:
         LOGGER.error(f"{href} Error {e}")
         raise e
 
-@util_router.get('/api/get_teams_for_param_without_lect', name='Util:get_teams_for_param_without_lect', status_code=status.HTTP_200_OK,
+
+@util_router.get('/api/get_teams_for_param_without_lect', name='Util:get_teams_for_param_without_lect',
+                 status_code=status.HTTP_200_OK,
                  description=
                  """
                          Получает token: str
@@ -239,6 +243,130 @@ async def get_teams_for_param_without_lect(teacher_arr: str, db: AsyncSession = 
     except Exception as e:
         LOGGER.error(f"{href} Error {e}")
         raise e
+
+
+@util_router.get('/api/get_all_teachers_by_speciality_arr', name='Util:get_all_teachers_by_speciality_arr',
+                 status_code=status.HTTP_200_OK,
+                 description=
+                 """
+                         Получает token: str, speciality_list(СПЕЦИАЛЬНОСТЬ,СПЕЦИАЛЬНОСТЬ
+                         Returns:
+                             Преподаватели 
+                         \n
+                         [
+                           {
+                             "id": 8,
+                             "name": "Березовский Артем Константинович"
+                           },
+                           {
+                             "id": 2,
+                             "name": "Трефилин Иван Андреевич"
+                           },
+                           {
+                             "id": 4,
+                             "name": "Павлова Елена Александровна"
+                           },
+                 """)
+async def get_all_teachers_by_speciality_arr(token: str, speciality_list: str,
+                                             db: AsyncSession = Depends(connect_db_data)):
+    start_time = time.time()
+    user = await get_current_user_dev(token)
+    href = f"get_all_teachers_by_speciality_arr-{token}-{speciality_list}"
+    LOGGER.info(f"{href} start")
+    res = await process_href(href, start_time)
+    if res is not None:
+        return res
+    try:
+        if user.iscurator or user.isadmin:
+            res = await db.execute(f"""
+                SELECT DISTINCT t.id, t.name
+                FROM teacher t
+                WHERE t.id IN (
+                    SELECT DISTINCT l.teacher_id
+                    FROM lesson l
+                    WHERE l.stud_id IN (
+                        SELECT DISTINCT s.id
+                        FROM stud s
+                        WHERE s.speciality = ANY(ARRAY{speciality_list.split(',')})
+                    )
+                );
+                            """)
+            result = res.fetchall()
+            return await save_resp_and_return_it(result, href, start_time)
+        else:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                                detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
+    except HTTPException as e:
+        LOGGER.error(f"{href} Error {e.detail}")
+        raise e
+    except Exception as e:
+        LOGGER.error(f"{href} Error {e}")
+        raise e
+
+
+@util_router.get('/api/get_all_teams_by_speciality_arr', name='Util:get_all_teams_by_speciality_arr',
+                 status_code=status.HTTP_200_OK,
+                 description=
+                 """
+                         Получает token: str, speciality_list(НАПРАВЛЕНИЕ,НАПРАВЛЕНИЕ)
+                         Returns:
+                             команды 
+                         \n
+                        [
+                          {
+                            "id": 7,
+                            "name": "ПиОА П-04.01 "
+                          },
+                          {
+                            "id": 33,
+                            "name": "ПиОА П-09.01"
+                          },
+                          {
+                            "id": 34,
+                            "name": "ПиОА П-06.04"
+                          },
+                          {
+                            "id": 35,
+                            "name": "ПиОА П-01.01 Спорт Прогрм"
+                          }
+                        ]
+                 """)
+async def get_all_teams_by_speciality_arr(token: str, speciality_list: str,
+                                             db: AsyncSession = Depends(connect_db_data)):
+    start_time = time.time()
+    user = await get_current_user_dev(token)
+    href = f"get_all_teams_by_speciality_arr-{token}-{speciality_list}"
+    LOGGER.info(f"{href} start")
+    res = await process_href(href, start_time)
+    if res is not None:
+        return res
+    try:
+        if user.iscurator or user.isadmin:
+            res = await db.execute(f"""
+                SELECT DISTINCT t.id, t.name
+                FROM team t
+                WHERE t.id IN (
+                    SELECT DISTINCT l.team_id
+                    FROM lesson l
+                    WHERE l.stud_id IN (
+                        SELECT DISTINCT s.id
+                        FROM stud s
+                        WHERE s.speciality = ANY(ARRAY{speciality_list.split(',')})
+                    )
+                );
+                            """)
+            result = res.fetchall()
+            return await save_resp_and_return_it(result, href, start_time)
+        else:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                                detail="ВАМ ЗАПРЕЩАЕТСЯ ВХОД В СЕКРЕТНЫЙ РАЗДЕЛ КОНТРОЛЯ УСПЕВАЕМОСТИ")
+    except HTTPException as e:
+        LOGGER.error(f"{href} Error {e.detail}")
+        raise e
+    except Exception as e:
+        LOGGER.error(f"{href} Error {e}")
+        raise e
+
 
 @util_router.get('/api/get_all_kr', name='Util:get_all_kr', status_code=status.HTTP_200_OK, description=
 """
