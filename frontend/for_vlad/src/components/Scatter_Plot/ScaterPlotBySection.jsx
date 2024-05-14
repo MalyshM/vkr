@@ -11,9 +11,9 @@ const ScaterPlotBySection = ({ tokenUsers, type_group_by, teacher_list, speciali
     setSelectedName(value);
   };
 
-  console.log('test teacher_list - ', teacher_list)
-  console.log('test team_list - ', team_list)
-  console.log('test speciality_list - ', speciality_list)
+  // console.log('test teacher_list - ', teacher_list)
+  // console.log('test team_list - ', team_list)
+  // console.log('test speciality_list - ', speciality_list)
 
 
   useEffect(() => {
@@ -34,8 +34,6 @@ const ScaterPlotBySection = ({ tokenUsers, type_group_by, teacher_list, speciali
     fetchScaterPlotBySection();
   }, [tokenUsers, type_group_by, teacher_list, speciality_list, team_list]);
 
-  console.log('ScaterPlotBySection after request - ', ScaterPlotBySectionData)
-
   if (!ScaterPlotBySectionData) {
     return <div>Loading...</div>;
   }
@@ -43,9 +41,6 @@ const ScaterPlotBySection = ({ tokenUsers, type_group_by, teacher_list, speciali
   const uniqueNames = [...new Set(ScaterPlotBySectionData.map(item => item.name))]; // get name of learn meeting (kr) from object's array
 
   const filteredData = ScaterPlotBySectionData.filter(item => item.name === selectedName);
-
-  console.log('filteredData - ', filteredData)
-
 
   const teamColors = {};
   
@@ -57,11 +52,11 @@ const ScaterPlotBySection = ({ tokenUsers, type_group_by, teacher_list, speciali
     let label = "";
     
     if (teamId) {
-      label = `Team ${teamId}`;
+      label = `${teamId}`;
     } else if (speciality) {
       label = `${speciality}`;
     } else if (teacher_id) {
-      label = `Teacher ${teacher_id}`;
+      label = `${teacher_id}`;
     }
     
     const key = `${label}`;
@@ -78,7 +73,7 @@ const ScaterPlotBySection = ({ tokenUsers, type_group_by, teacher_list, speciali
     
     return {
       x: [xValue], // Создаем массив с одним элементом, чтобы хранить значение x для каждого объекта
-    y: [yValue],
+      y: [yValue], 
       mode: 'markers',
       type: 'scatter',
       marker: {
@@ -88,8 +83,6 @@ const ScaterPlotBySection = ({ tokenUsers, type_group_by, teacher_list, speciali
       name: label,
     };
   });
-
-  console.log('data in section-',data)
 
   const layout = {
     width: 890, // Ширина окна
@@ -125,8 +118,10 @@ const ScaterPlotBySection = ({ tokenUsers, type_group_by, teacher_list, speciali
     <>
      
 <Select
+  ml={'auto'}
+  mr={'auto'}
+  mb={4}
   borderRadius="lg" 
-  mr={4}
   width='270px'
   borderWidth={1}
   fontFamily='Trebuchet MS'
@@ -150,9 +145,14 @@ const ScaterPlotBySection = ({ tokenUsers, type_group_by, teacher_list, speciali
 </Select>
 
 
-            <div style={{ width: '100%', height: '100vh' }}>
-                <Plot config={config} data={data} layout={layout} style={{ width: '100%', height: '100%' }} />
-            </div>
+  <Flex direction={'column'}>
+    <Flex ml={'auto'} mr={'auto'}>
+      <div style={{ width: '100%', height: '100vh' }}>
+        <Plot config={config} data={data} layout={layout} style={{ width: '100%', height: '100%' }} />
+      </div>
+    </Flex>
+  </Flex>
+
 
     </>
   );

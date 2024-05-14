@@ -35,102 +35,148 @@ const ScatterPlotDiagram = ({ tokenUsers, type_group_by, teacher_list, specialit
     return <div>Loading...</div>;
   }
 
-  const uniqueNames = [...new Set(scatterPlotData.map(item => item.name))]; // get name of learn meeting (kr) from object's array
+const uniqueNames = [...new Set(scatterPlotData.map(item => item.name))]; // Получение уникальных имен (названий) встреч
+const filteredData = scatterPlotData.filter(item => item.name === selectedName); // Фильтрация данных по выбранному имени (названию) встречи
+console.log('filteredData-',filteredData)
 
-  const filteredData = scatterPlotData.filter(item => item.name === selectedName);
+const data = [];
+const dataArray = []; // Массив для хранения каждого result
+const teamColors = {}; // Объект для хранения цветов команд
+var trace2;
 
-  // console.log('filteredData - ', filteredData)
+// Проходимся по отфильтрованным данным
+filteredData.forEach((item, index) => {
+  const teamId = item.team_id;
+  const speciality = item.speciality;
+  const teacher_id = item.teacher_id;
+  let label = "";
+  
 
+  // Определение метки в зависимости от данных
+  if (teamId) {
+    label = `${teamId}`;
+  } else if (speciality) {
+    label = `${speciality}`;
+  } else if (teacher_id) {
+    label = `${teacher_id}`;
+  }
 
-  const data = [];
-  const teamColors = {};
+  const key = `${label}`;
 
-  filteredData.forEach((item, index) => {
-    const teamId = item.team_id;
-    const speciality = item.speciality;
-    const teacher_id
-    = item.teacher_id;
+  // Генерация случайного цвета для команды, если он еще не был сгенерирован
+  if (!(key in teamColors)) {
+    teamColors[key] = `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`;
+  }
 
-    let label = ""; 
-
-    if (teamId) {
-      label = `Team ${teamId}`;
-    } else if (speciality) {
-      label = `${speciality}`;
-    } else if (teacher_id
-    ) {
-      label = `Teacher ${teacher_id
-      }`;
-    }
-
-    const key = `${label}`;   
-
-    if (!(key in teamColors)) {
-      teamColors[key] = `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`;
-    }
-
-    const trace = {
-      x: [],
-      y: [],
-      mode: 'markers',
-      type: 'scatter',
-      marker: {
-        color: teamColors[key],
-        size: 10,
-      },
-      name: label,
-    };
-
-    item.result1.forEach(student => {
-      trace.x.push(student['Посещаемость']);
-      trace.y.push(student['Успеваемость']);
-    });
-
-    data.push(trace);
-  });
-
-  const layout = {
-    width: 890, // Ширина окна
-    height: 730, // Высота окна
-    responsive: true,
-    legend: {
-      display: true,
-      orientation: "h" 
-
+  // Создание объекта трассировки
+  const trace = {
+    x: [],
+    y: [],
+    mode: 'markers',
+    type: 'scatter',
+    marker: {
+      color: teamColors[key], // Цвет точек для каждой команды
+      size: 10, 
     },
-    title: {
-      text: 'Студенты',
-    },
-    xaxis: {
-      title: 'Посещаемость', 
-    },
-    xaxis2: {
-      title: 'Вторая ось X',
-      overlaying: 'x',
-      // side: 'top',
-    },
-
-    yaxis: {
-      title: 'Успеваемость',
-    },
-    hovermode: 'closest',
-    hoverlabel: {
-      namelength: -1,
-    },
-    hovertemplate: '%{text}<extra></extra>',
+    name: label, // Имя трассировки
   };
 
-  const config = {
-    displayModeBar: false
+  const lessonCounterValues = filteredData.map(item => item.lesson_counter);
+
+  trace2 = {
+    x: lessonCounterValues.map(() => 0),
+    y: lessonCounterValues,
+    mode: 'lines',
+    line: {
+      color: 'rgba(0, 0, 0, 0)', // Прозрачная линия, чтобы скрыть ее отображение на графике
+    },  
+    name: 'yaxis2 counter',
+    yaxis: 'y2',
+    // type: 'scatter',
   };
   
+  
+
+  // Добавление значений посещаемости и успеваемости из каждого студента в трассировку
+  item.result1.forEach(student => {
+    trace.x.push(student['Посещаемость']);
+    trace.y.push(student['Успеваемость']);
+  });
+
+  data.push(trace);
+  
+  dataArray.push(trace); // Добавление трассировки в массив данных
+});
+// console.log('dataArray test-',dataArray)
+// data.push(trace2);
+
+const layoutMany = {
+  width: 400, // Ширина окна
+  height: 300, // Высота окна
+  responsive: true,
+  legend: {
+    display: true,
+    orientation: "h" 
+  },
+  title: {
+    text: ``,
+  },
+  xaxis: {
+    title: 'Успеваемость (баллы)', // Название оси x
+  },
+  yaxis: {
+    title: 'Посещаемость', // Название оси y
+  },
+  hovermode: 'closest',
+  hoverlabel: {
+    namelength: -1,
+  },
+  hovertemplate: '%{text}<extra></extra>',
+};
+
+const layoutOne = {
+  // width: 1500, // Ширина окна
+  // height: 800, // Высота окна
+  responsive: true,
+  legend: {
+    display: true,
+    orientation: "h" 
+  },
+  title: {
+    text: `Студенты`,
+  },
+  xaxis: {
+    title: 'Успеваемость (баллы)'
+  },
+  yaxis: {
+    title: 'Посещаемость', 
+  },
+  yaxis2: {
+    title: 'Counter',
+    // titlefont: {color: 'rgb(148, 103, 189, 0)'},
+    // tickfont: {color: 'rgb(148, 103, 189,0)'},
+    overlaying: 'y',
+    side: 'right'
+  },
+  hovermode: 'closest',
+  hoverlabel: {
+    namelength: -1,
+  },
+  hovertemplate: '%{text}<extra></extra>',
+};
+
+
+const config = { displayModeBar: false };
+
   return (
     <>
      
 <Select
+  ml={'auto'}
+  mr={'auto'}
+  mb={4}
   borderRadius="lg" 
   boxShadow="lg"
-  mr={4}
   width='270px'
   borderWidth={1}
   fontFamily='Trebuchet MS'
@@ -153,10 +199,24 @@ const ScatterPlotDiagram = ({ tokenUsers, type_group_by, teacher_list, specialit
   )}
 </Select>
 
+{/* scater plot ONE */}
+<Flex direction={'column'} >
+<Flex >
+  <div style={{ width: '100%', height: '100%' }}>
+    <Plot config={config} data={data} layout={layoutOne} style={{ width: '100%', height: '50%' }} />
+ </div>
+</Flex> 
 
-            <div style={{ width: '100%', height: '100vh' }}>
-                <Plot config={config} data={data} layout={layout} style={{ width: '100%', height: '100%' }} />
-            </div>
+{/* scatter plot n-diagrams */}
+<Flex mt={2} wrap={'wrap'} justifyContent={'center'}>
+  {dataArray.map((trace, index) => (
+    <div key={index} style={{ width: '400px', height: '300px' }}>
+      <Plot config={config} data={[trace]} layout={{...layoutMany, title: { text: trace.name }}} style={{ width: '100%', height: '100%' }} />
+    </div>
+  ))}
+</Flex>
+
+</Flex>
 
     </>
   );
