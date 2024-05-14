@@ -9,26 +9,29 @@ const ScaterPlotPage = () => {
 
     const { userToken } = useAuth();
 
-    const [TeamData, SetTeamData] = useState(null); //save team on request
-    const [SelectedTeam, setSelectedTeam] = useState([]); //save choise team after click
+    const [TeamData, SetTeamData] = useState(null); //storage team on request
+    const [SelectedTeam, setSelectedTeam] = useState([]); //storage choise team after click
+    const [TeamsForSelectedTeacher, setTeamsForSelectedTeacher] = useState(null) //storage teams for selected teacher
+    const [TeamsForSelectedSpeciality, setTeamsForSelectedSpeciality] = useState(null); //storage arr teams of choise speciality
 
-    const [TeacherData, SetTeacherData] = useState(null); // save teaher on request
-    const [SelectedTeacher, setSelectedTeacher] = useState([]); //save choise team after click
-    
-    const [SpecialityData, SetSpecialityData] = useState(null); //save speciality on request
-    const [SelectedSpeciality, setSelectedSpeciality] = useState([]); //save choise speciality after click
+
+    const [TeacherData, SetTeacherData] = useState(null); // storage teaher on request
+    const [SelectedTeacher, setSelectedTeacher] = useState([]); //storage choise team after click
+    const [TeachersForSelectedSpeciality, setTeachersForSelectedSpeciality] = useState(null); //storage arr teachers of choise speciality
+
+    const [SpecialityData, SetSpecialityData] = useState(null); //storage speciality on request
+    const [SelectedSpeciality, setSelectedSpeciality] = useState([]); //storage choise speciality after click
+    const [SpecialityForSelectedTeacher, setSpecialityForSelectedTeacher] = useState(null) //storage speciality for selected teacher
+
 
     const [SelectedMode, setSelectedMode] = useState(null);
-
     
     const fetchTeamForTeacher = async () => {
         try {
           const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_teams_for_user_without_lect?token=${userToken}`);
           const result = await response.json();
           SetTeamData(result);
-      
-          console.log('fetchTeamForTeacher:', result);
-      
+        //   console.log('fetchTeamForTeacher:', result);
       } catch (error) {
           console.error('Error fetching data from fetchTeamForTeacher:', error);
         }
@@ -39,9 +42,7 @@ const ScaterPlotPage = () => {
           const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_all_specialities?token=${userToken}`);
           const result = await response.json();
           SetSpecialityData(result);
-      
-          console.log('fetchSpecialityForTeacher:', result);
-      
+        //   console.log('fetchSpecialityForTeacher:', result);
       } catch (error) {
           console.error('Error fetching data from fetchSpecialityForTeacher:', error);
         }
@@ -52,11 +53,53 @@ const ScaterPlotPage = () => {
           const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_all_teachers_unique?token=${userToken}`);
           const result = await response.json();
           SetTeacherData(result);
-      
-          console.log('fetchTeacher:', result);
-      
+        //   console.log('fetchTeacher:', result);
       } catch (error) {
           console.error('Error fetching data from fetchTeacher:', error);
+        }
+      };
+
+      const fetchTeamForChoiseTeacher = async () => {
+        try {
+          const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_teams_for_param_without_lect?teacher_arr=${SelectedTeacher}`);
+          const result = await response.json();
+          setTeamsForSelectedTeacher(result);
+        //   console.log('fetchTeamForChoiseTeacher:', result);
+      } catch (error) {
+          console.error('Error fetching data from fetchTeamForChoiseTeacher:', error);
+        }
+      };
+
+      const fetchSpecialityForChoiseTeacher = async () => {
+        try {
+          const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_all_specialities_by_teacher_arr?token=${userToken}&teacher_list=${SelectedTeacher}`);
+          const result = await response.json();
+          setSpecialityForSelectedTeacher(result);
+        //   console.log('fetchSpecialityForChoiseTeacher:', result);
+      } catch (error) {
+          console.error('Error fetching data from fetchSpecialityForChoiseTeacher:', error);
+        }
+      };
+
+      const fetchTeacherForChoiseSpeciality = async () => {
+        try {
+          const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_all_teachers_by_speciality_arr?token=${userToken}&speciality_list=${SelectedSpeciality}`);
+          const result = await response.json();
+          setTeachersForSelectedSpeciality(result);
+        //   console.log('fetchTeamForChoiseTeacher:', result);
+      } catch (error) {
+          console.error('Error fetching data from fetchTeacherForChoiseSpeciality:', error);
+        }
+      };
+
+      const fetchTeamsForChoiseSpeciality = async () => {
+        try {
+          const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_all_teams_by_speciality_arr?token=${userToken}&speciality_list=${SelectedSpeciality}`);
+          const result = await response.json();
+          setTeamsForSelectedSpeciality(result);
+        //   console.log('fetchSpecialityForChoiseTeacher:', result);
+      } catch (error) {
+          console.error('Error fetching data from fetchTeamsForChoiseSpeciality:', error);
         }
       };
 
@@ -65,20 +108,26 @@ const ScaterPlotPage = () => {
           await fetchTeamForTeacher();
           await fetchSpecialityForTeacher();
           await fetchTeacher();
-         
           
         }
-    
-        if (userToken) {
-          fetchData();
-        }
-      }, [userToken]);
+        if (userToken) {fetchData();} }, [userToken]);
 
-    // const handleTeamChange = (value) => {
-    //     setSelectedTeam(value);};
+        useEffect(() => {
+            if (SelectedTeacher.length > 0) {
+                fetchTeamForChoiseTeacher();
+                fetchSpecialityForChoiseTeacher();
+            }
+        }, [SelectedTeacher]);
 
-    // const handleTeacherChange = (value) => {
-    //     setSelectedTeacher(value);};
+        useEffect(() => {
+            if (SelectedSpeciality.length > 0) {
+                fetchTeacherForChoiseSpeciality();
+                fetchTeamsForChoiseSpeciality();
+            }
+        }, [SelectedSpeciality]);
+        
+
+
 
     const handleTeacherSelect = (teacherId) => {
         if (SelectedTeacher.includes(teacherId)) {
@@ -86,6 +135,7 @@ const ScaterPlotPage = () => {
         } else {
             setSelectedTeacher([...SelectedTeacher, teacherId]);
         }
+        console.log('SelectedTeacher',SelectedTeacher)
     };
 
     const handleTeamSelect = (team_id) => {
@@ -103,15 +153,12 @@ const ScaterPlotPage = () => {
             setSelectedSpeciality([...SelectedSpeciality, speciality]);
         }
     };
-
- 
-    // const handleSpecialityChange = (value) => {
-    //     setSelectedSpeciality(value);};
   
-    const handleModeChange = (event) => {
+    const handleModeChange = (event) => { // FOR CHOISE MODE 1 2 3  
         const newMode = parseInt(event.target.value, 10);
         setSelectedMode(newMode);};
-  
+
+
 return( 
 <>
 <Box p={4} display="flex" justifyContent={'start'} alignItems={'center'} >
@@ -135,30 +182,67 @@ return(
                 </Select>
             </Box>
 
-                <Menu closeOnSelect={false}>
-                    <MenuButton mr={4} as={Button} colorScheme="blue">
-                        Выбрать группы
-                    </MenuButton>
-                    <MenuList minWidth="240px">
-                    {TeamData && TeamData.map((team) => (
+            <Menu closeOnSelect={false}>
+            <MenuButton mr={4} as={Button} colorScheme="blue">
+                Выбрать группы
+            </MenuButton>
+            <MenuList minWidth="240px">
+                {SelectedTeacher.length > 0 && TeamsForSelectedTeacher ? 
+                (
+                    TeamsForSelectedTeacher.map((team) => (
                         <MenuItem key={team.id}>
                             <Checkbox
-                            isChecked={SelectedTeam.includes(team.id)}
-                            onChange={() => handleTeamSelect(team.id)}
+                                isChecked={SelectedTeam.includes(team.id)}
+                                onChange={() => handleTeamSelect(team.id)}
                             >
-                            {team.name}
+                                {team.name}
                             </Checkbox>
                         </MenuItem>
-                        ))}
-                    </MenuList>
-                </Menu>
+                    ))
+                ) : SelectedSpeciality.length > 0 && TeamsForSelectedSpeciality ? (
+                    TeamsForSelectedSpeciality.map((team) => (
+                        <MenuItem key={team.id}>
+                            <Checkbox
+                                isChecked={SelectedTeam.includes(team.id)}
+                                onChange={() => handleTeamSelect(team.id)}
+                            >
+                                {team.name}
+                            </Checkbox>
+                        </MenuItem>
+                    ))
+                ) : (
+                    TeamData && TeamData.map((team) => (
+                        <MenuItem key={team.id}>
+                            <Checkbox
+                                isChecked={SelectedTeam.includes(team.id)}
+                                onChange={() => handleTeamSelect(team.id)}
+                            >
+                                {team.name}
+                            </Checkbox>
+                        </MenuItem>
+                    ))
+                )}
+            </MenuList>
+        </Menu>
 
                 <Menu closeOnSelect={false}>
                     <MenuButton mr={4} as={Button} colorScheme="blue">
                         Выбрать преподавателей
                     </MenuButton>
                     <MenuList minWidth="240px">
-                    {TeacherData && TeacherData.map((teacher) => (
+                    { SelectedSpeciality.length > 0 && TeachersForSelectedSpeciality ? (
+                            TeachersForSelectedSpeciality.map((team) => (
+                                <MenuItem key={team.id}>
+                                    <Checkbox
+                                        isChecked={SelectedTeacher.includes(team.id)}
+                                        onChange={() => handleTeacherSelect(team.id)}
+                                    >
+                                        {team.name}
+                                    </Checkbox>
+                                </MenuItem>
+                            ))
+                        ) : (
+                    TeacherData && TeacherData.map((teacher) => (
                         <MenuItem key={teacher.id}>
                             <Checkbox
                             isChecked={SelectedTeacher.includes(teacher.name)}
@@ -167,37 +251,44 @@ return(
                             {teacher.name}
                             </Checkbox>
                         </MenuItem>
-                        ))}
+                        )))}
                     </MenuList>
                 </Menu>
 
 
                 <Menu closeOnSelect={false}>
-                    <MenuButton
-                        mr={4}
-                        as={Button}
-                        colorScheme="blue"
-                        // isDisabled={true}
-                    >
-                        Выбрать направления
-                    </MenuButton>
-                    <MenuList minWidth="240px">
-                        {SpecialityData && SpecialityData.map((spec) => (
-                            <MenuItem key={spec.id}>
-                                <Checkbox
-                                    isChecked={SelectedSpeciality.includes(spec.speciality)}
-                                    onChange={() => handleSpecialitySelect(spec.speciality)}
-                                    // isDisabled={false}
-                                >
-                                    {spec.speciality}
-                                </Checkbox>
-                            </MenuItem>
-                        ))}
-                    </MenuList>
-                </Menu>
+            <MenuButton mr={4} as={Button} colorScheme="blue">
+                Выбрать направления
+            </MenuButton>
+            <MenuList minWidth="240px">
+                {SelectedTeacher.length > 0 && SpecialityForSelectedTeacher ? (
+                    SpecialityForSelectedTeacher.map((spec) => (
+                        <MenuItem key={spec.id}>
+                            <Checkbox
+                                isChecked={SelectedSpeciality.includes(spec.speciality)}
+                                onChange={() => handleSpecialitySelect(spec.speciality)}
+                            >
+                                {spec.speciality}
+                            </Checkbox>
+                        </MenuItem>
+                    ))
+                ) : (
+                    SpecialityData && SpecialityData.map((spec) => (
+                        <MenuItem key={spec.id}>
+                            <Checkbox
+                                isChecked={SelectedSpeciality.includes(spec.speciality)}
+                                onChange={() => handleSpecialitySelect(spec.speciality)}
+                            >
+                                {spec.speciality}
+                            </Checkbox>
+                        </MenuItem>
+                    ))
+                )}
+            </MenuList>
+        </Menu>
         </Box>
 
-        <Flex>
+        {/* <Flex> */}
         <Box flex="1" p={2}>
             {SelectedMode && <ScaterPlotDiagram
             tokenUsers={userToken}
@@ -217,11 +308,10 @@ return(
             teacher_list={SelectedTeacher.length > 0 ? SelectedTeacher : ''}
             speciality_list={SelectedSpeciality.length > 0 ? SelectedSpeciality : ''}
             team_list={SelectedTeam.length > 0 ? SelectedTeam : ''}
-
             />}
 
         </Box>
-        </Flex>
+        {/* </Flex> */}
     
 
 

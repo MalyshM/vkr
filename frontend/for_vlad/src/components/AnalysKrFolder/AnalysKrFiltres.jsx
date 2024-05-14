@@ -9,12 +9,27 @@ const AnalysKrFiltres = ({ tokenUsers, type, kr, teacher,speciality,team }) => {
   const [AnalysKrFiltresData, setAnalysKrFiltresData] = useState(null);
   const chartRef = useRef(null);
 
+  console.log('tokenUsers,',tokenUsers)
+  console.log('type',type)
+  console.log('kr',kr)
+
+  console.log('teacher,',teacher)
+  console.log('speciality',speciality)
+  console.log('team',team)
+
+
   useEffect(() => {
     const fetchAnalysKrFiltresData = async () => {
       try {
         if (tokenUsers !== null ) {
-            const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/kr_analyse_with_filters?type_select=${type}&kr=${kr}&token=${tokenUsers}${teacher?`&teacher=${teacher}`:''}${speciality?`&speciality='${speciality}'`:''}${team?`&team=${team}`:''}`);
- 
+          // const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/kr_analyse_with_filters?type_select=${type}&kr=${kr}&token=${tokenUsers}`);
+
+          const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/kr_analyse_with_filters?type_select=${type}&kr=${kr}&token=${tokenUsers}${teacher ? `&teacher=${Array.isArray(teacher) ? teacher.join(',') : teacher}` : ''}${speciality ? `&speciality=${Array.isArray(speciality) ? speciality.join(',') : speciality}` : ''}${team ? `&team=${Array.isArray(team) ? team.join(',') : team}` : ''}`);
+
+
+          // const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/kr_analyse_with_filters?&token=${tokenUsers}&kr=${kr}&type_select=${type}${teacher?`&teacher=${teacher}`:''}${speciality?`&speciality=${speciality}`:''}${team?`&team=${team}`:''}`);
+
+            // const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/kr_analyse_with_filters?type_select=${type}&kr=${kr}&token=${tokenUsers}${teacher ? `&teacher=${Array.isArray(teacher) ? teacher.join(',') : teacher}` : ''}${speciality ? `&speciality=${Array.isArray(speciality) ? speciality.join(',') : speciality}` : ''}${team ? `&team=${Array.isArray(team) ? team.join(',') : team}` : ''}`);
           const result = await response.json();
           setAnalysKrFiltresData(result);
         }
