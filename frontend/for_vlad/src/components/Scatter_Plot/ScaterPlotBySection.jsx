@@ -98,10 +98,10 @@ const ScaterPlotBySection = ({ tokenUsers, type_group_by, teacher_list, speciali
       text: 'Группы',
     },
     xaxis: {
-      title: 'Медианная посещаемость', 
+      title: 'Медианная успеваемость', 
     },
     yaxis: {
-      title: 'Медианная успеваемость',
+      title: 'Медианная посещаемость',
     },
     hovermode: 'closest',
     hoverlabel: {

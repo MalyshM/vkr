@@ -24,12 +24,15 @@ const AnalysKrFiltres = ({ tokenUsers, type, kr, teacher,speciality,team }) => {
         if (tokenUsers !== null ) {
           // const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/kr_analyse_with_filters?type_select=${type}&kr=${kr}&token=${tokenUsers}`);
 
-          const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/kr_analyse_with_filters?type_select=${type}&kr=${kr}&token=${tokenUsers}${teacher ? `&teacher=${Array.isArray(teacher) ? teacher.join(',') : teacher}` : ''}${speciality ? `&speciality=${Array.isArray(speciality) ? speciality.join(',') : speciality}` : ''}${team ? `&team=${Array.isArray(team) ? team.join(',') : team}` : ''}`);
 
+          // прошлая реалзиация// const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/kr_analyse_with_filters?type_select=${type}&kr=${kr}&token=${tokenUsers}${teacher?`&teacher=${teacher}`:''}${speciality?`&speciality=${speciality}`:''}${team?`&team=${team}`:''}`);
+
+          // предложила ии const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/kr_analyse_with_filters?type_select=${type}&kr=${kr}&token=${tokenUsers}${teacher ? `&teacher=${Array.isArray(teacher) ? teacher.join(',') : teacher}` : ''}${speciality ? `&speciality=${Array.isArray(speciality) ? speciality.join(',') : speciality}` : ''}${team ? `&team=${Array.isArray(team) ? team.join(',') : team}` : ''}`);
+
+          const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/kr_analyse_with_filters?token=${tokenUsers}&type_select=${type}&kr=${kr}${teacher ? `&teacher=${Array.isArray(teacher) ? teacher.join(',') : teacher}` : ''}${speciality ? `&speciality=${Array.isArray(speciality) ? speciality.join(',') : speciality}` : ''}${team ? `&team=${Array.isArray(team) ? team.join(',') : team}` : ''}`);
 
           // const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/kr_analyse_with_filters?&token=${tokenUsers}&kr=${kr}&type_select=${type}${teacher?`&teacher=${teacher}`:''}${speciality?`&speciality=${speciality}`:''}${team?`&team=${team}`:''}`);
 
-            // const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/kr_analyse_with_filters?type_select=${type}&kr=${kr}&token=${tokenUsers}${teacher ? `&teacher=${Array.isArray(teacher) ? teacher.join(',') : teacher}` : ''}${speciality ? `&speciality=${Array.isArray(speciality) ? speciality.join(',') : speciality}` : ''}${team ? `&team=${Array.isArray(team) ? team.join(',') : team}` : ''}`);
           const result = await response.json();
           setAnalysKrFiltresData(result);
         }
