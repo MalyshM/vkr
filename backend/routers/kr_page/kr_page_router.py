@@ -9,8 +9,7 @@ from starlette.exceptions import HTTPException
 from logger import LOGGER
 from models import connect_db_data
 from redis import process_href, save_resp_and_return_it
-from routers.util_funcs import get_teams_for_user_private_without_lect
-
+from routers.util_funcs import get_teams_for_user_private_without_lect, get_teams_for_param_private_without_lect
 from routers.util.util_router import get_all_teachers, get_all_specialities
 
 kr_page_router = APIRouter(tags=["kr page"])
@@ -100,21 +99,20 @@ async def kr_analyse_with_filters(token: str, kr: str, type_select: int, teacher
                                   speciality: Optional[str] = None, team: Optional[str] = None,
                                   db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
-    if teacher is None:
-        teachers = await get_all_teachers(token, db)
-        teachers = ', '.join([f"'{teacher['id']}'" for teacher in teachers])
+    if team is not None:
+        teams_true = ', '.join([team for team in team.split(',')])
+    elif teacher is not None:
+        teacher_arr = teacher.split(',')
+        teams = await get_teams_for_param_private_without_lect(teacher_arr=teacher_arr, db=db)
+        teams_true = ', '.join([f"'{team['id']}'" for team in teams])
     else:
-        teachers = teacher
+        teams = await get_teams_for_user_private_without_lect(token, db)
+        teams_true = ', '.join([f"'{team['id']}'" for team in teams])
     if speciality is None:
         specialities = await get_all_specialities(token, db)
         specialities = ', '.join([f"'{speciality['speciality']}'" for speciality in specialities])
     else:
         specialities = speciality
-    if team is None:
-        teams = await get_teams_for_user_private_without_lect(token, db)
-        teams = ', '.join([f"'{team['id']}'" for team in teams])
-    else:
-        teams = team
     team_query = ''
     teacher_query = ''
     speciality_query = ''
@@ -169,8 +167,7 @@ async def kr_analyse_with_filters(token: str, kr: str, type_select: int, teacher
             inner join stud s on s.id = l.stud_id
             WHERE
                 l.name = '{kr}'
-                and l.team_id IN ({teams})
-                and t.id IN ({teachers})
+                and l.team_id IN ({teams_true})
                 and s.speciality IN ({specialities})
             {group_by_query}
             """)

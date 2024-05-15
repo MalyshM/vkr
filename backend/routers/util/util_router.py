@@ -353,7 +353,7 @@ async def get_all_teams_by_speciality_arr(token: str, speciality_list: str,
                         FROM stud s
                         WHERE s.speciality = ANY(ARRAY{speciality_list.split(',')})
                     )
-                );
+                ) and t.name not ilike '%л%';
                             """)
             result = res.fetchall()
             return await save_resp_and_return_it(result, href, start_time)
