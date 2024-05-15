@@ -129,10 +129,10 @@ const layoutMany = {
     text: ``,
   },
   xaxis: {
-    title: 'Успеваемость (баллы)', // Название оси x
+    title: 'Посещаемость', 
   },
   yaxis: {
-    title: 'Посещаемость', // Название оси y
+    title: 'Успеваемость (баллы)', 
   },
   hovermode: 'closest',
   hoverlabel: {
@@ -151,10 +151,10 @@ const layoutOne = {
     text: `Студенты`,
   },
   xaxis: {
-    title: 'Успеваемость (баллы)'
+    title: 'Посещаемость'
   },
   yaxis: {
-    title: 'Посещаемость', 
+    title: 'Успеваемость (баллы)', 
   },
   yaxis2: {
     title: 'Counter',

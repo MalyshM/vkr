@@ -1,8 +1,11 @@
 // Import statements
 import React, { useState, useEffect } from 'react';
-import {  Table, Thead, Tbody, Tr, Th, Td, IconButton, Box } from "@chakra-ui/react";
+import { Flex, Table, Thead, Tbody, Tr, Th, Td, IconButton, Box } from "@chakra-ui/react";
 import { ChevronUpIcon, ChevronDownIcon } from '@chakra-ui/icons';
 import {TableContainer,Text} from '@chakra-ui/react'
+
+import {Tooltip } from '@chakra-ui/react';
+import { QuestionOutlineIcon } from '@chakra-ui/icons'
 
 import { fetchWithTokenRefresh } from '../RefreshToken';
 
@@ -49,11 +52,18 @@ console.log("dataArray - ", TableOfGroupData)
 
   return (<>
 
-    <Box borderWidth={0}  p={2}  borderColor='lavender'h={'34vh'} bg={'white'} borderRadius={20} >
+    <Box borderWidth={0} p={2}  borderColor='lavender'h={'34vh'} bg={'white'} borderRadius={20} >
+
+      <Flex alignItems={'center'}>
+
+      <Tooltip label="Таблица отображающая отсутствующих студентов на выбранной учебной встрече" aria-label="A tooltip">
+        <QuestionOutlineIcon ml={2} boxSize={4} cursor="pointer" />
+      </Tooltip>
+
     <Text  as={'b'} p={2} color='#808080' fontFamily={'Trebuchet MS'} fontSize='xl'>{selectedLesson ? `Название встречи: ${selectedLesson}` : 'Выберите встречу'}</Text>
 
-    {/* <Text as={'b'} color='#808080' fontFamily={'Trebuchet MS'} fontSize='2xl'>Оценки группы {teamName}</Text> */}
-
+      </Flex>
+      
     <TableContainer overflowY="scroll" maxH="220px" > 
     <Table variant="simple">
       <Thead>

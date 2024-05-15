@@ -140,7 +140,7 @@ return (
 
           <RadioGroup onChange={(value) => handleRoleChange(value)} value={role} checked={'blue'} >
 
-            <Radio colorScheme='blue'  mr={5} value="admin">Админ</Radio>
+            {/* <Radio colorScheme='blue'  mr={5} value="admin">Админ</Radio> */}
             <Radio colorScheme='blue'  mr={5} value="teacher">Преподаватель</Radio>
             <Radio colorScheme='blue' value="curator">Куратор</Radio>
 

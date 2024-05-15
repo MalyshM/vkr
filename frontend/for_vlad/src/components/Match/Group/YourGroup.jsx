@@ -7,7 +7,8 @@ import { Tabs, TabList, TabPanels, Tab, TabPanel } from '@chakra-ui/react'
 import { Checkbox, CheckboxGroup } from '@chakra-ui/react'
 import { List, ListItem, MenuOptionGroup, MenuItemOption, MenuDivider } from "@chakra-ui/react";
 import AllUsersAtendenceTotalPointsWitchGroup from './AllUsersAtendenceTotalPointsWitchGroup';
-
+import {Tooltip } from '@chakra-ui/react';
+import { QuestionOutlineIcon } from '@chakra-ui/icons'
 import { fetchWithTokenRefresh } from '../../RefreshToken';
 
 const YourGroup = () => {
@@ -62,15 +63,14 @@ const YourGroup = () => {
 return( 
 <>
   <Box p={6} display="flex" justifyContent={'space-between'}>
-    <Heading as="h2" size="lg">Посещаемость и успеваемость студентов после каждой КР</Heading>
+    
+    <Flex direction='row' alignItems={'center'}>
+    <Heading as="h2" size="lg">Ваши группы</Heading>
   
-    <Checkbox
-      onChange={handleCheckboxChange}
-      isChecked={choiseGroupTeacher_} 
-      >
-        {choiseGroupTeacher_ ? 'Группировать по преподавателям' : 'Без группировки'}
-    </Checkbox>
-
+      <Tooltip label="Диаграмма отображающая медианные посещения (динамическое. В %) и успеваемость (в баллах) учебных групп после КР и атестации" aria-label="A tooltip">
+            <QuestionOutlineIcon mt={2} ml={2} boxSize={4} cursor="pointer" />
+      </Tooltip>
+      </Flex>
     <Menu closeOnSelect={false}>
       <MenuButton as={Button} colorScheme="blue">
         Выбрать преподавателей
@@ -89,6 +89,12 @@ return(
       </MenuList>
     </Menu>
 
+    <Checkbox
+      onChange={handleCheckboxChange}
+      isChecked={choiseGroupTeacher_} 
+      >
+        {choiseGroupTeacher_ ? 'Группировать по преподавателям' : 'Без группировки'}
+    </Checkbox>
 
   </Box>
 

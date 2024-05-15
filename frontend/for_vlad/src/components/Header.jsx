@@ -46,9 +46,9 @@ const Header = () => {
             <MenuButton variant='ghost' as={Button} color="white" _hover={{ color: "black" }} _active={{ bg: "transparent" }}>Группы/Направления</MenuButton>
                 <MenuList>
                     <MenuItem color="black" as={Link} to="/your_group" >Ваши группы</MenuItem>
-                    <MenuItem color="black" as={Link} to="/match2team" >Сравнение по группам</MenuItem>
+                    <MenuItem isDisabled='true' color="black" as={Link} to="/match2team" >Сравнение по группам</MenuItem>
                     <MenuItem color="black" as={Link} to="/your_vectorstudy" >Ваши направления</MenuItem>
-                    <MenuItem color="black" as={Link} to="/match2team_vectorstudy" >Сравнение по направлениям</MenuItem>
+                    <MenuItem isDisabled='true' color="black" as={Link} to="/match2team_vectorstudy" >Сравнение по направлениям</MenuItem>
                 </MenuList>
             <Button variant='ghost' as={Link} to="/scater_plot" color="white" _hover={{ color: "black" }} _active={{ bg: "transparent" }}>Диаграмма рассеяния</Button>
             <Button variant='ghost' as={Link} to="/" color="white" _hover={{ color: "black" }} _active={{ bg: "transparent" }}>Выход</Button>

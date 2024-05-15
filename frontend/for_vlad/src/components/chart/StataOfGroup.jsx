@@ -5,6 +5,9 @@ import 'chartjs-plugin-datalabels';
 import { Avatar } from '@chakra-ui/react'
 import styled from 'styled-components';
 
+import {Tooltip } from '@chakra-ui/react';
+import { QuestionOutlineIcon } from '@chakra-ui/icons'
+
 import { fetchWithTokenRefresh } from '../RefreshToken';
 
 const StataOfGroup = ({teamId,teamName}) => {
@@ -115,8 +118,13 @@ const StataOfGroup = ({teamId,teamName}) => {
 
           <Flex  bg={'white'} borderRadius={20}  borderWidth={0} borderColor='lavender' direction="column" align="center">
 
-            <Flex>
+            <Flex direction={'row'} alignItems={'center'}>
+              <Tooltip label="Круговая диаграмма отображающая процентное кол-во студентов с определенной оценкой" aria-label="A tooltip">
+                <QuestionOutlineIcon mr={2} boxSize={4} cursor="pointer" />
+              </Tooltip>
+
               <Text as={'b'} color='#808080' fontFamily={'Trebuchet MS'} fontSize='2xl'>Оценки группы {teamName}</Text>
+
             </Flex>
             
             <Flex alignItems={'center'}>
@@ -140,9 +148,9 @@ const StataOfGroup = ({teamId,teamName}) => {
             </Flex>
 
             <Box flex="1" h={'42vh'} >
-            {/* <Box > */}
                 <Doughnut data={chartData} options={options} />
             </Box>
+            
             </Flex>
 
         </Flex> 

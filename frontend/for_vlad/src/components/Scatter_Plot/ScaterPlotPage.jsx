@@ -3,7 +3,10 @@ import ScaterPlotDiagram from './ScaterPlotDiagram'
 import ScaterPlotBySection from './ScaterPlotBySection';
 import { useAuth } from '../useAuth';
 import {fetchWithTokenRefresh} from '../RefreshToken'
-import {Checkbox,Flex,Box,Select, Spacer ,Heading,Text,Button,  Menu, MenuButton, MenuList, MenuItem, Center} from '@chakra-ui/react';
+import {Checkbox,Flex,Box,Select, Spacer ,Heading,Text,Button,  Menu, MenuButton, MenuList, MenuItem, Center } from '@chakra-ui/react';
+
+import {Tooltip } from '@chakra-ui/react';
+import { QuestionOutlineIcon } from '@chakra-ui/icons'
 
 const ScaterPlotPage = () => {
 
@@ -173,7 +176,17 @@ return(
 <>
 <Box p={4} display="flex" justifyContent={'start'} alignItems={'center'} >
 
-<Heading p={4} as="h2" size="lg">Диаграмма рассеяния</Heading>
+    <Heading 
+        p={4} 
+        as="h2" 
+        size="lg"
+    >Диаграмма рассеяния
+
+        <Tooltip label="Диаграмма отображающая взаимосвязь между успеваемостью и посещаемостью" aria-label="A tooltip">
+            <QuestionOutlineIcon ml={2} boxSize={4} cursor="pointer" />
+        </Tooltip>
+
+    </Heading>
 
             <Box mr={4}>
                 <Checkbox mr={4} 
