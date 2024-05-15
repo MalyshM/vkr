@@ -112,7 +112,8 @@ async def kr_analyse_with_filters(token: str, kr: str, type_select: int, teacher
         specialities = await get_all_specialities(token, db)
         specialities = ', '.join([f"'{speciality['speciality']}'" for speciality in specialities])
     else:
-        specialities = speciality
+        specialities = speciality.split(',')
+        specialities = ', '.join([f"'{speciality}'" for speciality in specialities])
     team_query = ''
     teacher_query = ''
     speciality_query = ''
