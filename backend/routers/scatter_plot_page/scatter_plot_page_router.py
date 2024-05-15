@@ -122,12 +122,7 @@ async def stud_scatter_plot(token: str, type_group_by: int, teacher_list: Option
                             PARTITION BY l.stud_id 
                             ORDER BY l.id 
                             ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-                        )::DECIMAL, 2) /
-                        COUNT(l.id) OVER (
-                            PARTITION BY l.stud_id 
-                            ORDER BY l.id 
-                            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-                        ) * 100
+                        )::DECIMAL, 2)
                     )::DECIMAL, 2) AS Посещаемость,
                     l.name,
                     l.stud_id,
@@ -248,12 +243,7 @@ async def scatter_plot_by_section(token: str, type_group_by: int, teacher_list: 
                             PARTITION BY l.stud_id 
                             ORDER BY l.id 
                             ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-                        )::DECIMAL, 2) /
-                        COUNT(l.id) OVER (
-                            PARTITION BY l.stud_id 
-                            ORDER BY l.id 
-                            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-                        ) * 100
+                        )::DECIMAL, 2)
                     )::DECIMAL, 2) AS Посещаемость,
                     l.name,
                     l.stud_id,
@@ -265,7 +255,7 @@ async def scatter_plot_by_section(token: str, type_group_by: int, teacher_list: 
                     {sub_query_field}
                 FROM lesson l
                 {speciality_join}
-                WHERE l.team_id IN ({teams_true})
+                WHERE l.team_id IN ({teams_true}) and l.team_id != 749
                 {speciality_cond}
             ) AS sub
             WHERE sub.name IN (
