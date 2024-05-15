@@ -3,9 +3,12 @@ import Plot from 'react-plotly.js';
 import { fetchWithTokenRefresh } from '../RefreshToken';
 import {Heading,Select,Box,Flex} from '@chakra-ui/react';
 
-const ScatterPlotDiagram = ({ tokenUsers, type_group_by, teacher_list, speciality_list, team_list }) => {
+const ScatterPlotDiagram = ({ tokenUsers, type_group_by, teacher_list, speciality_list, team_list,CheckboxOne,CheckboxMany }) => {
   const [scatterPlotData, setScatterPlotData] = useState(null);
   const [selectedName, setSelectedName] = useState(null);
+
+  console.log('CheckboxMany',CheckboxMany)
+  console.log('CheckboxOne',CheckboxOne)
 
   const handleNameSelect = value => { // click on select for choose name of learn meeting
     setSelectedName(value);
@@ -37,6 +40,7 @@ const ScatterPlotDiagram = ({ tokenUsers, type_group_by, teacher_list, specialit
 
 const uniqueNames = [...new Set(scatterPlotData.map(item => item.name))]; // Получение уникальных имен (названий) встреч
 const filteredData = scatterPlotData.filter(item => item.name === selectedName); // Фильтрация данных по выбранному имени (названию) встречи
+
 console.log('filteredData-',filteredData)
 
 const data = [];
@@ -79,6 +83,7 @@ filteredData.forEach((item, index) => {
       size: 10, 
     },
     name: label, // Имя трассировки
+    customdata: [],
   };
 
   const lessonCounterValues = filteredData.map(item => item.lesson_counter);
@@ -101,14 +106,16 @@ filteredData.forEach((item, index) => {
   item.result1.forEach(student => {
     trace.x.push(student['Посещаемость']);
     trace.y.push(student['Успеваемость']);
+    // trace.text.push(label); 
+    // trace.customdata.push(student['stud_id']); 
   });
-
   data.push(trace);
   
   dataArray.push(trace); // Добавление трассировки в массив данных
 });
-// console.log('dataArray test-',dataArray)
 // data.push(trace2);
+
+  console.log('data',data)
 
 const layoutMany = {
   width: 400, // Ширина окна
@@ -135,8 +142,6 @@ const layoutMany = {
 };
 
 const layoutOne = {
-  // width: 1500, // Ширина окна
-  // height: 800, // Высота окна
   responsive: true,
   legend: {
     display: true,
@@ -162,7 +167,8 @@ const layoutOne = {
   hoverlabel: {
     namelength: -1,
   },
-  hovertemplate: '%{text}<extra></extra>',
+  hovertemplate: `%{customdata}<extra></extra>`,
+
 };
 
 
@@ -199,27 +205,30 @@ const config = { displayModeBar: false };
   )}
 </Select>
 
-{/* scater plot ONE */}
-<Flex direction={'column'} >
-<Flex >
-  <div style={{ width: '100%', height: '100%' }}>
-    <Plot config={config} data={data} layout={layoutOne} style={{ width: '100%', height: '50%' }} />
- </div>
-</Flex> 
 
-{/* scatter plot n-diagrams */}
-<Flex mt={2} wrap={'wrap'} justifyContent={'center'}>
-  {dataArray.map((trace, index) => (
-    <div key={index} style={{ width: '400px', height: '300px' }}>
-      <Plot config={config} data={[trace]} layout={{...layoutMany, title: { text: trace.name }}} style={{ width: '100%', height: '100%' }} />
-    </div>
-  ))}
-</Flex>
+      {CheckboxOne && (
+        <Flex direction={'column'}>
+          <Flex>
+            <div style={{ width: '100%', height: '100%' }}>
+              <Plot config={config} data={data} layout={layoutOne} style={{ width: '100%', height: '50%' }} />
+            </div>
+          </Flex>
+        </Flex>
+      )}
 
-</Flex>
-
-    </>
-  );
-};
-
+      {CheckboxMany && (
+        <Flex direction={'column'}>
+          <Flex mt={2} wrap={'wrap'} justifyContent={'center'}>
+            {dataArray.map((trace, index) => (
+              <div key={index} style={{ width: '400px', height: '300px' }}>
+                <Plot config={config} data={[trace]} layout={{ ...layoutMany, title: { text: trace.name } }} style={{ width: '100%', height: '100%' }} />
+              </div>
+            ))}
+          </Flex>
+        </Flex>
+      )}
+    
+  
+</>
+)}
 export default ScatterPlotDiagram;

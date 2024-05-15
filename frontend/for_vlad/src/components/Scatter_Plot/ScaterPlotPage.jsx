@@ -23,6 +23,9 @@ const ScaterPlotPage = () => {
     const [SelectedSpeciality, setSelectedSpeciality] = useState([]); //storage choise speciality after click
     const [SpecialityForSelectedTeacher, setSpecialityForSelectedTeacher] = useState(null) //storage speciality for selected teacher
 
+    const [CheckboxOne, setCheckboxOne] = useState(false);
+    const [CheckboxMany, setCheckboxMany] = useState(false);
+
 
     const [SelectedMode, setSelectedMode] = useState(null);
     
@@ -127,7 +130,14 @@ const ScaterPlotPage = () => {
         }, [SelectedSpeciality]);
         
 
-
+    const handleCheckboxOneChange = (event) => {
+        setCheckboxOne(event.target.checked);
+        };
+    
+        const handleCheckboxManyChange = (event) => {
+        setCheckboxMany(event.target.checked);
+        };
+        
 
     const handleTeacherSelect = (teacherId) => {
         if (SelectedTeacher.includes(teacherId)) {
@@ -164,6 +174,22 @@ return(
 <Box p={4} display="flex" justifyContent={'start'} alignItems={'center'} >
 
 <Heading p={4} as="h2" size="lg">Диаграмма рассеяния</Heading>
+
+            <Box mr={4}>
+                <Checkbox mr={4} 
+                isChecked={CheckboxOne} 
+                onChange={handleCheckboxOneChange}
+                >
+                Общий график
+                </Checkbox>
+                
+                <Checkbox 
+                isChecked={CheckboxMany} 
+                onChange={handleCheckboxManyChange}
+                >
+                N-диаграмм
+                </Checkbox>
+            </Box>
 
             <Box mr={4} borderRadius="lg" boxShadow="l">
                 <Select 
@@ -291,12 +317,13 @@ return(
         {/* <Flex> */}
         <Box flex="1" p={2}>
             {SelectedMode && <ScaterPlotDiagram
+            CheckboxMany={CheckboxMany}
+            CheckboxOne={CheckboxOne}
             tokenUsers={userToken}
             type_group_by={SelectedMode} 
             teacher_list={SelectedTeacher.length > 0 ? SelectedTeacher : ''}
             speciality_list={SelectedSpeciality.length > 0 ? SelectedSpeciality : ''}
             team_list={SelectedTeam.length > 0 ? SelectedTeam : ''}
-
             />}
 
         </Box>
@@ -309,7 +336,6 @@ return(
             speciality_list={SelectedSpeciality.length > 0 ? SelectedSpeciality : ''}
             team_list={SelectedTeam.length > 0 ? SelectedTeam : ''}
             />}
-
         </Box>
         {/* </Flex> */}
     

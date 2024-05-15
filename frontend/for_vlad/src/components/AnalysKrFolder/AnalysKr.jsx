@@ -2,7 +2,6 @@ import React, { useState,useEffect} from 'react';
 import { Box, Flex, Select ,Heading,Checkbox,MenuItem,MenuList,Button,MenuButton,Menu} from '@chakra-ui/react';
 import { useAuth } from '../useAuth';
 import { fetchWithTokenRefresh } from '../RefreshToken';
-// import { fetchWithTokenRefresh } from '/frontend/for_vlad/src/components/RefreshToken';
 import AnalysKrSimple from './AnalysKrSimple'
 import AnalysKrFiltres from './AnalysKrFiltres'
 
@@ -152,12 +151,14 @@ const fetchAllTeachers = async () => {
     }
   }, [userToken]);
 
+
   useEffect(() => {
     if (SelectedTeacher.length > 0) {
         fetchTeamForChoiseTeacher();
         fetchSpecialityForChoiseTeacher();
     }
 }, [SelectedTeacher]);
+
 
 useEffect(() => {
     if (SelectedSpeciality.length > 0) {
@@ -167,6 +168,7 @@ useEffect(() => {
 }, [SelectedSpeciality]);
 
 
+
   const handleKRChangeSimple = (value) => {
     setSelectedKRSimple(value);
   };
@@ -174,12 +176,6 @@ useEffect(() => {
   const handleKRChangeFiltr = (value) => {
     setSelectedKRFiltr(value);
   };
-
-  // const handleNameTeachersChange = (value) => {
-  //   setSelectedNameTeacher(value);
-
-  //   console.log('SelectedTeacher: ', SelectedTeacher)
-  // };
 
   const handleTeacherSelect = (teacherId) => {
     if (SelectedTeacher.includes(teacherId)) {
@@ -205,12 +201,6 @@ const handleSpecialitySelect = (SpecialityData) => {
         setSelectedSpeciality([...SelectedSpeciality, SpecialityData]);
     }
 };
-
-
-  // const handleNameTeachersString = (value) => {
-  //   setSelectedNameTeacherString(value);
-  //   console.log('SelectedTeacher: ', selectedNameTeacherString)
-  // }
   
 
   const handleModeChangeSimple = (event) => {
@@ -223,13 +213,8 @@ const handleSpecialitySelect = (SpecialityData) => {
     setSelectedModeFiltr(newMode);
   };
 
-  // const handleSpecialityChange = (value) => {
-  //   setSelectedSpeciality(value);
-  // }
-
-  // const handleTeamChange = (value) => {
-  //   setSelectedTeam(value);
-  // }
+console.log('SpecialityForSelectedTeacher',SpecialityForSelectedTeacher)
+console.log('TeamsForSelectedTeacher',TeamsForSelectedTeacher)
  
 return( 
 <>
@@ -316,6 +301,38 @@ return(
         </Box>
 
         <Menu closeOnSelect={false}>
+                    <MenuButton mr={4} as={Button} colorScheme="blue">
+                        Выбрать преподавателей
+                    </MenuButton>
+                    <MenuList minWidth="240px">
+                    { SelectedSpeciality.length > 0 && TeachersForSelectedSpeciality ? (
+                            TeachersForSelectedSpeciality.map((team) => (
+                                <MenuItem key={team.id}>
+                                    <Checkbox
+                                        isChecked={SelectedTeacher.includes(team.id)}
+                                        onChange={() => handleTeacherSelect(team.id)}
+                                    >
+                                        {team.name}
+                                    </Checkbox>
+                                </MenuItem>
+                            ))
+                        ) : (
+                    TeacherData && TeacherData.map((teacher) => (
+                        <MenuItem key={teacher.id}>
+                            <Checkbox
+                            isChecked={SelectedTeacher.includes(teacher.id)}
+                            onChange={() => handleTeacherSelect(teacher.id)}
+                            >
+                            {teacher.name}
+                            </Checkbox>
+                        </MenuItem>
+                        )))}
+                    </MenuList>
+                </Menu>
+
+
+
+        <Menu closeOnSelect={false}>
             <MenuButton mr={4} as={Button} colorScheme="blue">
                 Выбрать группы
             </MenuButton>
@@ -359,37 +376,6 @@ return(
         </Menu>
 
                 <Menu closeOnSelect={false}>
-                    <MenuButton mr={4} as={Button} colorScheme="blue">
-                        Выбрать преподавателей
-                    </MenuButton>
-                    <MenuList minWidth="240px">
-                    { SelectedSpeciality.length > 0 && TeachersForSelectedSpeciality ? (
-                            TeachersForSelectedSpeciality.map((team) => (
-                                <MenuItem key={team.id}>
-                                    <Checkbox
-                                        isChecked={SelectedTeacher.includes(team.id)}
-                                        onChange={() => handleTeacherSelect(team.id)}
-                                    >
-                                        {team.name}
-                                    </Checkbox>
-                                </MenuItem>
-                            ))
-                        ) : (
-                    TeacherData && TeacherData.map((teacher) => (
-                        <MenuItem key={teacher.id}>
-                            <Checkbox
-                            isChecked={SelectedTeacher.includes(teacher.name)}
-                            onChange={() => handleTeacherSelect(teacher.name)}
-                            >
-                            {teacher.name}
-                            </Checkbox>
-                        </MenuItem>
-                        )))}
-                    </MenuList>
-                </Menu>
-
-
-                <Menu closeOnSelect={false}>
             <MenuButton mr={4} as={Button} colorScheme="blue">
                 Выбрать направления
             </MenuButton>
@@ -419,72 +405,19 @@ return(
                 )}
             </MenuList>
         </Menu>
-
-        {/* <Box w="360px" borderRadius="lg" boxShadow="lg" mr={3}>
-          <Select borderColor='black'
-            placeholder="Дополнительно выберите преподавателя"
-
-            onChange={(e) => handleNameTeachersChange(e.target.value)}
-            value={SelectedTeacher}>
-
-            {Array.isArray(TeacherData) ? (
-              TeacherData.map((teacher) => (
-                <option key={teacher.id} value={teacher.id}>
-                  {teacher.name}
-                </option>
-              ))
-            ) : (
-              <option disabled>No teacher available</option>
-            )}
-
-           
-          </Select>
-        </Box>
-
-        <Box  w="330px" borderRadius="lg" boxShadow="lg" mr={3}>
-          <Select borderColor='black'
-            placeholder="Дополнительно выберите направление"
-            onChange={(e) => handleSpecialityChange(e.target.value)}
-            value={SelectedSpeciality}>
-
-            {Array.isArray(SpecialityData) ? (
-              SpecialityData.map((spec) => (
-                <option key={spec.SpecialityData} value={spec.SpecialityData}>
-                  {spec.SpecialityData}
-                </option>
-              ))
-            ) : (
-              <option disabled>No SpecialityData available</option>
-            )}
-          </Select>
-        </Box>
-
-        <Box  w="330px" borderRadius="lg" boxShadow="lg" mr={3}>
-          <Select borderColor='black'
-            placeholder="Дополнительно выберите группу"
-            onChange={(e) => handleTeamChange(e.target.value)}
-            value={SelectedTeam}>
-
-            {Array.isArray(team) ? (
-              team.map((team_) => (
-                <option key={team_.id} value={team_.id}>
-                  {team_.name}
-                </option>
-              ))
-            ) : (
-              <option disabled>No teams available</option>
-            )}
-          </Select>
-        </Box> */}
-
-
       </Flex>
 
       
 
         <Box height={"380"}>
 
-          {<AnalysKrFiltres tokenUsers={userToken} type={selectedModeFiltr} kr={selectedKRFiltr} teacher={SelectedTeacher} speciality={SelectedSpeciality} team={SelectedTeam}/>}
+          {<AnalysKrFiltres 
+          tokenUsers={userToken} 
+          type={selectedModeFiltr} 
+          kr={selectedKRFiltr} 
+          teacher={SelectedTeacher.length > 0 ? SelectedTeacher : ''} 
+          speciality={SelectedSpeciality.length > 0 ? SelectedSpeciality : ''} 
+          team={SelectedTeam.length > 0 ? SelectedTeam : ''}/>}
         </Box>
         
         
