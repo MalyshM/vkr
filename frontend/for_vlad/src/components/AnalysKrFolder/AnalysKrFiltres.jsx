@@ -42,6 +42,7 @@ const AnalysKrFiltres = ({ tokenUsers, type, kr, teacher,speciality,team }) => {
     };
     fetchAnalysKrFiltresData();
   }, [type, kr, tokenUsers,teacher,speciality,team]);
+  console.log('AnalysKrFiltresData',AnalysKrFiltresData)
 
   useEffect(() => {
     if (Array.isArray(AnalysKrFiltresData)) {
@@ -114,7 +115,7 @@ const AnalysKrFiltres = ({ tokenUsers, type, kr, teacher,speciality,team }) => {
 
             title: {
               display: true,
-              text: 'Точный График результатов контрольных работ',
+              text: 'Гибкий график результатов контрольных работ',
               font: {
                 size: 22,
                 fontColor: 'black',

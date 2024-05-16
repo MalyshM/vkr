@@ -1,7 +1,8 @@
 import React, { useState,useEffect} from 'react';
 import {Checkbox, Box, Flex ,Heading,Button,  Menu, MenuButton, MenuList, MenuItem} from '@chakra-ui/react';
 import { useAuth } from '../../useAuth';
-
+import {Tooltip } from '@chakra-ui/react';
+import { QuestionOutlineIcon } from '@chakra-ui/icons'
 import VecStudyAllusersAtTp from './VecStudyAllusersAtTp';
 
 import { fetchWithTokenRefresh } from '../../RefreshToken';
@@ -85,7 +86,13 @@ const YourVectorStudy = () => {
 return( 
 <>
   <Box p={6} display="flex" justifyContent={'space-between'}>
-    <Heading as="h2" size="lg">Ваши направления</Heading>
+  <Flex direction='row' alignItems={'center'}>
+
+    <Heading as="h2" size="lg">Ваши направления</Heading>  
+      <Tooltip label="Диаграмма отображающая медианные посещения (динамическое. В %) и успеваемость (в баллах) направлений/специальностей после КР и атестации" aria-label="A tooltip">
+            <QuestionOutlineIcon ml={2} boxSize={4} cursor="pointer" />
+      </Tooltip>
+      </Flex>
 
     <Checkbox
       onChange={handleCheckboxChange}

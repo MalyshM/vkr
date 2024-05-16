@@ -7,6 +7,9 @@ import { useNavigate  } from 'react-router-dom';
 import { Box } from "@chakra-ui/react";
 import { useNumberItems } from './NumberItemsContext';
 
+import {Tooltip, Text,Flex } from '@chakra-ui/react';
+import { QuestionOutlineIcon } from '@chakra-ui/icons'
+
 import { fetchWithTokenRefresh } from '../RefreshToken';
 
 const NumCountStudInLern = ({ teamId,onLessonSelect, numberOfItems}) => {
@@ -83,7 +86,7 @@ const options = {
       position: 'bottom',
       title: {
         display: true,
-        text: 'Практика',
+        text: 'Учебная встреча',
         font: {
           size: 20,
           fontColor: 'black',
@@ -161,9 +164,12 @@ const options = {
 return (<>
   
   <Box  h={'34vh'} bg={'white'} borderRadius={20}>
+      <Tooltip label="График отображающий кол-во студентов на каждой учебной встрече во время прохождения курса" aria-label="A tooltip">
+        <QuestionOutlineIcon ml={2} boxSize={4} cursor="pointer" />
+      </Tooltip>
   <Bar ref={chartRef} data={data} options={options} />
+
 </Box>
-  {/* {selectedLesson && <TableOfGroup teamId={teamId} selectedLesson={selectedLesson} />} */}
 
 </>);
 };

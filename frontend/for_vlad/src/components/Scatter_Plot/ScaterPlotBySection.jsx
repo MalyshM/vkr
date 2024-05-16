@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Plot from 'react-plotly.js';
 import { fetchWithTokenRefresh } from '../RefreshToken';
-import {Heading,Select,Box,Flex} from '@chakra-ui/react';
+import {Select,Box,Flex} from '@chakra-ui/react';
 
 const ScaterPlotBySection = ({ tokenUsers, type_group_by, teacher_list, speciality_list, team_list }) => {
   const [ScaterPlotBySectionData, setScatterPlotData] = useState(null);
@@ -98,10 +98,10 @@ const ScaterPlotBySection = ({ tokenUsers, type_group_by, teacher_list, speciali
       text: 'Группы',
     },
     xaxis: {
-      title: 'Медианная успеваемость', 
+      title: 'Медианная посещаемость', 
     },
     yaxis: {
-      title: 'Медианная посещаемость',
+      title: 'Медианная успеваемость',
     },
     hovermode: 'closest',
     hoverlabel: {

@@ -6,6 +6,9 @@ import { Flex, Text, NumberInput, NumberInputField, NumberInputStepper, NumberIn
 import { ChakraProvider, Button, Box } from '@chakra-ui/react';
 import { useNumberItems } from './NumberItemsContext';
 
+import {Tooltip } from '@chakra-ui/react';
+import { QuestionOutlineIcon } from '@chakra-ui/icons'
+
 import { fetchWithTokenRefresh } from '../RefreshToken';
 
 import 'chartjs-plugin-trendline';
@@ -127,7 +130,7 @@ const handleButtonClick = (sortType) => {
 
       },
       {
-        label: 'Посещаемость',
+        label: 'Посещаемость %',
         data: attendanceTotalPointsData.map(item => Math.round(item.Посещаемость)),
         backgroundColor: attendanceColor,
         borderWidth: 0,
@@ -306,67 +309,14 @@ return (
 
 </Flex>
 
-
-{/* <Flex align="center" justifyContent='space-around' mb={3}>
-
-<Flex align="center">
-        <Text fontFamily={'Trebuchet MS'} >Выберите режим:</Text> 
-        <Button fontFamily={'Trebuchet MS'}
-          as='samp'
-          colorScheme={sortBy === 'Успеваемость' ? 'blue' : 'transparent'}
-          onClick={() => handleButtonClick('Успеваемость')}
-          size="md"
-          color={sortBy  === 'Успеваемость' ? 'white' : 'black'} 
-          // backgroundColor={sortBy === 'Успеваемость' ? 'transparent' : undefined}
-          // _hover={{ backgroundColor: sortBy === 'Успеваемость' ? 'transparent' : undefined }}      
-        >
-          Успеваемость
-        </Button>
-
-        <Button fontFamily={'Trebuchet MS'} 
-        as='samp'
-          colorScheme={sortBy === 'Посещаемость' ? 'blue' : 'transparent'}
-          onClick={() => handleButtonClick('Посещаемость')}
-          size="md"
-          color={sortBy  === 'Посещаемость' ? 'white' : 'black'} 
-          // backgroundColor={sortBy === 'Посещаемость' ? 'transparent' : undefined}
-          // _hover={{ backgroundColor: sortBy === 'Посещаемость' ? 'transparent' : undefined }}
-        >
-          Посещаемость
-        </Button>
-  </Flex>
-
-  <Flex align="center">
-  <Text bg={'white'} fontFamily={'Trebuchet MS'} borderColor={'rgba(0, 28, 172, 1)'} mr={2} p={2} borderWidth={2} borderRadius={6}>Среднее посещение: {Math.round(arrivalAvg * 100)}%</Text>
-
-
-  <Text bg={'white'} fontFamily={'Trebuchet MS'} borderColor={'rgb(255,100,50)'} mr={2} p={2} borderWidth={2} borderRadius={6}>Средний балл: {totalPointsAvg.toFixed(2)}</Text>
+    <Box h={'40vh'} bg={'white'} borderRadius={20} >
     
-    <Text fontFamily={'Trebuchet MS'} ml={10}>Установите порог:</Text>
-          <NumberInput
-          bg={'white'}
-          borderColor={'teal'}
-          fontFamily={'Trebuchet MS'}
-            // ml={4}
-            borderWidth={0}
-            ml={2}
-            min={0}
-            max={100}
-            maxW={24} 
-            value={threshold}
-            onChange={(valueAsString, valueAsNumber) => setThreshold(valueAsNumber)}
-          >
-            <NumberInputField />
-            <NumberInputStepper>
-              <NumberIncrementStepper />
-              <NumberDecrementStepper />
-            </NumberInputStepper>
-          </NumberInput>
-  </Flex>
 
-  
-  </Flex> */}
-    <Box h={'40vh'} bg={'white'} borderRadius={20}>
+        <Tooltip label="Диаграмма отображающая баллы и процент посещаемости каждого студента в выбранной группе" aria-label="A tooltip">
+            <QuestionOutlineIcon ml={2} boxSize={4} cursor="pointer" />
+        </Tooltip>
+
+    
       <Bar ref={chartRef} data={data} options={options} />
     </Box>
     
