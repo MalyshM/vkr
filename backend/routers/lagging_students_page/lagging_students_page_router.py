@@ -66,7 +66,7 @@ async def lagging_students(token: str, is_group_by: bool, is_by_mark: bool, thre
     else:
         speciality_cond = ""
         speciality_join = ""
-    href = f"stud_scatter_plot-{token}-{type_group_by}-{teacher_list}-{speciality_list}-{team_list}"
+    href = f"lagging_students-{token}-{is_group_by}-{is_by_mark}-{threshold}-{type_group_by}-{teacher_list}-{speciality_list}-{team_list}"
     LOGGER.info(f"{href} start")
     query_field = ''
     sub_query_field = ''
@@ -119,9 +119,9 @@ async def lagging_students(token: str, is_group_by: bool, is_by_mark: bool, thre
                                          "Группировка по направлениям, 2 - Группировка по преподавателям")
                 LOGGER.warning(f"{href} warning {e.detail}")
                 raise e
-    # res = await process_href(href, start_time)
-    # if res is not None:
-    #     return res
+    res = await process_href(href, start_time)
+    if res is not None:
+        return res
     try:
         res = await db.execute(f"""
             SELECT 
@@ -171,8 +171,7 @@ async def lagging_students(token: str, is_group_by: bool, is_by_mark: bool, thre
             {order_by_clause};
         """)
         result = res.fetchall()
-        return result
-        # return await save_resp_and_return_it(result, href, start_time)
+        return await save_resp_and_return_it(result, href, start_time)
     except Exception as e:
         LOGGER.error(f"{href} Error {e}")
         raise e

@@ -5,6 +5,7 @@ from routers.reporting_system.reporting_system_router import reporting_system_pa
 from routers.student.student_router import student_router
 from routers.team.team_router import team_router
 from routers.registration_page.registration_router import registration_router
+from routers.top_10_most_and_least_page.top_10_most_and_least_page_router import top_10_most_and_least_page_router
 from routers.user.user_router import user_router
 from routers.util.util_router import util_router
 from routers.kr_page.kr_page_router import kr_page_router
@@ -41,6 +42,7 @@ def get_application() -> FastAPI:
     application.include_router(student_router)
     application.include_router(scatter_plot_page_router)
     application.include_router(lagging_students_page_router)
+    application.include_router(top_10_most_and_least_page_router)
     return application
 
 
