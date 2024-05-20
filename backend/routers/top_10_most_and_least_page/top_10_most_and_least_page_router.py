@@ -45,7 +45,7 @@ top_10_most_and_least_page_router = APIRouter(tags=["top 10 most and least page"
                                                    },
                                                  ]
                                            """)
-async def top_10_most_and_least(token: str, is_group_by: bool, is_by_mark: bool, threshold: int,
+async def top_10_most_and_least(token: str, is_group_by: bool, is_by_mark: bool,
                                 type_group_by: int = None,
                                 teacher_list: Optional[str] = None, speciality_list: Optional[str] = None,
                                 team_list: Optional[str] = None, db: AsyncSession = Depends(connect_db_data)):
@@ -67,7 +67,7 @@ async def top_10_most_and_least(token: str, is_group_by: bool, is_by_mark: bool,
     else:
         speciality_cond = ""
         speciality_join = ""
-    href = f"lagging_students-{token}-{is_group_by}-{is_by_mark}-{threshold}-{type_group_by}-{teacher_list}-{speciality_list}-{team_list}"
+    href = f"top_10_most_and_least-{token}-{is_group_by}-{is_by_mark}-{type_group_by}-{teacher_list}-{speciality_list}-{team_list}"
     LOGGER.info(f"{href} start")
     query_field = ''
     sub_query_field = ''
@@ -77,7 +77,6 @@ async def top_10_most_and_least(token: str, is_group_by: bool, is_by_mark: bool,
             top_10.Посещаемость,
             top_10.stud_id,
             """
-    join_clause = 'sub.stud_id = sub2.stud_id and '
     partition_by = 'sub.name, sub.lesson_counter'
     if is_by_mark:
         order_by_clause = """
@@ -107,7 +106,6 @@ async def top_10_most_and_least(token: str, is_group_by: bool, is_by_mark: bool,
                             ) {order_by_clause} ASC
                         ) AS top_10_least,"""
         fields = None
-        order_by_clause = ''
         match type_group_by:
             case 0:
                 query_field = ',top_10.team_id'
