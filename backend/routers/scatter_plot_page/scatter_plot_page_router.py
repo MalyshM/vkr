@@ -50,7 +50,7 @@ async def stud_scatter_plot(token: str, type_group_by: int, teacher_list: Option
                             db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
     if team_list is not None:
-        teams_true = ', '.join([team for team in team_list.split(',')])
+        teams_true = ', '.join([f"'{team}'" for team in team_list.split(',')])
     elif teacher_list is not None:
         teacher_arr = teacher_list.split(',')
         teams = await get_teams_for_param_private_without_lect(teacher_arr=teacher_arr, db=db)
@@ -176,7 +176,7 @@ async def scatter_plot_by_section(token: str, type_group_by: int, teacher_list: 
                                   db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
     if team_list is not None:
-        teams_true = ', '.join([team for team in team_list.split(',')])
+        teams_true = ', '.join([f"'{team}'" for team in team_list.split(',')])
     elif teacher_list is not None:
         teacher_arr = teacher_list.split(',')
         teams = await get_teams_for_param_private_without_lect(teacher_arr=teacher_arr, db=db)
