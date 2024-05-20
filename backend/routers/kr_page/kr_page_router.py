@@ -100,7 +100,7 @@ async def kr_analyse_with_filters(token: str, kr: str, type_select: int, teacher
                                   db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
     if team is not None:
-        teams_true = ', '.join([team for team in team.split(',')])
+        teams_true = ', '.join([f"'{team}'" for team in team.split(',')])
     elif teacher is not None:
         teacher_arr = teacher.split(',')
         teams = await get_teams_for_param_private_without_lect(teacher_arr=teacher_arr, db=db)
