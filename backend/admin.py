@@ -31,7 +31,7 @@ class AdminAuth(AuthenticationBackend):
         user_login = UserLogin(FIO=user.fio, username=user.username, password=password, email=user.email)
         db = async_session_users()
         token = await login_standard(user_login, request, db)
-        db.close()
+        await db.close()
         user = await get_current_user_dev(token["access_token"])
         if user.isadmin:
             request.session.update({"token": token["access_token"]})
