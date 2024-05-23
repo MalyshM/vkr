@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
+from admin import UserAdmin, AdminAuth
+from models import engine
 from routers.reporting_system.reporting_system_router import reporting_system_page_router
 from routers.student.student_router import student_router
 from routers.team.team_router import team_router
@@ -18,7 +20,7 @@ from routers.scatter_plot_page.scatter_plot_page_router import scatter_plot_page
 from routers.lagging_students_page.lagging_students_page_router import lagging_students_page_router
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
-
+from sqladmin import Admin
 
 def get_application() -> FastAPI:
     application = FastAPI()
@@ -47,6 +49,9 @@ def get_application() -> FastAPI:
 
 
 app = get_application()
+authentication_backend = AdminAuth(secret_key='asdasdasd')
+admin = Admin(app, engine, authentication_backend=authentication_backend)
+admin.add_view(UserAdmin)
 
 @app.get("/api/docs", include_in_schema=False)
 async def custom_swagger_ui_html():
