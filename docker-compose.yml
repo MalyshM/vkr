@@ -21,7 +21,7 @@ services:
     ports:
       - "127.0.0.1:8090:8090"
 #    command: bash -c "cd /backend; python start_db.py; python /backend/scripts/ETL.py; uvicorn main:app --host 0.0.0.0 --port 8090;"
-    command: bash -c "cd /backend; uvicorn main:app --host 0.0.0.0 --port 8090 --reload;"
+    command: bash -c "cd /backend; uvicorn main:app --host 0.0.0.0 --port 8090 --reload --forwarded-allow-ips='*' --proxy-headers;"
     env_file:
       - .env
     volumes:

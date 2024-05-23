@@ -50,7 +50,8 @@ def get_application() -> FastAPI:
 
 app = get_application()
 authentication_backend = AdminAuth(secret_key='asdasdasd')
-admin = Admin(app, engine, authentication_backend=authentication_backend)
+# admin = Admin(app, engine, authentication_backend=authentication_backend, base_url= '/admin/admin')
+admin = Admin(app, engine, base_url= '/admin/admin')
 admin.add_view(UserAdmin)
 
 @app.get("/api/docs", include_in_schema=False)
