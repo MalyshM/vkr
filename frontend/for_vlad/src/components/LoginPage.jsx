@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from './useAuth';
-import { Box, Heading, FormControl, FormLabel, Input, Button,Center} from '@chakra-ui/react';
+// import { Box, Heading, FormControl, FormLabel, Input, Button,Center} from '@chakra-ui/react';
 import { useToast } from '@chakra-ui/react';
 import { Flex, Spacer } from '@chakra-ui/react'
 import { CloseIcon } from '@chakra-ui/icons'
 import { fetchWithTokenRefresh } from './RefreshToken';
+
+import { Button, Layout, Typography, Card, Form, Input, Space } from 'antd';
+import { CloseOutlined } from '@ant-design/icons';
 
 const LoginPage = () => {
 
@@ -133,123 +136,99 @@ const LoginPage = () => {
 
 
 return (
-  <Center bg="#00aeef" h="100vh">
-    <Box
-      // maxW="md"
-      // height='500px'
-      width='500px'
-      borderWidth="2px"
-      borderRadius="lg"
-      p={6}
-      // m="auto"
-      // mt={40}
-      boxShadow="base"
-      borderColor='#1A1A1A'
-      bg='white'
-    >
-      <Flex justify="space-between" >
-        <Center>
-          <Heading as="h2" size="lg" mb={6}>Вход</Heading>
-        </Center>
-        <Spacer/>
-        <Button ml={5} colorScheme="gray" as={Link} to="/"> <CloseIcon/> </Button>
-      </Flex>
-      
+  <Layout style={{ minHeight: '100vh', backgroundColor: '#00aeef', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      <Card
+        style={{
+          width: '500px',
+          borderWidth: '2px',
+          borderRadius: '8px',
+          padding: '24px',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+          borderColor: '#1A1A1A',
+          backgroundColor: 'white',
+        }}
+      >
+        <Space style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+          <Typography.Title level={2}>Вход</Typography.Title>
+          <Link to='/'>
+          <Button type="text" icon={<CloseOutlined />}/>
+          </Link>
+        </Space>
+        
+        <Form layout="vertical">
+          <Form.Item
+            label="ФИО:"
+            validateStatus={isFIOEmpty ? "error" : (isFIOPopulated ? "success" : "")}
+            help={isFIOEmpty ? "Поле не может быть пустым." : ""}
+          >
+            <Input
+              type="text"
+              value={FIO}
+              onChange={handleInputChangeFIO}
+              onBlur={handleBlurFIO}
+              placeholder="Введите ваше ФИО"
+              autoComplete="off"
+            />
+          </Form.Item>
 
-      
-      
-      
-    <FormControl  id="FIO" mb={4}>
-      <FormLabel>ФИО:</FormLabel>
-      <Input
-        type="text"
-        value={FIO}
-        onChange={handleInputChangeFIO}
-        onBlur={handleBlurFIO}
-        required
-        borderColor={isFIOEmpty ? "red.500" : (isFIOPopulated ? "green.500" : "gray.200")}
-        placeholder='Введите ваше ФИО'
-        autoComplete="off"
-      />
-      {isFIOEmpty && (
-        <Box color="red.500" fontSize="sm" mt={1}>
-          Поле не может быть пустым.
-        </Box>
-      )}
-      
-    </FormControl>
+          <Form.Item
+            label="Логин:"
+            validateStatus={isUsernameEmpty ? "error" : (isUsernamePopulated ? "success" : "")}
+            help={isUsernameEmpty ? "Поле не может быть пустым." : ""}
+          >
+            <Input
+              type="text"
+              value={username}
+              onChange={handleInputChangeUsername}
+              onBlur={handleBlurUsername}
+              placeholder="Введите ваш логин"
+              autoComplete="off"
+            />
+          </Form.Item>
 
-      <form autoComplete="off">
-      <FormControl  id="username" mb={4}>
-        <FormLabel>Логин:</FormLabel>
-        <Input
-          type="text"
-          value={username}
-          onChange={handleInputChangeUsername}
-          onBlur={handleBlurUsername}
-          required
-          autoComplete="off"
-          placeholder='Введите ваш логин'
-          borderColor={isUsernameEmpty ? "red.500" : (isUsernamePopulated ? "green.500" : "gray.200")}
-        />
-        {isUsernameEmpty && (
-        <Box color="red.500" fontSize="sm" mt={1}>
-          Поле не может быть пустым.
-        </Box>
-      )}
-      </FormControl>
-      </form>
+          <Form.Item
+            label="Адрес электронной почты:"
+            validateStatus={isEmailEmpty ? "error" : (isEmailPopulated ? "success" : "")}
+            help={isEmailEmpty ? "Поле не может быть пустым." : ""}
+            
+          >
+            <Input
+              type="text"
+              value={email}
+              onChange={handleInputChangeEmail}
+              onBlur={handleBlurEmail}
+              placeholder="Введите вашу электронную почту"
+              autoComplete="off"
+              
+            />
+          </Form.Item>
 
-      <form autoComplete="off">
-      <FormControl  id="email" mb={4}>
-        <FormLabel>Адрес электронной почты:</FormLabel>
-        <Input
-          type="text"
-          value={email}
-          onChange={handleInputChangeEmail}
-          onBlur={handleBlurEmail}
-          required
-          autoComplete="off"
-          placeholder='Введите вашу электронную почту '
-          borderColor={isEmailEmpty ? "red.500" : (isEmailPopulated ? "green.500" : "gray.200")}
-        />
-        {isEmailEmpty && (
-        <Box color="red.500" fontSize="sm" mt={1}>
-          Поле не может быть пустым.
-        </Box>
-      )}
-      </FormControl>
-      </form>
+          <Form.Item
+            label="Пароль:"
+            validateStatus={isPasswordEmpty ? "error" : (isPasswordPopulated ? "success" : "")}
+            help={isPasswordEmpty ? "Поле не может быть пустым." : ""}
+          >
+            <Input
+              type="password"
+              value={password}
+              onChange={handleInputChangePas}
+              onBlur={handleBlurPas}
+              placeholder="Введите пароль"
+              autoComplete="off"
+            />
+          </Form.Item>
 
-      <form autoComplete="off">
-      <FormControl  id="password" mb={4}>
-        <FormLabel>Пароль:</FormLabel>
-        <Input
-          type="password"
-          value={password}
-          onChange={handleInputChangePas}
-          onBlur={handleBlurPas}
-          required
-          autoComplete="off"
-          placeholder='Введите пароль'
-          borderColor={isPasswordEmpty ? "red.500" : (isPasswordPopulated ? "green.500" : "gray.200")}
-
-        />
-        {isPasswordEmpty && (
-        <Box color="red.500" fontSize="sm" mt={1}>
-          Поле не может быть пустым.
-        </Box>
-      )}
-      </FormControl>
-      </form>
-
-      <Button mt='30px' w='450px' colorScheme="blue" onClick={login}>
-        Войти
-      </Button>
-      
-      
-    </Box>
-    </Center>
+          <Button
+            type="primary"
+            style={{ width: '100%', marginTop: '30px' }}
+            onClick={login}
+          >
+            Войти
+          </Button>
+          
+        </Form>
+      </Card>
+    </Layout>
 );
 };
 export default LoginPage;

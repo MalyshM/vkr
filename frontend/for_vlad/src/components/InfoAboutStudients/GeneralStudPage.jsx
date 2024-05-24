@@ -12,8 +12,8 @@ import { Flex, Center, Spacer} from '@chakra-ui/react'
 import StudentInfo from './StudentInfo'
 
 const GeneralStudPage = () => {
-  const { studentId, teamId, userTeams,teamName } = useParams();
 
+  const { studentId, teamId, userTeams,teamName } = useParams();
   const [attendanceData, setAttendanceData] = useState(null);
   const [attendanceDynamicData, setAttendanceDynamicData] = useState(null);
   const [attendanceStaticData, setAttendanceStaticData] = useState(null);

@@ -1,0 +1,9 @@
+/* styles.css */
+.nav-link:hover {
+    color: black !important;
+  }
+  
+  .ant-btn-link:hover {
+    background-color: transparent !important;
+  }
+  

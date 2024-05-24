@@ -22,6 +22,8 @@ import { NumberItemsProvider } from './components/chart/NumberItemsContext';
 
 import ScaterPlotPage from './components/Scatter_Plot/ScaterPlotPage';
 
+import TopsPage from './components/Tops/TopsPage'; 
+
 function App() {
 
 
@@ -44,7 +46,7 @@ function App() {
         <Route path="/your_vectorstudy" element={<YourVectorStudy/>} />
         <Route path="/analys_kr" element={<AnalysKr/>} />
         <Route path="/scater_plot" element={<ScaterPlotPage/>}/>
-
+        <Route path='/tops' element={<TopsPage/>}/>
 
       </Routes>
       </NumberItemsProvider>
