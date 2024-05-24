@@ -1,43 +1,62 @@
-// src/components/MainPage.jsx
 import React from 'react';
-import {  Link } from 'react-router-dom';
-import { Box, Button, Heading ,Center,} from '@chakra-ui/react';
+import { Button, Layout, Typography, Card } from 'antd';
+import { Link } from 'react-router-dom';
+
+const { Content } = Layout;
+const { Title } = Typography;
+
 
 const HomePage = () => {
 
     return (
-    <Center bg='#00aeef' h="100vh"position="relative" >
-      
 
-        <Box
-          p={8}
-          borderWidth="2px"
-          borderRadius="2xl"
-          boxShadow="lg"
-          textAlign="center"
-          borderColor='#1A1A1A'
-          height="300px"
-          width="500px"
-          display="flex"
-          flexDirection="column"
-          alignItems="center"
-          justifyContent="center"
-          bg='white'
-
+      <Layout style={{ minHeight: '100vh', backgroundColor: '#00aeef' }}>
+      <Content style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <Card
+          style={{
+            padding: '32px',
+            borderWidth: '2px',
+            borderRadius: '16px',
+            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+            textAlign: 'center',
+            borderColor: '#1A1A1A',
+            height: '300px',
+            width: '500px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'white'
+          }}
         >
-
-          <Heading as="h1" size="xl" mb={6}  fontFamily="Trebuchet MS">
+          <Title level={1} style={{ marginBottom: '24px', fontFamily: 'Trebuchet MS' }}>
             Добро пожаловать!
-          </Heading>
-          <Button w='200px' colorScheme="blue" variant="solid" size="lg" m="2" as={Link} to="/login">
+          </Title>
+
+          <Link to='/login'>
+          <Button
+            type="primary"
+            style={{ width: '200px', margin: '8px' }}
+            size="large"
+          >
             Войти
           </Button>
-          <Button  colorScheme="blackAlpha" variant='solid' size="lg" m="2" as={Link} to="/register">
-          Создать аккаунт
+          </Link>
+
+          <Link to="/register"> 
+          <Button
+            type="default"
+            style={{ width: '200px', margin: '8px' }}
+            size="large"
+          >
+            Создать аккаунт
           </Button>
-        </Box>
-        
-    </Center>
+          </Link>
+          
+        </Card>
+      </Content>
+    </Layout>
+    
       );
     };
     

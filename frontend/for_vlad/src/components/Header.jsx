@@ -1,30 +1,45 @@
-// Header.jsx
-import {Button,Menu, MenuItem, MenuButton, MenuList, Box, Flex, Text } from "@chakra-ui/react";
-import {StarIcon} from "@chakra-ui/icons"
-import { Link, useLocation } from "react-router-dom";
 import React, { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Button, Layout, Menu, Dropdown, Typography, Space } from 'antd';
+import { QuestionOutlined } from '@ant-design/icons';
+import ExportData from './ExportData';
+import '.././thems/style.css';
+import { FileTextOutlined } from '@ant-design/icons';
+
+const { Header } = Layout;
+const { Text } = Typography;
+
+const CustomHeader = () => {
+  const location = useLocation();
+  const currentPath = location.pathname;
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  const [exportDataVisible, setExportDataVisible] = useState(false);
+
+  const handleOpenExportDataModal = () => {
+    setExportDataVisible(true);
+  };
+
+  // Функция для закрытия модального окна
+  const handleCloseExportDataModal = () => {
+    setExportDataVisible(false);
+  };
 
 
-const Header = () => {
-    const location = useLocation();
-    const currentPath = location.pathname;
-    const [currentDate, setCurrentDate] = useState(new Date());
+  useEffect(() => {
+    // Обновляем текущую дату каждый час
+    const intervalId = setInterval(() => {
+      setCurrentDate(new Date());
+    }, 3600000); // 1 час в миллисекундах
 
-    useEffect(() => {
-      // Обновляем текущую дату каждый час
-      const intervalId = setInterval(() => {
-        setCurrentDate(new Date());
-      }, 3600000); // 1 час в миллисекундах
-  
-      // Очищаем интервал при размонтировании компонента
-      return () => clearInterval(intervalId);
-    }, []);
+    // Очищаем интервал при размонтировании компонента
+    return () => clearInterval(intervalId);
+  }, []);
 
-    const formatDate = (date) => {
-      const options = { year: 'numeric', month: 'long', day: 'numeric' };
-      return date.toLocaleDateString('ru-RU', options);
-    };
-
+  const formatDate = (date) => {
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return date.toLocaleDateString('ru-RU', options);
+  };
 
   // Проверьте, является ли текущий путь страницей авторизации
   const isAuthPage = ["/login", "/register", "/"].includes(currentPath);
@@ -34,29 +49,60 @@ const Header = () => {
     return null;
   }
 
-  return (
-    <Flex h={70} p={4}
-    // backgroundImage="linear-gradient(to right, #6260DB, #4CAF50)" 
-    bg="#00aeef" color="white" justify="space-between" align="center">
-      <Text fontSize='sm' as='b' ml={5} mr={'auto'} >Данные актуальны на {formatDate(currentDate)} </Text>
-      <Box borderRadius='lg'>
-        <Menu>
-            <Button variant='ghost' as={Link} to="/main" color="white" _hover={{ color: "black" }} _active={{ bg: "transparent" }}>Главная</Button>
-            <Button variant='ghost' as={Link} to="/analys_kr" color="white" _hover={{ color: "black" }} _active={{ bg: "transparent" }}>Анализ КР</Button>
-            <MenuButton variant='ghost' as={Button} color="white" _hover={{ color: "black" }} _active={{ bg: "transparent" }}>Группы/Направления</MenuButton>
-                <MenuList>
-                    <MenuItem color="black" as={Link} to="/your_group" >Ваши группы</MenuItem>
-                    <MenuItem isDisabled='true' color="black" as={Link} to="/match2team" >Сравнение по группам</MenuItem>
-                    <MenuItem color="black" as={Link} to="/your_vectorstudy" >Ваши направления</MenuItem>
-                    <MenuItem isDisabled='true' color="black" as={Link} to="/match2team_vectorstudy" >Сравнение по направлениям</MenuItem>
-                </MenuList>
-            <Button variant='ghost' as={Link} to="/scater_plot" color="white" _hover={{ color: "black" }} _active={{ bg: "transparent" }}>Диаграмма рассеяния</Button>
-            <Button variant='ghost' as={Link} to="/" color="white" _hover={{ color: "black" }} _active={{ bg: "transparent" }}>Выход</Button>
+  const menu = (
+    <Menu>
+      <Menu.Item key="1">
+        <Link to="/your_group">Ваши группы</Link>
+      </Menu.Item>
+      <Menu.Item key="2" disabled>
+        <Link to="/match2team">Сравнение по группам</Link>
+      </Menu.Item>
+      <Menu.Item key="3">
+        <Link to="/your_vectorstudy">Ваши направления</Link>
+      </Menu.Item>
+      <Menu.Item key="4" disabled>
+        <Link to="/match2team_vectorstudy">Сравнение по направлениям</Link>
+      </Menu.Item>
+    </Menu>
+  );
 
-        </Menu>
-      </Box>
-    </Flex>
+  return (
+    <Header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#00aeef' }}>
+      <Text strong style={{ color: 'white' }}>
+        Данные актуальны на {formatDate(currentDate)}
+      </Text>
+      <Space>
+
+      <Button icon={<FileTextOutlined />} style={{backgroundColor: '#58c622'}} className="nav-link" type="primary" onClick={handleOpenExportDataModal}>
+        Экспорт данных
+      </Button>
+
+      <ExportData visible={exportDataVisible} onClose={handleCloseExportDataModal} />
+
+
+        <Button type="link">
+          <Link to="/main" style={{ color: 'white', textDecoration: 'none' }} className="nav-link">Главная</Link>
+        </Button>
+        <Button type="link">
+          <Link to="/tops" style={{ color: 'white', textDecoration: 'none' }} className="nav-link">Топы</Link>
+        </Button>
+        <Button type="link">
+          <Link to="/analys_kr" style={{ color: 'white', textDecoration: 'none' }} className="nav-link">Анализ КР</Link>
+        </Button>
+        <Dropdown overlay={menu} placement="bottomCenter">
+          <Button type="link" style={{ color: 'white' }} className="nav-link">Группы/Направления</Button>
+        </Dropdown>
+        <Button type="link">
+          <Link to="/scater_plot" style={{ color: 'white', textDecoration: 'none' }} className="nav-link">Диаграмма рассеяния</Link>
+        </Button>
+        <Button type="link">
+          <Link to="/" style={{ color: 'white', textDecoration: 'none' }} className="nav-link">Выход</Link>
+        </Button>
+        
+      </Space>
+    </Header>
   );
 };
 
-export default Header;
+
+export default CustomHeader;

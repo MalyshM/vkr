@@ -1,22 +1,19 @@
+import { Flex, Box } from '@chakra-ui/react';
 import React, { useState, useEffect } from 'react';
+import { Select } from 'antd';
 import { useAuth } from './useAuth';
-
-import { Flex, Box, Select, Avatar } from '@chakra-ui/react';
-import { useDisclosure } from '@chakra-ui/react'
-
-import { Tooltip } from '@chakra-ui/react'
 
 import AtendenceTotalPoints from './chart/AtendenceTotalPoints';
 import NumCountStudInLern from './chart/NumCountStudInLern';
 import StataOfGroup from './chart/StataOfGroup';
 import TableOfGroup from './chart/TableOfGroup';
-
 import { fetchWithTokenRefresh } from './RefreshToken';
 
+const { Option } = Select;
+
+
 const MainPage = () => {
-  const [isHovered, setIsHovered] = useState(false);
   const { userToken } = useAuth(); // Извлекаем userToken из контекста с помощью useAuth
-  const [userData, setUserData] = useState(null); // Стейт для хранения данных пользователя
   const [userTeams, setUserTeams] = useState(null); // Новый стейт для данных о командах
   
   const [selectedTeam, setSelectedTeam] = useState(null); //Данные о посещаемости
@@ -32,7 +29,7 @@ const MainPage = () => {
         return;
       }
 
-      // 2 ЗАПРОС - ПОЛУЧАЕМ ИНФУ О КОМАНДАХ ЮЗЕРА
+      // ЗАПРОС - ПОЛУЧАЕМ ИНФУ О КОМАНДАХ ЮЗЕРА
       try {
         // Отправляем GET-запрос для получения данных о командах пользователя
         const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_teams_for_user_without_lect?token=${userToken}`, {
@@ -59,89 +56,45 @@ const MainPage = () => {
     
   useEffect(() => {
     const fetchData = async () => {
-      // Функция для запуска запроса, вызывается при монтировании компонент
-      // await fetchUserData();
       await fetchUserTeams();
       };
   
     if (userToken) {
-      // Если токен существует, запускаем запрос
       fetchData();
     }
   }, [userToken]);
 
-  const handleTeamChange = (teamId,teamName) => {
-    setSelectedTeam(teamId);
-    setSelectedTeamName(teamName);
-   
+  const handleTeamChange = (value) => {
+    const selectedTeam = userTeams.find(team => team.id === value);
+    setSelectedTeam(value);
+    setSelectedTeamName(selectedTeam.name);
   };
+
 
   const handleLessonSelect = (lesson) => {
     setSelectedLessonMainPage(lesson);
   };
 
-  const handleMouseEnter = () => {
-    setIsHovered(true);
-  };
-
-  const handleMouseLeave = () => {
-    setIsHovered(false);
-  };
-
-  console.log('isHovered:', isHovered);
-  console.log('userData:', userData);
-
-  const getRoleTooltip = (userData) => {
-    if (!userData) {
-      return null;
-    }
-  
-    const roles = [];
-    if (userData.isadmin) {
-      roles.push('Администратор');
-    }
-    if (userData.iscurator) {
-      roles.push('Куратор');
-    }
-    if (userData.isteacher) {
-      roles.push('Учитель');
-    }
-  
-    return roles.length > 0 ? `${userData.fio}, Вы вошли как: ${roles.join(', ')}` : 'Без ролей';
-  };
-  
 
 return (
   <Flex direction="column" minHeight="90vh">
-    
-    <Flex justifyContent="flex-end" alignItems="center" p={2}>
-      <Select width='270px' borderWidth={1} fontFamily='Trebuchet MS'
+    <Select
+        style={{marginLeft:15, width: '270px', borderWidth: 1, fontFamily: 'Trebuchet MS',height: '40px', }}
         placeholder="Выберите вашу группу"
-        borderColor='black'
-        _active={{ borderColor: "black" }} 
-        _hover={{ color: "blue" }}
-        _selected={{ bg: "black.500", borderColor: "red.500", color: "white" }}
-        onChange={(e) => handleTeamChange(e.target.value, e.target.selectedOptions[0].label)}
-        value={selectedTeam}>
-          {Array.isArray(userTeams) ? (
-            userTeams.map((team) => (
-              <option key={team.id} value={team.id}>
-                {team.name}
-              </option>
-            ))
-          ) : (
-            <option disabled>No teams available</option>
-          )}
+        onChange={handleTeamChange}
+        value={selectedTeam}
+        bordered={true}
+      >
+        {Array.isArray(userTeams) ? (
+          userTeams.map((team) => (
+            <Option key={team.id} value={team.id}>
+              {team.name}
+            </Option>
+          ))
+        ) : (
+          <Option disabled>Группа не выбрана</Option>
+        )}
       </Select>
-
-      <Tooltip mr={4} borderRadius='lg' fontFamily='Trebuchet MS' label={getRoleTooltip(userData)} fontSize='md'>
-        <Avatar bg='gray.500' ml={3} mr={3} 
-          onMouseEnter={() => console.log('Mouse entered')}
-          onMouseLeave={() => console.log('Mouse left')}
-        />
-      </Tooltip>
-    </Flex>
-
     <Flex flex="1" flexDirection={{ base: 'column', md: 'row' }}>
       <Box flex="1" minWidth={{ base: '100%', md: '70%' }} p={4}>
         {selectedTeam && <AtendenceTotalPoints teamId={selectedTeam} teamName={selectedTeamName} />}

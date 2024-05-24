@@ -1,35 +1,20 @@
- // useEffect(() => {
-  //   // Проверяем, есть ли токен при загрузке компонента
-  //   const storedToken = localStorage.getItem('token');
-  //   if (storedToken) {
-  //     setToken(storedToken);
-  //   }
-  //   }, [] );
-
-    // if (!username || !password || !confirmPassword) {
-    //   setError('All fields are required');
-    //   return;
-    // }
-
-    // if (password !== confirmPassword) { //на потом
-    //   setError('Passwords do not match');
-    //   return;
-    // }
-
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from './useAuth';
-import { Flex, Spacer, Center,Box, Heading, FormControl, FormLabel, Input, Button, Radio, RadioGroup } from '@chakra-ui/react';
+
+import { Button, Layout, Typography, Card, Form, Input, Radio, Space } from 'antd';
+import { CloseOutlined } from '@ant-design/icons';
+
 import { useToast } from '@chakra-ui/react';
-import { CloseIcon} from '@chakra-ui/icons'
 
 import { fetchWithTokenRefresh } from './RefreshToken';
 
 const RegistrationPage = () => {
-  const [FIO, setFIO] = useState('');
-  const [role, setRole] = useState(''); 
+  const { Header, Content, Footer } = Layout;
+  const { Title } = Typography;
 
+  const [FIO, setFIO] = useState('');
+  const [role, setRole] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCurator, setIsCurator] = useState(false);
   const [isTeacher, setIsTeacher] = useState(false);
@@ -41,7 +26,8 @@ const RegistrationPage = () => {
   const { setUserToken } = useAuth(); 
   const toast = useToast();
 
-  const handleRoleChange = (selectedRole) => {
+  const handleRoleChange = (e) => {
+    const selectedRole = e.target.value;
     setRole(selectedRole);
 
     // Сбросить все состояния ролей
@@ -60,152 +46,124 @@ const RegistrationPage = () => {
   };
 
 
-
-const register = async () => {
-
-  if (!username || !password || !FIO || !email || !role) {
-    toast({
-      title: 'Ошибка',
-      description: 'Пожалуйста, заполните все поля!',
-      status: 'error',
-      duration: 3000, // Продолжительность отображения в миллисекундах
-      isClosable: true,
-    });
-    return;
-  }
-    // Функция для выполнения регистрации по отправке запроса к API
+  const register = async () => {
+    if (!username || !password || !FIO || !email || !role) {
+      toast({
+        title: 'Ошибка',
+        description: 'Пожалуйста, заполните все поля!',
+        status: 'error',
+        duration: 3000, // Продолжительность отображения в миллисекундах
+        isClosable: true,
+      });
+      return;
+    }
     try {
-      // Отправка POST-запроса к API для регистрации
-      const response = await fetchWithTokenRefresh('http://moais-dashboard.ru:8082/api/registration_standard', {
+      const response = await fetch('http://moais-dashboard.ru:8082/api/registration_standard', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-
           FIO,
           isAdmin,
           isCurator,
           isTeacher,
+          role,
           username,
           password,
           email,
         }),
       });
 
-      // Обработка ответа от сервера
       const result = await response.json();
 
-      // Если ответ от сервера успешный, обновление сообщения об ответе
       if (response.ok) {
-        setUserToken(result.access_token); // Обновляем токен в AuthContext
+        setUserToken(result.access_token); 
         setResponseMessage(`Registration successful! Welcome, ${username}!, Access Token: ${result.access_token}`);
         navigate('/main');
       } else {
-        // Если регистрация не удалась, обновление сообщения об ответе
         setResponseMessage(`Registration failed: ${result.detail}`);
       }
     } catch (error) {
-      // Обработка ошибок в случае неудачной отправки запроса
       console.error('Error during registration:', error);
       setResponseMessage('An error occurred during registration.');
     } 
   };
 
-return (
-  <Center bg="#00aeef" h="100vh">
-    <Box
-      // maxW="md"
-      width='500px'
-      borderWidth="2px"
-      borderRadius="lg"
-      p={6}
-      // m="auto"
-      // mt={10}
-      boxShadow="base"
-      borderColor='#1A1A1A'
-      bg='white'
-    >
-      <Flex justify="space-between" >
-        <Center>
-          <Heading as="h2" size="lg" mb={6}>Регистрация</Heading>
-        </Center>
-        <Spacer/>
-        <Button ml={5} colorScheme="gray" as={Link} to="/"> <CloseIcon/> </Button>
-      </Flex>
-      
-      <FormControl  id="role" mb={4}>
+  return (
+    <Layout style={{ minHeight: '100vh', backgroundColor: '#00aeef', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      <Card
+        style={{
+          width: '500px',
+          borderWidth: '2px',
+          borderRadius: '8px',
+          padding: '24px',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+          borderColor: '#1A1A1A',
+          backgroundColor: 'white',
+        }}
+      >
+        <Space style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+          <Title level={2}>Регистрация</Title>
+          <Link to="/">
+            <Button type="text" icon={<CloseOutlined />} />
+          </Link>
+        </Space>
 
-          <FormLabel>Роль:</FormLabel>
+        <Form layout="vertical">
+          <Form.Item label="Роль:">
+            <Radio.Group onChange={handleRoleChange} value={role}>
+              <Radio value="teacher">Преподаватель</Radio>
+              <Radio value="curator">Куратор</Radio>
+            </Radio.Group>
+          </Form.Item>
 
-          <RadioGroup onChange={(value) => handleRoleChange(value)} value={role} checked={'blue'} >
+          <Form.Item label="ФИО:" required>
+            <Input
+              type="text"
+              value={FIO}
+              onChange={e => setFIO(e.target.value)}
+              placeholder="Введите ФИО"
+            />
+          </Form.Item>
 
-            {/* <Radio colorScheme='blue'  mr={5} value="admin">Админ</Radio> */}
-            <Radio colorScheme='blue'  mr={5} value="teacher">Преподаватель</Radio>
-            <Radio colorScheme='blue' value="curator">Куратор</Radio>
+          <Form.Item label="Логин:" required>
+            <Input
+              type="text"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              placeholder="Введите логин"
+              autoComplete="off"
+            />
+          </Form.Item>
 
-          </RadioGroup>
+          <Form.Item label="Пароль:" required>
+            <Input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="Введите пароль"
+              autoComplete="off"
+            />
+          </Form.Item>
 
-      </FormControl>
+          <Form.Item label="Адрес электронной почты:" required>
+            <Input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="Введите электронную почту"
+              autoComplete="off"
+            />
+          </Form.Item>
 
-      <FormControl  id="FIO" mb={4}>
-        <FormLabel >ФИО:</FormLabel>
-        <Input
-          type="text"
-          value={FIO}
-          onChange={(e) => setFIO(e.target.value)}
-          required
-          placeholder='Введите ФИО'
-        />
-      </FormControl>  
-
-      <form autoComplete="off">  
-      <FormControl  id="username" mb={4}>
-        <FormLabel>Логин:</FormLabel>
-        <Input
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-          placeholder='Введите логин'
-        />
-      </FormControl >
-      </form>
-
-      <form autoComplete="off">
-      <FormControl  id="password" mb={4}>
-        <FormLabel>Пароль:</FormLabel>
-        <Input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          autoComplete="off"
-          placeholder='Введите пароль'
-        />
-      </FormControl>
-      </form>
-
-      <form autoComplete="off">
-      <FormControl  id="email" mb={4}>
-        <FormLabel>Адрес электронной почты:</FormLabel>
-        <Input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          placeholder='Введите электронную почту'
-        />
-      </FormControl>
-      </form>
-
-      <Button width='450px' colorScheme="blue" onClick={register}>
-        Подтвердить
-      </Button>
-      
-    </Box>
-    </Center>
-);
+          <Button type="primary" style={{ width: '100%' }} onClick={register}>
+            Подтвердить
+          </Button>
+        </Form>
+      </Card>
+    </Layout>
+  );
 };
 
 export default RegistrationPage;
