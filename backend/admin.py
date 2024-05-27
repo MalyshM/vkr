@@ -1,5 +1,8 @@
-from sqladmin import ModelView
+from sqladmin import ModelView, BaseView, expose
 from sqladmin.authentication import AuthenticationBackend
+from starlette import status
+from starlette.responses import RedirectResponse
+
 from models import User, async_session_users, connect_db_users
 from routers.registration_page.registration_router import login_standard
 from routers.util_funcs import get_current_user_dev
@@ -53,3 +56,19 @@ class AdminAuth(AuthenticationBackend):
             return True
         else:
             return False
+
+class ETLView(BaseView):
+    name = "Import dataset"
+    @expose("/etl", methods=["GET", "POST"])
+    async def etl(self, request: Request):
+        if request.method == "GET":
+            return await self.templates.TemplateResponse(request, "get_etl_page.html")
+        else:
+            form = await request.form()
+            file = form["file"]
+            print(file)
+            # Perform the ETL process on the file
+            # ETL(file)
+            # Redirect to a success page
+            return RedirectResponse("/admin", status_code=status.HTTP_303_SEE_OTHER)
+            # Render the form to upload a file
