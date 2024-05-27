@@ -296,7 +296,7 @@ async def top_10_most_and_least_teams(token: str, is_by_mark: bool,
             query_field = 'sub.speciality,'
             sub_query_field = ",(SELECT s.speciality FROM stud s WHERE s.id = l.stud_id)"
             group_by = 'group by sub.speciality,sub.name, sub.lesson_counter'
-            partition_by = 'sub2.speciality, sub2.name, sub2.lesson_counter'
+            partition_by = 'sub2.name, sub2.lesson_counter'
         case 2:
             query_field = """
                 sub.teacher_id,
@@ -304,7 +304,7 @@ async def top_10_most_and_least_teams(token: str, is_by_mark: bool,
             """
             sub_query_field = ""
             group_by = 'group by sub.name, sub.lesson_counter, sub.teacher_id'
-            partition_by = 'sub2.teacher_id, sub2.name, sub2.lesson_counter'
+            partition_by = 'sub2.name, sub2.lesson_counter'
         case _:
             e = HTTPException(status_code=status.HTTP_409_CONFLICT,
                               detail="Неправильно выбран тип 0 - Группировка по командам, 1 - " +
