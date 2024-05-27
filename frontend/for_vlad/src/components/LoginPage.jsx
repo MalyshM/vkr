@@ -123,7 +123,7 @@ const LoginPage = () => {
       if (response.ok) {
         setUserToken(result.access_token);
         setResponseMessage(`Welcome, ${username}! Access Token: ${result.access_token}`);
-        navigate('/main');
+        navigate(`/main`);
       } else {
         const errorMessages = Array.isArray(result.detail) ? result.detail.map(detail => detail.msg).join(', ') : 'Unknown error';
         setResponseMessage(`Authentication failed: ${errorMessages}`);

@@ -66,6 +66,19 @@ const CustomHeader = () => {
     </Menu>
   );
 
+  const menuTops = (
+    <Menu>
+      <Menu.Item key="1">
+        <Link to="/tops_stud">Ученики</Link>
+      </Menu.Item>
+
+      <Menu.Item key="2">
+        <Link to="/tops_team">Группы</Link>
+      </Menu.Item>
+      
+    </Menu>
+  );
+
   return (
     <Header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#00aeef' }}>
       <Text strong style={{ color: 'white' }}>
@@ -83,18 +96,23 @@ const CustomHeader = () => {
         <Button type="link">
           <Link to="/main" style={{ color: 'white', textDecoration: 'none' }} className="nav-link">Главная</Link>
         </Button>
-        <Button type="link">
-          <Link to="/tops" style={{ color: 'white', textDecoration: 'none' }} className="nav-link">Топы</Link>
-        </Button>
+        
+        <Dropdown overlay={menuTops} placement="bottomCenter">
+          <Button type="link" style={{ color: 'white' }} className="nav-link">Топы</Button>
+        </Dropdown>
+
         <Button type="link">
           <Link to="/analys_kr" style={{ color: 'white', textDecoration: 'none' }} className="nav-link">Анализ КР</Link>
         </Button>
+
         <Dropdown overlay={menu} placement="bottomCenter">
           <Button type="link" style={{ color: 'white' }} className="nav-link">Группы/Направления</Button>
         </Dropdown>
+
         <Button type="link">
           <Link to="/scater_plot" style={{ color: 'white', textDecoration: 'none' }} className="nav-link">Диаграмма рассеяния</Link>
         </Button>
+
         <Button type="link">
           <Link to="/" style={{ color: 'white', textDecoration: 'none' }} className="nav-link">Выход</Link>
         </Button>

@@ -23,6 +23,7 @@ import { NumberItemsProvider } from './components/chart/NumberItemsContext';
 import ScaterPlotPage from './components/Scatter_Plot/ScaterPlotPage';
 
 import TopsPage from './components/Tops/TopsPage'; 
+import TopsTeam from './components/Tops/TopsTeam';
 
 function App() {
 
@@ -37,8 +38,9 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegistrationPage />} />
-        <Route path="/main" element={<MainPage />} />
-        <Route path={"/main/:teamId/:teamName"} element={<MainPage />} />
+        <Route path="/main/:id_team" element={<MainPage />} />
+        <Route path="/main/*" element={<MainPage />} />
+        {/* <Route path={"/main/:teamId/:teamName"} element={<MainPage />} /> */}
         <Route path="/match2team" element={<MatchToTeamPage />} />
         <Route path={"/student/:studentId/:teamId/:teamName"} element={<GeneralStudPage />} />
         <Route path="/match2team_vectorstudy" element={<MatchTwoTeamVectorStudy/>} />
@@ -46,7 +48,8 @@ function App() {
         <Route path="/your_vectorstudy" element={<YourVectorStudy/>} />
         <Route path="/analys_kr" element={<AnalysKr/>} />
         <Route path="/scater_plot" element={<ScaterPlotPage/>}/>
-        <Route path='/tops' element={<TopsPage/>}/>
+        <Route path='/tops_stud' element={<TopsPage/>}/>
+        <Route path='/tops_team' element={<TopsTeam/>}/>
 
       </Routes>
       </NumberItemsProvider>

@@ -116,7 +116,9 @@ const ScaterPlotPage = () => {
           await fetchTeacher();
           
         }
-        if (userToken) {fetchData();} }, [userToken]);
+        if (userToken) 
+            {fetchData();} 
+    }, [userToken]);
 
         useEffect(() => {
             if (SelectedTeacher.length > 0) {

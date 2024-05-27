@@ -29,8 +29,6 @@ const TopPage = () => {
 
   const [Top_10_most_and_least, setTop_10_most_and_least] = useState([])
   
-  const [students, setStudents] = useState([]);
-
   const [uniqueKRNames, setUniqueKRNames] = useState([]);
   const [selectedKR, setSelectedKR] = useState(null);
   const [filteredData, setFilteredData] = useState([]); 
@@ -68,7 +66,7 @@ const TopPage = () => {
         params.append('team_list', SelectedTeam.join(','));
       }
       
-      console.log('Request URL:', `http://moais-dashboard.ru:8082/api/top_10_most_and_least_studs?${params.toString()}`);
+      // console.log('Request URL:', `http://moais-dashboard.ru:8082/api/top_10_most_and_least_studs?${params.toString()}`);
   
       const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/top_10_most_and_least_studs?${params.toString()}`);
   
@@ -86,6 +84,7 @@ const TopPage = () => {
     } finally {
       setLoading(false); // Устанавливаем состояние загрузки в false после завершения запроса
     }
+    console.log('Top_10_most_and_least',Top_10_most_and_least)
 
   };
 
@@ -106,49 +105,38 @@ const TopPage = () => {
   useEffect(() => {
     if (selectedKR) {
         const filtered = Top_10_most_and_least.filter(item => item.name === selectedKR);
+        console.log('filtered',filtered)
+
         setFilteredData(filtered);
+
         setOptions(createGroupByOptions(filtered, typeGroupBy));
 
         if (isGroupBy) {
             if (selectedGroupBy && selectedGroupBy.length > 0) {
+              console.log('selectedGroupBy',selectedGroupBy)
+
                 const [id, subType] = selectedGroupBy;
                 const selectedItem = filtered.find(item =>
                     item.team_id === id || item.speciality === id || item.teacher_id === id
                 );
 
                 if (selectedItem) {
-                    setStudentsBest(selectedItem.top_10_best.map(student => ({
-                        ...student,
-                        team_id: selectedItem.team_id,
-                        team_name: selectedItem.team_name
-                    })));
-                    setStudentsLeast(selectedItem.top_10_least.map(student => ({
-                        ...student,
-                        team_id: selectedItem.team_id,
-                        team_name: selectedItem.team_name
-                    })));
+                    setStudentsBest(selectedItem.top_10_best);
+                    setStudentsLeast(selectedItem.top_10_least);
+                    console.log('с группировкой studentsLeast',studentsLeast)
+                    console.log('с группировкой studentsBest',studentsBest)
                 } else {
                     setStudentsBest([]);
                     setStudentsLeast([]);
                 }
             } 
         } else {
-            const bestStudents = filtered.flatMap(item =>
-                item.top_10_best.map(student => ({
-                    ...student,
-                    team_id: item.team_id,
-                    team_name: item.team_name
-                }))
-            );
-            const leastStudents = filtered.flatMap(item =>
-                item.top_10_least.map(student => ({
-                    ...student,
-                    team_id: item.team_id,
-                    team_name: item.team_name
-                }))
-            );
+            const bestStudents = filtered.flatMap(item => item.top_10_best);
+            const leastStudents = filtered.flatMap(item => item.top_10_least);
             setStudentsBest(bestStudents);
             setStudentsLeast(leastStudents);
+            console.log('без группировки studentsLeast',studentsLeast)
+            console.log('без группировки studentsBest',studentsBest)
         }
     } else {
         setFilteredData(Top_10_most_and_least);
@@ -156,6 +144,7 @@ const TopPage = () => {
         setStudentsLeast([]);
     }
 }, [selectedKR, Top_10_most_and_least, typeGroupBy, isGroupBy, selectedGroupBy]);
+
 
 
   
@@ -177,7 +166,6 @@ const TopPage = () => {
     const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
     saveAs(blob, `${filename}.xlsx`);
   };
-
 
   
   const handleDownload = () => {
@@ -259,14 +247,7 @@ const TopPage = () => {
     }
     return [];
   };  
-  
-  
-  console.log('Top_10_most_and_least',Top_10_most_and_least)
-  // console.log('token', userToken)
-  console.log('filteredData',filteredData)
-  console.log('studentsLeast',studentsLeast)
-  console.log('studentsBest',studentsBest)
-  
+ 
 
   const columnsForFiltr = [
     { title: 'ID Студента', dataIndex: 'stud_id', key: 'stud_id',
