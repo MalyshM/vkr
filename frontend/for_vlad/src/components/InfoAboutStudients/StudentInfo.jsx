@@ -5,40 +5,43 @@ import {TableContainer,Text,Flex} from '@chakra-ui/react'
 
 import { fetchWithTokenRefresh } from '../RefreshToken';
 
-const StudentInfo = ({ studentId, teamName }) => {
+const StudentInfo = ({ studentId, onTeamIdFetch  }) => {
   const [StudentInfoData, setStudentInfo] = useState(null);
 
-   useEffect(() => {
+  useEffect(() => {
     const fetchStudentInfo = async () => {
       try {
         if (studentId !== null) {
           const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_student?id_stud=${studentId}`);
           const result = await response.json();
-   
+
           // Обновляем состояние с полученными данными
           setStudentInfo(result);
+          
+          // Вызов callback-функции с team_id
+          if (result && result.length > 0 && onTeamIdFetch) {
+            onTeamIdFetch(result[0].team_id);
+          }
         }
       } catch (error) {
         console.error('Error fetching StudentInfo data:', error);
       }
     };
     fetchStudentInfo();
-  },[studentId]);
+  }, [studentId, onTeamIdFetch]);
   
-    console.log("StudentInfoData = ", StudentInfoData)
-    // console.log('Специальность:', StudentInfoData.speciality);
-    // console.log('ID студента:', StudentInfoData.id);
- 
+  console.log("StudentInfoData = ", StudentInfoData)
 
 
   return (<>
+  
   {StudentInfoData && (
     <Flex direction="column">
-        <Text fontSize={20}>Студент: {studentId}</Text>
-        <Text fontSize={20}>Подгруппа: {teamName}</Text>
+        <Text fontSize={20}>ID Студента: {studentId}</Text>
+        <Text fontSize={20}>Подгруппа: {StudentInfoData[0].team_name}</Text>
         <Text fontSize={20}>Специальность: {StudentInfoData[0].speciality}</Text>
         <Text fontSize={20}>Email студента: {StudentInfoData[0].email}</Text>
-        <Text fontSize={20}>Дата добавления: {StudentInfoData[0].date_of_add}</Text>
+        <Text fontSize={20}>Преподаватель: {StudentInfoData[0].teacher_name}</Text>
     </Flex>
   )}
 

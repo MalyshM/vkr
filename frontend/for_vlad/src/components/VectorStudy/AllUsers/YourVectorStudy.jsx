@@ -1,166 +1,129 @@
-import React, { useState,useEffect} from 'react';
-import {Checkbox, Box, Flex ,Heading,Button,  Menu, MenuButton, MenuList, MenuItem} from '@chakra-ui/react';
+import React, { useState, useEffect } from 'react';
+import { Row, Col, Select, Checkbox, Tooltip, Typography, Button, Divider } from 'antd';
+import { QuestionCircleOutlined } from '@ant-design/icons';
 import { useAuth } from '../../useAuth';
-import {Tooltip } from '@chakra-ui/react';
-import { QuestionOutlineIcon } from '@chakra-ui/icons'
 import VecStudyAllusersAtTp from './VecStudyAllusersAtTp';
-
 import { fetchWithTokenRefresh } from '../../RefreshToken';
+
+const { Title } = Typography;
+const { Option } = Select;
 
 const YourVectorStudy = () => {
     const { userToken } = useAuth();
-    const [choiseGroupSpeciality_, setChoiseGroupSpeciality] = useState(false); //для чекбокса
-    const [teachersData, setTeachers ] = useState(null); //хранит преподов по запросу 
-    const [selectedTeachers, setSelectedTeachers] = useState([]);//выбранные преподы отправляются к запросу
-    const [SpecialityData, setSpecialityData ] = useState(null);//хранит направления по запросу - чекает токен и выбранных преподов
+    const [choiseGroupSpeciality_, setChoiseGroupSpeciality] = useState(false); 
+    const [teachersData, setTeachers] = useState(null);
+    const [selectedTeachers, setSelectedTeachers] = useState([]);
+    const [SpecialityData, setSpecialityData] = useState(null);
     const [selectedSpeciality, setSelectedTSpeciality] = useState([]);
 
     useEffect(() => {
-      const fetchAllTeachersData = async () => {
-        try {
-            if (userToken!== null) {
-            const response = await fetchWithTokenRefresh (`http://moais-dashboard.ru:8082/api/get_all_teachers?token=${userToken}`);
-            const result = await response.json();
-            setTeachers(result);              
-          }
-        } catch (error) {
-          console.error('teachersData - Error fetching attendance data:', error);
-        }
-      };
-      fetchAllTeachersData();
-    },[userToken]);
+        const fetchAllTeachersData = async () => {
+            try {
+                if (userToken !== null) {
+                    const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_all_teachers?token=${userToken}`);
+                    const result = await response.json();
+                    setTeachers(result);
+                }
+            } catch (error) {
+                console.error('teachersData - Error fetching attendance data:', error);
+            }
+        };
+        fetchAllTeachersData();
+    }, [userToken]);
 
-  console.log('teachersData:', teachersData )
+    useEffect(() => {
+        const fetchAllSpecialityData = async () => {
+            try {
+                if (userToken !== null) {
+                    const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_all_specialities_by_teacher_arr?token=${userToken}&teacher_list=${selectedTeachers}`);
+                    const result = await response.json();
+                    setSpecialityData(result);
+                }
+            } catch (error) {
+                console.error('SpecialityData - Error fetching attendance data:', error);
+            }
+        };
+        fetchAllSpecialityData();
+    }, [userToken, selectedTeachers]);
 
-  
-
-  useEffect(() => {
-    const fetchAllSpecialityData = async () => {
-      try {
-          if (userToken!== null) {
-          const response = await fetchWithTokenRefresh (`http://moais-dashboard.ru:8082/api/get_all_specialities_by_teacher_arr?token=${userToken}&teacher_list=${selectedTeachers}`);
-          const result = await response.json();
-          setSpecialityData(result);              
-        }
-      } catch (error) {
-        console.error('SpecialityData - Error fetching attendance data:', error);
-      }
-    };
-    fetchAllSpecialityData();
-  },[userToken,selectedTeachers]);
-
-  // хэндл для чекбокса с группированием
-  const handleCheckboxChange = (event) => {
-    setChoiseGroupSpeciality(event.target.checked); 
+    const handleCheckboxChange = (event) => {
+        setChoiseGroupSpeciality(event.target.checked);
     };
 
+    const handleTeacherSelect = (selectedItems) => {
+        setSelectedTeachers(selectedItems);
+    };
 
-  // хэндл для выбора (чекбоксов) преподов 
-  const handleTeacherSelect = (teacherId) => {
-    if (selectedTeachers.includes(teacherId)) {
-      setSelectedTeachers(selectedTeachers.filter((id) => id !== teacherId));
-    } else {
-      setSelectedTeachers([...selectedTeachers, teacherId]);
-    }
-  };
+    const handleSpecialitySelect = (selectedItems) => {
+        setSelectedTSpeciality(selectedItems);
+    };
 
-  // хэндл для выбора (чекбоксов) направлений 
-  const handleSpecialitySelect = (spec) => {
-    if (selectedSpeciality.includes(spec)) {
-      setSelectedTSpeciality(selectedSpeciality.filter((id) => id !== spec));
-    } else {
-      setSelectedTSpeciality([...selectedSpeciality, spec]);
-    }
-  };
+    return (
+        <>
+            <Row style={{ padding: '12px', alignItems: 'center' }}>
+                <Col>
+                    <Row align="middle">
+                        <Title level={2}>Ваши направления</Title>
+                        <Tooltip title="Диаграмма отображающая медианные посещения (динамическое. В %) и успеваемость (в баллах) направлений/специальностей после КР и атестации">
+                            <QuestionCircleOutlined style={{ marginLeft: 5,marginBottom: 5, fontSize: '20px', cursor: 'pointer' }} />
+                        </Tooltip>
+                    </Row>
+                </Col>
+                
+                <Col style={{ marginLeft: '16px' }}>
+                    <Select
+                        mode="multiple"
+                        placeholder="Выбрать преподавателей"
+                        style={{ width: 240 }}
+                        onChange={handleTeacherSelect}
+                        value={selectedTeachers}
+                    >
+                        {teachersData && teachersData.map((teacher) => (
+                            <Option key={teacher.id} value={teacher.name}>
+                                {teacher.name}
+                            </Option>
+                        ))}
+                    </Select>
+                </Col>
+                
+                <Col style={{ marginLeft: '16px' }}>
+                    <Select
+                        mode="multiple"
+                        placeholder="Выбрать направление"
+                        style={{ width: 240 }}
+                        onChange={handleSpecialitySelect}
+                        value={selectedSpeciality}
+                    >
+                        {SpecialityData && SpecialityData.map((spec) => (
+                            <Option key={spec.id} value={spec.speciality}>
+                                {spec.speciality}
+                            </Option>
+                        ))}
+                    </Select>
+                </Col>
 
+                <Col style={{ marginLeft: '16px' }}>
+                    <Checkbox onChange={handleCheckboxChange} checked={choiseGroupSpeciality_}>
+                        {choiseGroupSpeciality_ ? 'Группировать по направлениям' : 'Без группировки'}
+                    </Checkbox>
+                </Col>
+                
+            </Row>
 
-  
-
-    // const onSelect = (selectedTeachers) => {
-    //   // Здесь можете сделать что-то с выбранными преподавателями
-    //   console.log('Selected teachers:', selectedTeachers);
-    // };
-
-    console.log('test SpecialityData for choose teacher: ', SpecialityData)
-
-return( 
-<>
-  <Box p={6} display="flex" justifyContent={'space-between'}>
-  <Flex direction='row' alignItems={'center'}>
-
-    <Heading as="h2" size="lg">Ваши направления</Heading>  
-      <Tooltip label="Диаграмма отображающая медианные посещения (динамическое. В %) и успеваемость (в баллах) направлений/специальностей после КР и атестации" aria-label="A tooltip">
-            <QuestionOutlineIcon ml={2} boxSize={4} cursor="pointer" />
-      </Tooltip>
-      </Flex>
-
-    <Checkbox
-      onChange={handleCheckboxChange}
-      isChecked={choiseGroupSpeciality_} // Устанавливаем значение чекбокса в соответствии с текущим состоянием
-      >
-        {choiseGroupSpeciality_ ? 'Группировать по направлениям' : 'Без группировки'}
-    </Checkbox>
-
-    <Menu closeOnSelect={false}>
-      <MenuButton as={Button} colorScheme="blue">
-        Выбрать преподавателей
-      </MenuButton>
-      <MenuList minWidth="240px">
-      {teachersData && teachersData.map((teacher) => (
-          <MenuItem key={teacher.id}>
-            <Checkbox
-              isChecked={selectedTeachers.includes(teacher.name)}
-              onChange={() => handleTeacherSelect(teacher.name)}
-            >
-              {teacher.name}
-            </Checkbox>
-          </MenuItem>
-        ))}
-      </MenuList>
-    </Menu>
-
-    <Menu closeOnSelect={false}>
-      <MenuButton as={Button} colorScheme="blue">
-        Выбрать направление
-      </MenuButton>
-      <MenuList minWidth="240px">
-      {SpecialityData && SpecialityData.map((spec) => (
-          <MenuItem key={spec.id}>
-            <Checkbox
-              isChecked={selectedSpeciality.includes(spec.speciality)}
-              onChange={() => handleSpecialitySelect(spec.speciality)}
-            >
-              {spec.speciality}
-            </Checkbox>
-          </MenuItem>
-        ))}
-      </MenuList>
-    </Menu>
-    
-    </Box>
-
-  
-
-    <Flex direction={'column'} >
-
-        <Box h={[700]}>
-            {<VecStudyAllusersAtTp 
-            tokenUsers={userToken}
-            choiseGroupSpeciality={choiseGroupSpeciality_}
-            selectedTeachers={selectedTeachers}
-            selectedSpeciality={selectedSpeciality}
-            />}
-        </Box>
-
-        {/* <Box h={[380]}>
-            {<VecStudyAllUsersTP tokenUsers={userToken}/>}
-        </Box> */}
-        
-    </Flex>
-    
-
-    </>)
-
+            <Row>
+                <Col span={24}>
+                    <div style={{ height: '700px' }}>
+                        <VecStudyAllusersAtTp
+                            tokenUsers={userToken}
+                            choiseGroupSpeciality={choiseGroupSpeciality_}
+                            selectedTeachers={selectedTeachers}
+                            selectedSpeciality={selectedSpeciality}
+                        />
+                    </div>
+                </Col>
+            </Row>
+        </>
+    );
 };
- 
+
 export default YourVectorStudy;

@@ -23,29 +23,17 @@ const MainPage = () => {
   const { id_team } = useParams();
   const notificationSentRef = useRef(false); 
 
-    
-    const fetchUserTeams = async () => {
-      if (!userToken) {
-        console.error('User token is missing');
-        return;
-      }
 
-      try {
-        const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_teams_for_user_without_lect?token=${userToken}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${userToken}`,
-          },
-        });
+  const fetchUserTeams = async () => {
+    try {
+      const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_teams_for_user_without_lect?token=${userToken}`);
+      const result = await response.json();
+      setUserTeams(result);
+      console.log('UserTeams:', result);
 
-        if (response.ok) {
-          const userTeamsData = await response.json();
-          setUserTeams(userTeamsData);
-
-           // Убедимся, что команда с id_team выбирается автоматически
+        // Убедимся, что команда с id_team выбирается автоматически
            if (id_team) {
-            const selectedTeam = userTeamsData.find((team) => team.id.toString() === id_team);
+            const selectedTeam = result.find((team) => team.id.toString() === id_team);
             if (selectedTeam) {
               setSelectedTeam(selectedTeam.id);
               setSelectedTeamName(selectedTeam.name);
@@ -57,16 +45,43 @@ const MainPage = () => {
               });
             }
           }
-        } else {
-          console.error('Failed to fetch user teams data');
-        }
-      } catch (error) {
-        console.error('Error during fetch user teams data:', error);
-      }
-    };
-    if (userToken) {
-      fetchUserTeams();
+
+  } catch (error) {
+      console.error('Error fetching data from UserTeams:', error);
     }
+  };
+    
+    // const fetchUserTeamsd = async () => {
+    //   if (!userToken) {
+    //     console.error('User token is missing');
+    //     return;
+    //   }
+
+    //   try {
+    //     const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_teams_for_user_without_lect?token=${userToken}`, {
+    //       method: 'GET',
+    //       headers: {
+    //         'Content-Type': 'application/json',
+    //         'Authorization': `Bearer ${userToken}`,
+    //       },
+    //     });
+
+    //     if (response.ok) {
+    //       const data = await response.json();
+    //       setUserTeams(data);
+
+         
+    //     } else {
+    //       console.error('Failed to fetch user teams data');
+    //     }
+    //   } catch (error) {
+    //     console.error('Error during fetch user teams data:', error);
+    //   }
+    // };
+
+    // if (userToken) {
+    //   fetchUserTeams();
+    // }
 
     useEffect(() => {
       fetchUserTeams();
@@ -94,11 +109,12 @@ const MainPage = () => {
   // }, [id_team, userTeams]);
 
   
-  useEffect(() => {
+  useEffect(() => { // оповещение выбрать группу
     if (!selectedTeam && !id_team && !notificationSentRef.current) {
       notification.info({
         message: 'Выбор группы',
         description: 'Пожалуйста, выберите группу из списка.',
+        duration: 2,
       });
     }
   }, [selectedTeam, id_team]);
@@ -116,6 +132,8 @@ const MainPage = () => {
   const handleLessonSelect = (lesson) => {
     setSelectedLessonMainPage(lesson);
   };
+
+console.log('userTeams',userTeams)
 
   return (
     <Flex direction="column" minHeight="90vh">

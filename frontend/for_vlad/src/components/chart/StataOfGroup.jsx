@@ -42,7 +42,7 @@ const StataOfGroup = ({teamId,teamName}) => {
         datasets: [
           {
             data: stataOfGroupData.map(item => item.percent),
-            backgroundColor: ['#BB1B1B', '#EC5500', '#FFE81B', '#7DC702'],
+            backgroundColor: ['#BB1B1B', '#7DC702', '#EC5500', '#FFE81B'],
           },
         ],
       };

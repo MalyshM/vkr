@@ -57,7 +57,7 @@ const handleButtonClick = (sortType) => {
       const clickedElement = elements[0];
       const dataIndex = clickedElement.index;
       const studentId = attendanceTotalPointsData[dataIndex]?.stud_id;
-      navigate (`/student/${studentId}/${teamId}/${teamName}`);
+      navigate (`/student/${studentId}`);
     }
   };
 

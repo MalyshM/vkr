@@ -1,9 +1,48 @@
 /* styles.css */
-.nav-link:hover {
+
+/* .nav-link:hover {
     color: black !important;
+  } */
+  
+  /* .ant-btn-link:hover {
+    background-color: transparent !important;
+  } */
+
+  .custom-segmented .ant-segmented-item {
+    color: white;
+    font-size: medium
   }
   
-  .ant-btn-link:hover {
-    background-color: transparent !important;
+  .custom-segmented .ant-segmented-item-selected {
+    color: black;
+    background-color: white;
+    font-size: medium
   }
+  
+  .logout {
+    transition: background-color 0.3s ease;
+  }
+  
+  /* CSS для всех сегментов */
+.ant-segmented-item {
+  transition: background-color 0.3s ease;
+}
+
+/* CSS для конкретного сегмента "Выход" */
+.ant-segmented-item:last-child:hover {
+  background-color: red ;
+  color: white ; /* Для лучшей видимости текста на красном фоне */
+}
+
+
+
+  
+  
+  
+
+  .half-screen-height {
+    height: 40vh; /* Высота в половину экрана */
+}
+
+  
   

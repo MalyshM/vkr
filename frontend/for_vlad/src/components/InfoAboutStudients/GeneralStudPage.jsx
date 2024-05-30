@@ -13,12 +13,16 @@ import StudentInfo from './StudentInfo'
 
 const GeneralStudPage = () => {
 
-  const { studentId, teamId, userTeams,teamName } = useParams();
+  const { studentId, teamName } = useParams();
   const [attendanceData, setAttendanceData] = useState(null);
   const [attendanceDynamicData, setAttendanceDynamicData] = useState(null);
   const [attendanceStaticData, setAttendanceStaticData] = useState(null);
   const [isTest, setIsTest] = useState(false);
+  const [teamId, setTeamId] = useState(null);
 
+  const handleTeamIdFetch = (teamId) => {
+    setTeamId(teamId);
+  };
 
 
   useEffect(() => {
@@ -348,7 +352,7 @@ const GeneralStudPage = () => {
 
               <Flex mt={14} direction="column" alignItems="center" justifyContent="center">
                   <Avatar size="2xl" src="https://bit.ly/broken-link" mr={5} />
-                  {studentId && <StudentInfo studentId={studentId} teamName={teamName} />}
+                  {studentId && <StudentInfo studentId={studentId} onTeamIdFetch={handleTeamIdFetch} />}
                 </Flex>
               </Box>
 
