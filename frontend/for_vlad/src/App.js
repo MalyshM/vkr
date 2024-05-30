@@ -24,6 +24,8 @@ import ScaterPlotPage from './components/Scatter_Plot/ScaterPlotPage';
 
 import TopsPage from './components/Tops/TopsPage'; 
 import TopsTeam from './components/Tops/TopsTeam';
+import LeastPage from './components/Tops/Least';
+
 
 function App() {
 
@@ -42,7 +44,8 @@ function App() {
         <Route path="/main/*" element={<MainPage />} />
         {/* <Route path={"/main/:teamId/:teamName"} element={<MainPage />} /> */}
         <Route path="/match2team" element={<MatchToTeamPage />} />
-        <Route path={"/student/:studentId/:teamId/:teamName"} element={<GeneralStudPage />} />
+        {/* <Route path={"/student/:studentId/:teamId/:teamName"} element={<GeneralStudPage />} /> */}
+        <Route path={"/student/:studentId"} element={<GeneralStudPage />} />
         <Route path="/match2team_vectorstudy" element={<MatchTwoTeamVectorStudy/>} />
         <Route path="/your_group" element={<YourGroup/>} />
         <Route path="/your_vectorstudy" element={<YourVectorStudy/>} />
@@ -50,6 +53,8 @@ function App() {
         <Route path="/scater_plot" element={<ScaterPlotPage/>}/>
         <Route path='/tops_stud' element={<TopsPage/>}/>
         <Route path='/tops_team' element={<TopsTeam/>}/>
+        <Route path='/least' element={<LeastPage/>}/>
+
 
       </Routes>
       </NumberItemsProvider>

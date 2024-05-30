@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Button, Layout, Menu, Dropdown, Typography, Space } from 'antd';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Button, Layout, Menu, Dropdown, Typography, Space, Segmented } from 'antd';
 import { QuestionOutlined } from '@ant-design/icons';
 import ExportData from './ExportData';
 import '.././thems/style.css';
-import { FileTextOutlined } from '@ant-design/icons';
+import { HomeOutlined, TrophyOutlined, TeamOutlined, MehOutlined, AreaChartOutlined, GroupOutlined, AimOutlined, DotChartOutlined, LogoutOutlined, FileTextOutlined } from '@ant-design/icons';
 
 const { Header } = Layout;
 const { Text } = Typography;
@@ -13,6 +13,7 @@ const CustomHeader = () => {
   const location = useLocation();
   const currentPath = location.pathname;
   const [currentDate, setCurrentDate] = useState(new Date());
+  const navigate = useNavigate();
 
   const [exportDataVisible, setExportDataVisible] = useState(false);
 
@@ -25,6 +26,9 @@ const CustomHeader = () => {
     setExportDataVisible(false);
   };
 
+  const handleSegmentChange = (value) => {
+    navigate(value);
+  };
 
   useEffect(() => {
     // Обновляем текущую дату каждый час
@@ -49,78 +53,41 @@ const CustomHeader = () => {
     return null;
   }
 
-  const menu = (
-    <Menu>
-      <Menu.Item key="1">
-        <Link to="/your_group">Ваши группы</Link>
-      </Menu.Item>
-      <Menu.Item key="2" disabled>
-        <Link to="/match2team">Сравнение по группам</Link>
-      </Menu.Item>
-      <Menu.Item key="3">
-        <Link to="/your_vectorstudy">Ваши направления</Link>
-      </Menu.Item>
-      <Menu.Item key="4" disabled>
-        <Link to="/match2team_vectorstudy">Сравнение по направлениям</Link>
-      </Menu.Item>
-    </Menu>
-  );
-
-  const menuTops = (
-    <Menu>
-      <Menu.Item key="1">
-        <Link to="/tops_stud">Ученики</Link>
-      </Menu.Item>
-
-      <Menu.Item key="2">
-        <Link to="/tops_team">Группы</Link>
-      </Menu.Item>
+return (
+  <Header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#00aeef' }}>
+    {/* <Text strong style={{ color: 'white' }}>
+      Данные актуальны на {formatDate(currentDate)}
+    </Text> */}
+    <Space>
       
-    </Menu>
-  );
 
-  return (
-    <Header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#00aeef' }}>
-      <Text strong style={{ color: 'white' }}>
-        Данные актуальны на {formatDate(currentDate)}
-      </Text>
-      <Space>
+      <Segmented
+        options={[
+          { label: <><HomeOutlined /> Главная</>, value: '/main' },
+          { label: <><TrophyOutlined /> Топы студентов</>, value: '/tops_stud' },
+          { label: <><TeamOutlined /> Топы команд</>, value: '/tops_team' },
+          { label: <><MehOutlined /> Отстающие</>, value: '/least' },
+          { label: <><AreaChartOutlined /> Анализ КР</>, value: '/analys_kr' },
+          { label: <><GroupOutlined /> Ваши группы</>, value: '/your_group' },
+          { label: <><AimOutlined /> Ваши направления</>, value: '/your_vectorstudy' },
+          { label: <><DotChartOutlined /> Диаграмма рассеяния</>, value: '/scater_plot' },
+          { label: <><LogoutOutlined className="logout-icon" /> Выход</>, value: '/' },
+        ]}
+        onChange={handleSegmentChange}
+        defaultValue={currentPath}
+        className="custom-segmented"
+        style={{ backgroundColor: '#00aeef' }}
+      />
 
-      <Button icon={<FileTextOutlined />} style={{backgroundColor: '#58c622'}} className="nav-link" type="primary" onClick={handleOpenExportDataModal}>
+    </Space>
+    
+    <Button icon={<FileTextOutlined />} style={{ backgroundColor: '#58c622' }} className="nav-link" type="primary" onClick={handleOpenExportDataModal}>
         Экспорт данных
       </Button>
 
       <ExportData visible={exportDataVisible} onClose={handleCloseExportDataModal} />
-
-
-        <Button type="link">
-          <Link to="/main" style={{ color: 'white', textDecoration: 'none' }} className="nav-link">Главная</Link>
-        </Button>
-        
-        <Dropdown overlay={menuTops} placement="bottomCenter">
-          <Button type="link" style={{ color: 'white' }} className="nav-link">Топы</Button>
-        </Dropdown>
-
-        <Button type="link">
-          <Link to="/analys_kr" style={{ color: 'white', textDecoration: 'none' }} className="nav-link">Анализ КР</Link>
-        </Button>
-
-        <Dropdown overlay={menu} placement="bottomCenter">
-          <Button type="link" style={{ color: 'white' }} className="nav-link">Группы/Направления</Button>
-        </Dropdown>
-
-        <Button type="link">
-          <Link to="/scater_plot" style={{ color: 'white', textDecoration: 'none' }} className="nav-link">Диаграмма рассеяния</Link>
-        </Button>
-
-        <Button type="link">
-          <Link to="/" style={{ color: 'white', textDecoration: 'none' }} className="nav-link">Выход</Link>
-        </Button>
-        
-      </Space>
-    </Header>
-  );
+  </Header>
+);
 };
-
 
 export default CustomHeader;

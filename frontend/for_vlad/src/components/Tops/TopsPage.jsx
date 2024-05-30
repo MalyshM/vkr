@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useRef } from 'react';
 import { Select, Table, Typography, Cascader, Spin,Button} from 'antd';
 import { useAuth } from '../useAuth';
 import {fetchWithTokenRefresh} from '../RefreshToken'
 import { useNavigate } from 'react-router-dom';
+import { Tooltip } from 'antd';
 
 import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
@@ -13,6 +14,7 @@ const { Title } = Typography;
 const TopPage = () => {
   const { userToken } = useAuth();
   const navigate = useNavigate();
+  const fetchTimer = useRef(null);
 
   const [isGroupBy, setIsGroupBy] = useState(null);
   const [isByMark, setIsByMark] = useState(null);
@@ -36,7 +38,6 @@ const TopPage = () => {
   const [options_, setOptions] = useState([]);
 
   const [loading, setLoading] = useState(false); // Состояние загрузки
-  const [data, setData] = useState([]); // Данные для Select
   const [selectedGroupBy, setSelectedGroupBy] = useState(null);
 
   const [studentsBest, setStudentsBest] = useState(null)
@@ -53,7 +54,7 @@ const TopPage = () => {
         is_group_by: isGroupBy,
       });
   
-      if (isGroupBy === true && typeGroupBy !== null) {
+      if (isGroupBy === true) {
         params.append('type_group_by', typeGroupBy);
       }
       if (SelectedTeacher && SelectedTeacher.length > 0) {
@@ -66,7 +67,6 @@ const TopPage = () => {
         params.append('team_list', SelectedTeam.join(','));
       }
       
-      // console.log('Request URL:', `http://moais-dashboard.ru:8082/api/top_10_most_and_least_studs?${params.toString()}`);
   
       const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/top_10_most_and_least_studs?${params.toString()}`);
   
@@ -75,9 +75,44 @@ const TopPage = () => {
       }
       
       const data = await response.json();
-      setData(data); 
+       
       setTop_10_most_and_least(data);    
-      setFilteredData(data);
+      // setFilteredData(data);
+
+      const updatedTop10 = data.map(group => {
+        const updatedTop10best = (group.top_10_best || []).map(item => ({
+            ...item,
+            name: group.name,
+            teacher_name: group.teacher_name,
+            team_name: group.team_name,
+            lesson_counter: group.lesson_counter,
+            speciality: group.speciality,
+
+        }));
+        const updatedTop10least = (group.top_10_least || []).map(item => ({
+          ...item,
+          name: group.name,
+          teacher_name: group.teacher_name,
+          team_name: group.team_name,
+          lesson_counter: group.lesson_counter,
+          speciality: group.speciality,
+      }));
+        return {
+            ...group,
+            top_10_best: updatedTop10best,
+            top_10_least: updatedTop10least,
+        };
+        
+    });
+    
+
+    if (selectedKR) {
+      setStudentsBest(updatedTop10.filter(item => item.name === selectedKR));
+      setStudentsLeast(updatedTop10.filter(item => item.name === selectedKR));
+  } else {
+      setStudentsBest(updatedTop10);
+      setStudentsLeast(updatedTop10);
+  }
 
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -87,10 +122,65 @@ const TopPage = () => {
     console.log('Top_10_most_and_least',Top_10_most_and_least)
 
   };
+  console.log("studentsBest", studentsBest)
+  console.log("studentsLeast", studentsLeast)
+
+  const fetchTeam = async () => {
+    try {
+        const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_teams_for_user_without_lect?token=${userToken}`);
+        const result = await response.json();
+        SetTeamData(result);
+      console.log('fetchTeamForTeacher:', result);
+    } catch (error) {
+        console.error('Error fetching data from fetchTeamForTeacher:', error);
+    }
+    };
+
+    const fetchTeacher = async () => {
+        try {
+          const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_all_teachers_unique?token=${userToken}`);
+          const result = await response.json();
+          SetTeacherData(result);
+          console.log('fetchTeacher:', result);
+      } catch (error) {
+          console.error('Error fetching data from fetchTeacher:', error);
+        }
+      };
+
+      const fetchSpeciality = async () => {
+        try {
+          const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_all_specialities?token=${userToken}`);
+          const result = await response.json();
+          SetSpecialityData(result);
+          console.log('fetchSpecialityForTeacher:', result);
+      } catch (error) {
+          console.error('Error fetching data from fetchSpecialityForTeacher:', error);
+        }
+      };
 
   useEffect(() => { //request get students table
-    fetch_Top_10_most_and_least();
-  }, [isGroupBy, isByMark, typeGroupBy, TeacherData, SpecialityData, TeamData]);
+    if (userToken && isGroupBy){
+    fetch_Top_10_most_and_least();}
+  }, [isGroupBy, isByMark, typeGroupBy, SelectedTeacher, SelectedSpeciality, SelectedTeam, selectedKR]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+        fetchTeam();
+        fetchTeacher();
+        fetchSpeciality();
+    }
+if (userToken) {fetchData();} }, [userToken]);
+
+
+  useEffect(() => { // limit requests
+    if (userToken) {
+        if (fetchTimer.current) {
+            clearTimeout(fetchTimer.current);
+        }
+        fetchTimer.current = setTimeout(fetch_Top_10_most_and_least, 1000); // Limit requests to once per second
+    }
+    return () => clearTimeout(fetchTimer.current); // Cleanup on unmount or dependency change
+}, [isGroupBy, isByMark, typeGroupBy, SelectedTeacher, SelectedSpeciality, SelectedTeam, userToken]);
 
 
   useEffect(() => { // condition for show kr name
@@ -98,56 +188,29 @@ const TopPage = () => {
       const names = Top_10_most_and_least.map(item => item.name);
       const uniqueNames = [...new Set(names)];
       setUniqueKRNames(uniqueNames);
+      console.log('uniqueKRNames',uniqueKRNames)
     }
   }, [Top_10_most_and_least]);
 
 
-  useEffect(() => {
+  useEffect(() => { // condition for update table - if changes KR
     if (selectedKR) {
-        const filtered = Top_10_most_and_least.filter(item => item.name === selectedKR);
-        console.log('filtered',filtered)
-
-        setFilteredData(filtered);
-
-        setOptions(createGroupByOptions(filtered, typeGroupBy));
-
-        if (isGroupBy) {
-            if (selectedGroupBy && selectedGroupBy.length > 0) {
-              console.log('selectedGroupBy',selectedGroupBy)
-
-                const [id, subType] = selectedGroupBy;
-                const selectedItem = filtered.find(item =>
-                    item.team_id === id || item.speciality === id || item.teacher_id === id
-                );
-
-                if (selectedItem) {
-                    setStudentsBest(selectedItem.top_10_best);
-                    setStudentsLeast(selectedItem.top_10_least);
-                    console.log('с группировкой studentsLeast',studentsLeast)
-                    console.log('с группировкой studentsBest',studentsBest)
-                } else {
-                    setStudentsBest([]);
-                    setStudentsLeast([]);
-                }
-            } 
-        } else {
-            const bestStudents = filtered.flatMap(item => item.top_10_best);
-            const leastStudents = filtered.flatMap(item => item.top_10_least);
-            setStudentsBest(bestStudents);
-            setStudentsLeast(leastStudents);
-            console.log('без группировки studentsLeast',studentsLeast)
-            console.log('без группировки studentsBest',studentsBest)
-        }
+        setFilteredData(Top_10_most_and_least.filter(item => item.name === selectedKR));
     } else {
         setFilteredData(Top_10_most_and_least);
-        setStudentsBest([]);
-        setStudentsLeast([]);
     }
-}, [selectedKR, Top_10_most_and_least, typeGroupBy, isGroupBy, selectedGroupBy]);
+    console.log('UPDATE TABLE - CJOISE OTHER KR')
+    console.log('FilteredData',filteredData)
+}, [selectedKR, Top_10_most_and_least]);
 
 
+useEffect(() => {
+  if (Top_10_most_and_least && Top_10_most_and_least.length > 0) {
+    const options = createGroupByOptions(Top_10_most_and_least, typeGroupBy);
+    setOptions(options);
+  }
+}, [Top_10_most_and_least, typeGroupBy]);
 
-  
 
   const exportToExcel = (bestData, leastData, allData, filename) => {
     const workbook = XLSX.utils.book_new();
@@ -167,6 +230,20 @@ const TopPage = () => {
     saveAs(blob, `${filename}.xlsx`);
   };
 
+  const handleChangeTeam = (value) => {
+    const teamValues = Array.isArray(value) ? value.map(v => v.toString()) : [value.toString()];
+    setSelectedTeam(teamValues);
+  };
+
+  const handleChangeTeacher = (value) => {
+    const teacherValues = Array.isArray(value) ? value.map(v => v.toString()) : [value.toString()];
+    setSelectedTeacher(teacherValues);
+};
+
+const handleChangeSpeciality = (value) => {
+    const specialityValues = Array.isArray(value) ? value.map(v => v.toString()) : [value.toString()];
+    setSelectedSpeciality(specialityValues);
+};
   
   const handleDownload = () => {
     if (isGroupBy) {
@@ -177,83 +254,93 @@ const TopPage = () => {
   };
 
   
-  const handleGroupByChange = (value) => {
-    setSelectedGroupBy(value); 
-    if (!value) {
-      setStudentsBest([]);
-      setStudentsLeast([]);
-      return;
-    }
-  
-    const selectedItem = filteredData.find(item => 
-      item.team_id === value || item.speciality === value || item.teacher_id === value
-    );
+    // const handleGroupByChange = (value) => {
+    //   setSelectedGroupBy(value);
     
-    if (selectedItem) {
-      // Добавляем teacher_name к top_10_best и top_10_least
-      const studentsBestWithTeacher = selectedItem.top_10_best.map(student => ({
-        ...student,
-        teacher_name: selectedItem.teacher_name
-      }));
-      const studentsLeastWithTeacher = selectedItem.top_10_least.map(student => ({
-        ...student,
-        teacher_name: selectedItem.teacher_name
-      }));
-  
-      setStudentsBest(studentsBestWithTeacher);
-      setStudentsLeast(studentsLeastWithTeacher);
-    } else {
-      setStudentsBest([]);
-      setStudentsLeast([]);
-    }
+    //   if (!value) {
+    //     setStudentsBest([]);
+    //     setStudentsLeast([]);
+    //     return;
+    //   }
     
-  };
+    //   if (Top_10_most_and_least) {
+    //     const filteredData = Top_10_most_and_least.filter(item =>
+    //       item.team_id === value || item.speciality === value || item.teacher_id === value
+    //     );
+      
+    
+    //   const studentsBest = filteredData.flatMap(item => item.top_10_best || []);
+    //   const studentsLeast = filteredData.flatMap(item => item.top_10_least || []);
+    
+    //   setStudentsBest(studentsBest);
+    //   setStudentsLeast(studentsLeast);
+    //   }
+    // };
   
-  const handleKRChange = (value) => {
+ 
+  const handleKRChange = (value) => { // condition - 
     setSelectedKR(value);
+    if (value) {
+      setFilteredData(Top_10_most_and_least.filter(item => item.name === value));
+    } else {
+      setFilteredData(Top_10_most_and_least);
+    }
+    console.log('CHANGES KR')
   };
-  
-  const handleKRClear = () => {
-    setSelectedKR(null);
-    setStudentsBest([]);
-    setStudentsLeast([]);
-    setFilteredData(Top_10_most_and_least); 
-    setOptions(createGroupByOptions(Top_10_most_and_least, typeGroupBy));
-  };
+
+ 
   
 
+ 
   const createGroupByOptions = (data, typeGroupBy) => {
+    const uniqueSet = new Set();
     if (typeGroupBy === 0) { // По командам
       return data
         .filter(item => item.team_id)
         .map(item => ({
           value: item.team_id,
           label: item.team_name,
-        }));
+        }))
+        .filter(option => {
+          if (uniqueSet.has(option.value)) return false;
+          uniqueSet.add(option.value);
+          return true;
+        });
     } else if (typeGroupBy === 1) { // По направлениям
       return data
         .filter(item => item.speciality)
         .map(item => ({
           value: item.speciality,
           label: item.speciality,
-        }));
+        }))
+        .filter(option => {
+          if (uniqueSet.has(option.value)) return false;
+          uniqueSet.add(option.value);
+          return true;
+        });
     } else if (typeGroupBy === 2) { // По преподавателям
       return data
         .filter(item => item.teacher_id)
         .map(item => ({
           value: item.teacher_id,
           label: item.teacher_name,
-        }));
+        }))
+        .filter(option => {
+          if (uniqueSet.has(option.value)) return false;
+          uniqueSet.add(option.value);
+          return true;
+        });
     }
     return [];
-  };  
- 
+  };
+  
+
 
   const columnsForFiltr = [
     { title: 'ID Студента', dataIndex: 'stud_id', key: 'stud_id',
     render: (text, record) => (
       <a
-          onClick={() => navigate(`/student/${record.stud_id}/${record.team_id}/${encodeURIComponent(record.team_name)}`)}
+          onClick={() => navigate(`/student/${record.stud_id}`)}
       >
         {text}
       </a>
@@ -269,7 +356,7 @@ const TopPage = () => {
     { title: 'ID Студента', dataIndex: 'stud_id', key: 'stud_id',
     render: (text, record) => (
       <a
-        onClick={() => navigate(`/student/${record.stud_id}/${record.team_id}/${encodeURIComponent(record.team_name)}`)}
+        onClick={() => navigate(`/student/${record.stud_id}`)}
       >
         {text}
       </a>
@@ -277,6 +364,19 @@ const TopPage = () => {
      },
     { title: 'Успеваемость (баллы)', dataIndex: 'Успеваемость', key: 'marks' },
     { title: 'Посещаемость (макс 22)', dataIndex: 'Посещаемость', key: 'attendance' },
+    { title: 'Контрольная точка', dataIndex: 'name', key: 'name' },
+    { title: 'Количество занятий', dataIndex: 'lesson_counter', key: 'lesson_counter' },
+  ];
+
+  const columnsForStudentsWithTeacherAndTeam = [
+    ...columnsForStudents,
+    { title: 'Преподаватель', dataIndex: 'teacher_name', key: 'teacher_name' }, // Add teacher_name column
+    { title: 'Группа', dataIndex: 'team_name', key: 'team_name' }, 
+  ];
+
+  const columnsForStudentsWithSpeciality = [
+    ...columnsForStudents,
+    { title: 'Направление', dataIndex: 'speciality', key: 'speciality' }, 
   ];
 
   const columnsForStudentsWithTeacher = [
@@ -305,7 +405,9 @@ const TopPage = () => {
         <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', margin: '10px 0' }}>
           <Title level={2} style={{ margin: 0 }}>Топ учеников</Title>
 
+          <Tooltip title="Укажите режим">
           <Select
+          allowClear
             style={{ width: 200 }}
             placeholder="Группировать? *"
             value={isGroupBy}
@@ -314,8 +416,11 @@ const TopPage = () => {
             <Option value={true}>С группировкой</Option>
             <Option value={false}>Без группировки</Option>
           </Select>
+          </Tooltip>
 
+          <Tooltip title="Укажите тип сортировки">
           <Select
+          allowClear
             style={{ width: 200 }}
             placeholder="Сортировать по *"
             value={isByMark}
@@ -324,9 +429,11 @@ const TopPage = () => {
             <Option value={true}>Успеваемость</Option>
             <Option value={false}>Посещаемость</Option>
           </Select>
+          </Tooltip>
 
-          {isGroupBy && (
+          <Tooltip title="Укажите тип, если группируете">
             <Select
+            allowClear
               style={{ width: 200 }}
               placeholder="Тип группировки *"
               value={typeGroupBy}
@@ -336,14 +443,14 @@ const TopPage = () => {
               <Option value={1}>По направлениям</Option>
               <Option value={2}>По преподавателям</Option>
             </Select>
-          )}
+          </Tooltip>
 
+          <Tooltip title="Укажите контрольную точку для отсеивания друих">
           <Select
             style={{ width: 200 }}
             placeholder="Контрольная точка *"
             value={selectedKR}
             onChange={handleKRChange}
-            onClear={handleKRClear}
             allowClear
           >
             {uniqueKRNames.map(name => (
@@ -352,34 +459,107 @@ const TopPage = () => {
               </Option>
             ))}
           </Select>
+          </Tooltip>
 
-          {isGroupBy && (
+
+          <Tooltip title="Укажите желаемые учебные групыы">
+          <Select
+            mode="multiple"
+            allowClear
+            style={{ width: 200 }}
+            placeholder="Выберите группу"
+            onChange={handleChangeTeam}
+            >
+              {TeamData && TeamData.map(team => (
+                  <Option key={team.id} value={team.id}>
+                      {team.name}
+                  </Option>
+              ))} 
+            </Select>
+            </Tooltip>
+    
+
+            <Tooltip title="Укажите желаемые направления">
             <Select
-              style={{ width: 300 }}
-              options={options_}
-              onChange={handleGroupByChange}
-              placeholder="Группа/направление/преподаватель"
-              allowClear
-            />
-          )}
-          <Button style={{background: "green", color: "white"}} onClick={handleDownload}>Скачать данные</Button>
+            mode="multiple"
+            allowClear
+            style={{ width: 280 }}
+            placeholder="Выберите направление"
+            onChange={handleChangeSpeciality}
+            >
+                  {SpecialityData && SpecialityData.map(spec => (
+              <Option key={spec.speciality} value={spec.peciality}>
+                  {spec.peciality}
+              </Option>
+            ))} 
+            </Select>
+            </Tooltip>
+    
+            <Tooltip title="Укажите желаемых преподавателей">
+            <Select
+          mode="multiple"
+          allowClear
+          style={{ width: 280 }}
+          placeholder="Выберите преподавателя"
+          onChange={handleChangeTeacher}
+            >
+                 {TeacherData && TeacherData.map((teacher, index) => (
+            <Option key={`${teacher.id}-${index}`} value={teacher.name}> 
+                {teacher.name}
+            </Option>
+        ))}
+        </Select>
+        </Tooltip>
+
+          {/* <Button style={{background: "green", color: "white"}} onClick={handleDownload}>Скачать данные</Button> */}
+
         </div>
 
         {isGroupBy ? (
           <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: 20 }}>
-            <Table
-              dataSource={studentsBest}
-              columns={typeGroupBy === 0 ? columnsForStudentsWithTeacher : columnsForStudents}
-              rowKey="stud_id"
-              title={() => 'Топ 10 преуспевающих'}
-            />
-            <Table
-              dataSource={studentsLeast}
-              columns={typeGroupBy === 0 ? columnsForStudentsWithTeacher : columnsForStudents}
-              rowKey="stud_id"
-              title={() => 'Топ 10 отстающих'}
-            />
-          </div>
+          <Table
+          // dataSource={(studentsBest || []).flatMap(group => group.top_10_best.map((item, i) => ({
+            dataSource={studentsBest && studentsBest.flatMap(group => group.top_10_best.map((item, i) => ({
+              ...item,
+              key: i,
+              Успеваемость: item.Успеваемость,
+              Посещаемость: item.Посещаемость,
+              stud_id: item.stud_id,
+              name: item.name,
+              lesson_counter: item.lesson_counter,
+              teacher_name: group.teacher_name,
+              team_name: group.team_name,
+            })))}
+            columns={typeGroupBy === 0 ? columnsForStudentsWithTeacherAndTeam :
+              typeGroupBy === 1 ? columnsForStudentsWithSpeciality :
+              columnsForStudentsWithTeacher
+              }
+            
+            rowKey="stud_id"
+            title={() => 'Топ 10 преуспевающих'}
+          />
+          <Table
+              // dataSource={(studentsLeast || []).flatMap(group => group.top_10_least.map((item, i) => ({
+                dataSource={studentsLeast && studentsLeast.flatMap(group => group.top_10_least.map((item, i) => ({
+              ...item,
+              key: i,
+              Успеваемость: item.Успеваемость,
+              Посещаемость: item.Посещаемость,
+              stud_id: item.stud_id,
+              name: item.name,
+              lesson_counter: item.lesson_counter,
+              teacher_name: group.teacher_name,
+              team_name: group.team_name,
+            })))}
+            columns={typeGroupBy === 0 ? columnsForStudentsWithTeacherAndTeam :
+              typeGroupBy === 1 ? columnsForStudentsWithSpeciality :
+              columnsForStudentsWithTeacher
+              }
+            rowKey="stud_id"
+            title={() => 'Топ 10 отстающих'}
+          />
+        </div>
+        
         ) : (
           <div style={{ display: 'flex', justifyContent: 'space-around', gap: '20px', marginTop: 20 }}>
             <Table
@@ -401,40 +581,4 @@ const TopPage = () => {
   </>
 )}
 
-export default TopPage;
-
-
-      {/* <Select
-        mode="multiple"
-        style={{ width: 200, marginLeft: 10 }}
-        placeholder="Выберите преподавателей"
-        value={TeacherData}
-        onChange={value => SetTeacherData(value)}
-      >
-        <Option value="teacher1">Преподаватель 1</Option>
-        <Option value="teacher2">Преподаватель 2</Option>
-      </Select>
-      
-      <Select
-        mode="multiple"
-        style={{ width: 200, marginLeft: 10 }}
-        placeholder="Выберите направления"
-        value={SpecialityData}
-        onChange={value => SetSpecialityData(value)}
-      >
-        <Option value="speciality1">Направление 1</Option>
-        <Option value="speciality2">Направление 2</Option>
-      </Select>
-
-      <Select
-        mode="multiple"
-        style={{ width: 200, marginLeft: 10 }}
-        placeholder="Выберите группы"
-        value={TeamData}
-        onChange={value => SetTeamData(value)}
-      >
-        <Option value="team1">Группа 1</Option>
-        <Option value="team2">Группа 2</Option>
-      </Select> */}
-
-     
+export default TopPage;   

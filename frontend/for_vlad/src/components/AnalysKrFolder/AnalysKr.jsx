@@ -1,32 +1,30 @@
-import React, { useState,useEffect} from 'react';
-import { Box, Flex, Select ,Heading,Checkbox,MenuItem,MenuList,Button,MenuButton,Menu} from '@chakra-ui/react';
+import React, { useState, useEffect } from 'react';
+import { Typography, Row, Col, Select, Checkbox, Menu, Dropdown, Button, Tooltip } from 'antd';
+import { QuestionCircleOutlined } from '@ant-design/icons';
 import { useAuth } from '../useAuth';
 import { fetchWithTokenRefresh } from '../RefreshToken';
-import AnalysKrSimple from './AnalysKrSimple'
-import AnalysKrFiltres from './AnalysKrFiltres'
-import {Tooltip } from '@chakra-ui/react';
-import { QuestionOutlineIcon } from '@chakra-ui/icons'
+import AnalysKrSimple from './AnalysKrSimple';
+import AnalysKrFiltres from './AnalysKrFiltres';
+import { Center } from '@chakra-ui/react';
+
+const { Title } = Typography;
+const { Option } = Select;
+
 const AnalysRr = () => {
     const { userToken } = useAuth();
 
-    //team
     const [TeamData, setTeam] = useState(null);
     const [SelectedTeam, setSelectedTeam] = useState([]);
-    const [TeamsForSelectedTeacher, setTeamsForSelectedTeacher] = useState(null) //storage teams for selected teacher
-    const [TeamsForSelectedSpeciality, setTeamsForSelectedSpeciality] = useState(null); //storage arr teams of choise speciality
+    const [TeamsForSelectedTeacher, setTeamsForSelectedTeacher] = useState(null);
+    const [TeamsForSelectedSpeciality, setTeamsForSelectedSpeciality] = useState(null);
 
-
-    //teacher
     const [SelectedTeacher, setSelectedTeacher] = useState([]);
     const [TeacherData, setNameTeachers] = useState(null);
-    const [TeachersForSelectedSpeciality, setTeachersForSelectedSpeciality] = useState(null); //storage arr teachers of choise speciality
+    const [TeachersForSelectedSpeciality, setTeachersForSelectedSpeciality] = useState(null);
 
-    //spec
     const [SpecialityData, setSpeciality] = useState(null);
     const [SelectedSpeciality, setSelectedSpeciality] = useState([]);
-    const [SpecialityForSelectedTeacher, setSpecialityForSelectedTeacher] = useState(null) //storage speciality for selected teacher
-
-    //other
+    const [SpecialityForSelectedTeacher, setSpecialityForSelectedTeacher] = useState(null);
 
     const [selectedKRSimple, setSelectedKRSimple] = useState(null);
     const [KRSimple, setKRSimple] = useState(null);
@@ -37,399 +35,337 @@ const AnalysRr = () => {
     const [selectedModeSimple, setSelectedModeSimple] = useState(null);
     const [selectedModeFiltr, setSelectedModeFiltr] = useState(null);
 
+    const fetchNameKR = async () => {
+        try {
+            const response = await fetchWithTokenRefresh('http://moais-dashboard.ru:8082/api/get_all_kr');
+            const result = await response.json();
+            setKRSimple(result);
+            setKRFiltr(result);
+            console.log('Data from fetchNameKR:', result);
+        } catch (error) {
+            console.error('Error fetching data from fetchNameKR:', error);
+        }
+    };
 
+    const fetchAllTeachers = async () => {
+        try {
+            const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_all_teachers?token=${userToken}`);
+            const result = await response.json();
+            setNameTeachers(result);
+            console.log('Data from fetchAllTeachers:', result);
+        } catch (error) {
+            console.error('Error fetching data from fetchAllTeachers:', error);
+        }
+    };
 
+    const fetchAllSpeciality = async () => {
+        try {
+            const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_all_specialities?token=${userToken}`);
+            const result = await response.json();
+            setSpeciality(result);
+            console.log('Data from fetchAllSpeciality:', result);
+        } catch (error) {
+            console.error('Error fetching data from fetchAllSpeciality:', error);
+        }
+    };
 
-  const fetchNameKR = async () => {
-  try {
-    const response = await fetchWithTokenRefresh('http://moais-dashboard.ru:8082/api/get_all_kr');
-    const result = await response.json();
-    setKRSimple(result);
-    setKRFiltr(result);
+    const fetchAllTeam = async () => {
+        try {
+            const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_teams_for_user_without_lect?token=${userToken}`);
+            const result = await response.json();
+            setTeam(result);
+            console.log('Data from fetchAllTeam:', result);
+        } catch (error) {
+            console.error('Error fetching data from fetchAllTeam:', error);
+        }
+    };
 
+    const fetchTeamForChoiseTeacher = async () => {
+        try {
+            const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_teams_for_param_without_lect?teacher_arr=${SelectedTeacher}`);
+            const result = await response.json();
+            setTeamsForSelectedTeacher(result);
+            console.log('fetchTeamForChoiseTeacher:', result);
+        } catch (error) {
+            console.error('Error fetching data from fetchTeamForChoiseTeacher:', error);
+        }
+    };
 
-    console.log('Data from fetchNameKR:', result);
+    const fetchSpecialityForChoiseTeacher = async () => {
+        try {
+            const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_all_specialities_by_teacher_arr?token=${userToken}&teacher_list=${SelectedTeacher}`);
+            const result = await response.json();
+            setSpecialityForSelectedTeacher(result);
+            console.log('fetchSpecialityForChoiseTeacher:', result);
+        } catch (error) {
+            console.error('Error fetching data from fetchSpecialityForChoiseTeacher:', error);
+        }
+    };
 
-} catch (error) {
-    console.error('Error fetching data from fetchNameKR:', error);
-  }
-};
+    const fetchTeacherForChoiseSpeciality = async () => {
+        try {
+            const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_all_teachers_by_speciality_arr?token=${userToken}&speciality_list=${SelectedSpeciality}`);
+            const result = await response.json();
+            setTeachersForSelectedSpeciality(result);
+            console.log('fetchTeacherForChoiseSpeciality:', result);
+        } catch (error) {
+            console.error('Error fetching data from fetchTeacherForChoiseSpeciality:', error);
+        }
+    };
 
-const fetchAllTeachers = async () => {
-    try {
-      const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_all_teachers?token=${userToken}`);
-      const result = await response.json();
-      setNameTeachers(result);
-  
-      console.log('Data from fetchAllTeachers:', result);
-  
-  } catch (error) {
-      console.error('Error fetching data from fetchAllTeachers:', error);
-    }
-  };
+    const fetchTeamsForChoiseSpeciality = async () => {
+        try {
+            const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_all_teams_by_speciality_arr?token=${userToken}&speciality_list=${SelectedSpeciality}`);
+            const result = await response.json();
+            setTeamsForSelectedSpeciality(result);
+            console.log('fetchTeamsForChoiseSpeciality:', result);
+        } catch (error) {
+            console.error('Error fetching data from fetchTeamsForChoiseSpeciality:', error);
+        }
+    };
 
-  const fetchAllSpeciality = async () => {
-    try {
-      const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_all_specialities?token=${userToken}`);
-      const result = await response.json();
-      setSpeciality(result);
-  
-      console.log('Data from fetchAllSpeciality:', result);
-  
-  } catch (error) {
-      console.error('Error fetching data from fetchAllSpeciality:', error);
-    }
-  };
+    useEffect(() => {
+        const fetchData = async () => {
+            await fetchNameKR();
+            await fetchAllTeachers();
+            await fetchAllSpeciality();
+            await fetchAllTeam();
+        };
 
-  const fetchAllTeam = async () => {
-    try {
-      const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_teams_for_user_without_lect?token=${userToken}`);
-      const result = await response.json();
-      setTeam(result);
-  
-      console.log('Data from fetchAllTeam:', result);
-  
-  } catch (error) {
-      console.error('Error fetching data from fetchAllTeam:', error);
-    }
-  };
+        if (userToken) {
+            fetchData();
+        }
+    }, [userToken]);
 
-  const fetchTeamForChoiseTeacher = async () => {
-    try {
-      const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_teams_for_param_without_lect?teacher_arr=${SelectedTeacher}`);
-      const result = await response.json();
-      setTeamsForSelectedTeacher(result);
-      console.log('fetchTeamForChoiseTeacher:', result);
-  } catch (error) {
-      console.error('Error fetching data from fetchTeamForChoiseTeacher:', error);
-    }
-  };
+    useEffect(() => {
+        if (SelectedTeacher.length > 0) {
+            fetchTeamForChoiseTeacher();
+            fetchSpecialityForChoiseTeacher();
+        }
+    }, [SelectedTeacher]);
 
-  const fetchSpecialityForChoiseTeacher = async () => {
-    try {
-      const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_all_specialities_by_teacher_arr?token=${userToken}&teacher_list=${SelectedTeacher}`);
-      const result = await response.json();
-      setSpecialityForSelectedTeacher(result);
-      console.log('fetchSpecialityForChoiseTeacher:', result);
-  } catch (error) {
-      console.error('Error fetching data from fetchSpecialityForChoiseTeacher:', error);
-    }
-  };
+    useEffect(() => {
+        if (SelectedSpeciality.length > 0) {
+            fetchTeacherForChoiseSpeciality();
+            fetchTeamsForChoiseSpeciality();
+        }
+    }, [SelectedSpeciality]);
 
-  const fetchTeacherForChoiseSpeciality = async () => {
-    try {
-      const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_all_teachers_by_speciality_arr?token=${userToken}&speciality_list=${SelectedSpeciality}`);
-      const result = await response.json();
-      setTeachersForSelectedSpeciality(result);
-      console.log('fetchTeacherForChoiseSpeciality:', result);
-  } catch (error) {
-      console.error('Error fetching data from fetchTeacherForChoiseSpeciality:', error);
-    }
-  };
+    const handleKRChangeSimple = (value) => {
+        setSelectedKRSimple(value);
+    };
 
-  const fetchTeamsForChoiseSpeciality = async () => {
-    try {
-      const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_all_teams_by_speciality_arr?token=${userToken}&speciality_list=${SelectedSpeciality}`);
-      const result = await response.json();
-      setTeamsForSelectedSpeciality(result);
-      console.log('fetchTeamsForChoiseSpeciality:', result);
-  } catch (error) {
-      console.error('Error fetching data from fetchTeamsForChoiseSpeciality:', error);
-    }
-  };
+    const handleKRChangeFiltr = (value) => {
+        setSelectedKRFiltr(value);
+    };
 
+    const handleTeacherSelect = (value) => {
+        setSelectedTeacher(value);
+    };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      await fetchNameKR();
-      await fetchAllTeachers();
-      await fetchAllSpeciality();
-      await fetchAllTeam();      
-    }
+    const handleTeamSelect = (value) => {
+        setSelectedTeam(value);
+    };
 
-    if (userToken) {
-      fetchData();
-    }
-  }, [userToken]);
+    const handleSpecialitySelect = (value) => {
+        setSelectedSpeciality(value);
+    };
 
+    const handleModeChangeSimple = (value) => {
+        setSelectedModeSimple(value);
+    };
 
-  useEffect(() => {
-    if (SelectedTeacher.length > 0) {
-        fetchTeamForChoiseTeacher();
-        fetchSpecialityForChoiseTeacher();
-    }
-}, [SelectedTeacher]);
+    const handleModeChangeFiltr = (value) => {
+        setSelectedModeFiltr(value);
+    };
 
+    return (
+        <>
+            <Row justify="space-between" align="middle" style={{ padding: '12px' }}>
 
-useEffect(() => {
-    if (SelectedSpeciality.length > 0) {
-        fetchTeacherForChoiseSpeciality();
-        fetchTeamsForChoiseSpeciality();
-    }
-}, [SelectedSpeciality]);
+                <Row >
+                    <Title level={2}>Анализ Контрольных работ</Title>
 
+                    <Tooltip title="Диаграмма отображающая распределения баллов студентов по КР через: Минимум, Первый квартиль, Медиана, Третий квартиль, Максимум, Выбросы">
+                        <QuestionCircleOutlined style={{ marginLeft: 5, marginBottom: 5, fontSize: '20px', cursor: 'pointer' }} />
+                    </Tooltip>
+                </Row>
 
-
-  const handleKRChangeSimple = (value) => {
-    setSelectedKRSimple(value);
-  };
-
-  const handleKRChangeFiltr = (value) => {
-    setSelectedKRFiltr(value);
-  };
-
-  const handleTeacherSelect = (teacher) => {
-    if (SelectedTeacher.includes(teacher)) {
-        setSelectedTeacher(SelectedTeacher.filter((id) => id !== teacher));
-    } else {
-        setSelectedTeacher([...SelectedTeacher, teacher]);
-    }
-    // console.log('SelectedTeacher',SelectedTeacher)
-};
-
-const handleTeamSelect = (team_id) => {
-    if (SelectedTeam.includes(team_id)) {
-        setSelectedTeam(SelectedTeam.filter((id) => id !== team_id));
-    } else {
-        setSelectedTeam([...SelectedTeam, team_id]);
-    }
-};
-
-const handleSpecialitySelect = (SpecialityData) => {
-    if (SelectedSpeciality.includes(SpecialityData)) {
-        setSelectedSpeciality(SelectedSpeciality.filter((speciality) => SpecialityData !== SpecialityData));
-    } else {
-        setSelectedSpeciality([...SelectedSpeciality, SpecialityData]);
-    }
-};
-  
-
-  const handleModeChangeSimple = (event) => {
-    const newMode = parseInt(event.target.value, 10);
-    setSelectedModeSimple(newMode);
-  };
-
-  const handleModeChangeFiltr = (event) => {
-    const newMode = parseInt(event.target.value, 10);
-    setSelectedModeFiltr(newMode);
-  };
-
-
- 
-return( 
-<>
-  <Box p={6} display="flex" justifyContent={'space-between'} alignItems={'center'}>
-    <Heading as="h1" size="lg">Анализ Контрольных работ</Heading>
-    <Tooltip label="Диаграмма отображающая распределения баллов студентов по КР через: Минимум, Первый квартиль, Медиана, Третий квартиль, Максимум, Выбросы" aria-label="A tooltip">
-            <QuestionOutlineIcon ml={2} mt={2} boxSize={4} cursor="pointer" />
-        </Tooltip>
-    <Box ml={'auto'} mr={4} w="250px" borderRadius="lg" boxShadow="lg">
-          <Select borderColor='black'
-            placeholder="Выберите контрольную работу"
-            onChange={(e) => handleKRChangeSimple(e.target.value)}
-            value={selectedKRSimple}>
-
-            {Array.isArray(KRSimple) ? (
-              KRSimple.map((task) => (
-                <option key={task.name} value={task.name}>
-                  {task.name}
-                </option>
-              ))
-            ) : (
-              <option disabled>No kr available</option>
-            )}
-          </Select>
-        </Box>
-        
-
-        <Box mr={4} w="330px" borderRadius="lg" boxShadow="lg">
-        <Select
-            borderColor='black'
-            id="modeSelectSimple"
-            value={selectedModeSimple}
-            onChange={handleModeChangeSimple}
-            placeholder="Выбери режим"
-        >
-            <option value={0}>По группам</option>
-            <option value={1}>По направлениям</option>
-            <option value={2}>По преподавателям</option>
-        </Select>
-        </Box>
-  
-    </Box>
-
-
-    <Flex direction={'column'}>
-
-        <Box height={"380"}>
-          {<AnalysKrSimple tokenUsers={userToken} type={selectedModeSimple} kr={selectedKRSimple}  />}
-        </Box>
-
-      
-      <Flex ml="auto" >
-
-        <Box mr={4} w="290px" borderRadius="lg" boxShadow="lg">
-          <Select borderColor='black'
-            placeholder="Выберите контрольную работу"
-            onChange={(e) => handleKRChangeFiltr(e.target.value)}
-            value={selectedKRFiltr}>
-
-            {Array.isArray(KRFiltr) ? (
-              KRFiltr.map((task) => (
-                <option key={task.name} value={task.name}>
-                  {task.name}
-                </option>
-              ))
-            ) : (
-              <option disabled>No kr available</option>
-            )}
-          </Select>
-        </Box>
-
-        
-
-        <Box mr={4} w="200px" borderRadius="lg" boxShadow="lg">
-        <Select
-            borderColor='black'
-            id="modeSelectFiltr"
-            value={selectedModeFiltr}
-            onChange={handleModeChangeFiltr}
-            placeholder="Выбери режим"
-        >
-            <option value={0}>По группам</option>
-            <option value={1}>По преподавателям</option>
-            <option value={2}>По направлениям</option>
-        </Select>
-        </Box>
-
-        <Menu closeOnSelect={false}>
-                    <MenuButton mr={4} as={Button} colorScheme="blue">
-                        Выбрать преподавателей
-                    </MenuButton>
-                    <MenuList minWidth="240px">
-                    { SelectedSpeciality.length > 0 && TeachersForSelectedSpeciality ? (
-                            TeachersForSelectedSpeciality.map((teacher) => (
-                                <MenuItem key={teacher.name}>
-                                    <Checkbox
-                                        isChecked={SelectedTeacher.includes(teacher.name)}
-                                        onChange={() => handleTeacherSelect(teacher.name)}
-                                    >
-                                        {teacher.name}
-                                    </Checkbox>
-                                </MenuItem>
+            
+            <Row >
+                <Col >
+                    <Select
+                        style={{ width: 250, marginRight: 8 }}
+                        placeholder="Выберите контрольную работу"
+                        onChange={handleKRChangeSimple}
+                        value={selectedKRSimple}
+                    >
+                        {Array.isArray(KRSimple) ? (
+                            KRSimple.map((task) => (
+                                <Option key={task.name} value={task.name}>
+                                    {task.name}
+                                </Option>
                             ))
                         ) : (
-                    TeacherData && TeacherData.map((teacher) => (
-                        <MenuItem key={teacher.name}>
-                            <Checkbox
-                            isChecked={SelectedTeacher.includes(teacher.name)}
-                            onChange={() => handleTeacherSelect(teacher.name)}
-                            >
-                            {teacher.name}
-                            </Checkbox>
-                        </MenuItem>
-                        )))}
-                    </MenuList>
-                </Menu>
+                            <Option disabled></Option>
+                        )}
+                    </Select>
+                </Col>
+
+                <Col>
+                    <Select
+                        style={{ width: 250 }}
+                        placeholder="Выберите режим"
+                        onChange={handleModeChangeSimple}
+                        value={selectedModeSimple}
+                    >
+                        <Option value={0}>По группам</Option>
+                        <Option value={1}>По направлениям</Option>
+                        <Option value={2}>По преподавателям</Option>
+                    </Select>
+                </Col>
+
+            </Row>
+
+            </Row>
+
+
+            <Row>
+                <Col span={24}>
+                <div className="half-screen-height">
+                    <AnalysKrSimple tokenUsers={userToken} type={selectedModeSimple} kr={selectedKRSimple} />
+                </div>
+                </Col>
+            </Row>
 
 
 
-        <Menu closeOnSelect={false}>
-            <MenuButton mr={4} as={Button} colorScheme="blue">
-                Выбрать группы
-            </MenuButton>
-            <MenuList minWidth="240px">
-                {SelectedTeacher.length > 0 && TeamsForSelectedTeacher ? 
-                (
-                    TeamsForSelectedTeacher.map((team) => (
-                        <MenuItem key={team.id}>
-                            <Checkbox
-                                isChecked={SelectedTeam.includes(team.id)}
-                                onChange={() => handleTeamSelect(team.id)}
-                            >
-                                {team.name}
-                            </Checkbox>
-                        </MenuItem>
+            <Row justify="end" style={{ marginTop: '16px' }}>
+    <Col>
+        <Select
+            style={{ width: 250, marginRight: '8px' }}
+            placeholder="Выберите контрольную работу"
+            onChange={handleKRChangeFiltr}
+            value={selectedKRFiltr}
+        >
+            {Array.isArray(KRFiltr) ? (
+                KRFiltr.map((task) => (
+                    <Option key={task.name} value={task.name}>
+                        {task.name}
+                    </Option>
+                ))
+            ) : (
+                <Option disabled></Option>
+            )}
+        </Select>
+    </Col>
+
+    <Col>
+        <Select
+            style={{ width: 250, marginRight: '8px' }}
+            placeholder="Выберите режим"
+            onChange={handleModeChangeFiltr}
+            value={selectedModeFiltr}
+        >
+            <Option value={0}>По группам</Option>
+            <Option value={1}>По преподавателям</Option>
+            <Option value={2}>По направлениям</Option>
+        </Select>
+    </Col>
+
+    <Col>
+        <Select
+            mode="multiple"
+            style={{ width: 250, marginRight: '8px' }}
+            placeholder="Выберите преподавателей"
+            onChange={setSelectedTeacher}
+            value={SelectedTeacher}
+        >
+            {SelectedSpeciality.length > 0 && TeachersForSelectedSpeciality
+                ? TeachersForSelectedSpeciality.map((teacher) => (
+                    <Option key={teacher.name} value={teacher.name}>
+                        {teacher.name}
+                    </Option>
+                ))
+                : TeacherData &&
+                TeacherData.map((teacher) => (
+                    <Option key={teacher.name} value={teacher.name}>
+                        {teacher.name}
+                    </Option>
+                ))}
+        </Select>
+    </Col>
+
+    <Col>
+        <Select
+            mode="multiple"
+            style={{ width: 250, marginRight: '8px' }}
+            placeholder="Выберите группы"
+            onChange={setSelectedTeam}
+            value={SelectedTeam}
+        >
+            {SelectedTeacher.length > 0 && TeamsForSelectedTeacher
+                ? TeamsForSelectedTeacher.map((team) => (
+                    <Option key={team.id} value={team.id}>
+                        {team.name}
+                    </Option>
+                ))
+                : SelectedSpeciality.length > 0 && TeamsForSelectedSpeciality
+                    ? TeamsForSelectedSpeciality.map((team) => (
+                        <Option key={team.id} value={team.id}>
+                            {team.name}
+                        </Option>
                     ))
-                ) : SelectedSpeciality.length > 0 && TeamsForSelectedSpeciality ? (
-                    TeamsForSelectedSpeciality.map((team) => (
-                        <MenuItem key={team.id}>
-                            <Checkbox
-                                isChecked={SelectedTeam.includes(team.id)}
-                                onChange={() => handleTeamSelect(team.id)}
-                            >
-                                {team.name}
-                            </Checkbox>
-                        </MenuItem>
-                    ))
-                ) : (
-                    TeamData && TeamData.map((team) => (
-                        <MenuItem key={team.id}>
-                            <Checkbox
-                                isChecked={SelectedTeam.includes(team.id)}
-                                onChange={() => handleTeamSelect(team.id)}
-                            >
-                                {team.name}
-                            </Checkbox>
-                        </MenuItem>
-                    ))
-                )}
-            </MenuList>
-        </Menu>
+                    : TeamData &&
+                    TeamData.map((team) => (
+                        <Option key={team.id} value={team.id}>
+                            {team.name}
+                        </Option>
+                    ))}
+        </Select>
+    </Col>
 
-                <Menu closeOnSelect={false}>
-            <MenuButton mr={4} as={Button} colorScheme="blue">
-                Выбрать направления
-            </MenuButton>
-            <MenuList minWidth="240px">
-                {SelectedTeacher.length > 0 && SpecialityForSelectedTeacher ? (
-                    SpecialityForSelectedTeacher.map((spec) => (
-                        <MenuItem key={spec.speciality}>
-                            <Checkbox
-                                isChecked={SelectedSpeciality.includes(spec.speciality)}
-                                onChange={() => handleSpecialitySelect(spec.speciality)}
-                            >
-                                {spec.speciality}
-                            </Checkbox>
-                        </MenuItem>
-                    ))
-                ) : (
-                    SpecialityData && SpecialityData.map((spec) => (
-                        <MenuItem key={spec.speciality}>
-                            <Checkbox
-                                isChecked={SelectedSpeciality.includes(spec.speciality)}
-                                onChange={() => handleSpecialitySelect(spec.speciality)}
-                            >
-                                {spec.speciality}
-                            </Checkbox>
-                        </MenuItem>
-                    ))
-                )}
-            </MenuList> 
-        </Menu> 
-      </Flex> 
+    <Col>
+        <Select
+            mode="multiple"
+            style={{ width: 250, marginRight: '8px' }}
+            placeholder="Выберите направления"
+            onChange={setSelectedSpeciality}
+            value={SelectedSpeciality}
+        >
+            {SelectedTeacher.length > 0 && SpecialityForSelectedTeacher
+                ? SpecialityForSelectedTeacher.map((spec) => (
+                    <Option key={spec.speciality} value={spec.speciality}>
+                        {spec.speciality}
+                    </Option>
+                ))
+                : SpecialityData &&
+                SpecialityData.map((spec) => (
+                    <Option key={spec.speciality} value={spec.speciality}>
+                        {spec.speciality}
+                    </Option>
+                ))}
+        </Select>
+    </Col>
+</Row>
 
-      
+<Row>
+    <Col span={24}>
+        <div className="half-screen-height">
+            <AnalysKrFiltres
+                tokenUsers={userToken}
+                type={selectedModeFiltr}
+                kr={selectedKRFiltr}
+                teacher={SelectedTeacher.length > 0 ? SelectedTeacher : ''}
+                speciality={SelectedSpeciality.length > 0 ? SelectedSpeciality : ''}
+                team={SelectedTeam.length > 0 ? SelectedTeam : ''}
+            />
+        </div>
+    </Col>
+</Row>
 
-        <Box height={"380"}>
-
-          {
-            <AnalysKrFiltres 
-          tokenUsers={userToken} 
-          type={selectedModeFiltr} 
-          kr={selectedKRFiltr} 
-          teacher={SelectedTeacher.length > 0 ? SelectedTeacher : ''} 
-          speciality={SelectedSpeciality.length > 0 ? SelectedSpeciality : ''} 
-          team={SelectedTeam.length > 0 ? SelectedTeam : ''}/>}
-        </Box>
-        
-        
-        
-    </Flex> 
-    
-
-    </>)
-
+        </>
+    );
 };
- 
+
 export default AnalysRr;
