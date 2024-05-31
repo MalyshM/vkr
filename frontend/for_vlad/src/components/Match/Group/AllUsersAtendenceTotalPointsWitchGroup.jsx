@@ -5,6 +5,9 @@ import 'chartjs-plugin-datalabels'; // Импортируйте плагин
 import { useNavigate  } from 'react-router-dom';
 import { Text } from '@chakra-ui/react'
 // import { Legend } from 'react-chartjs-2';
+// import RequestCheckbox from '../ReportSystem/RequestCheckbox';
+// import {RequestCheckbox} from '' 
+import RequestCheckbox from '../../ReportSystem/RequestCheckbox'
 
 import { fetchWithTokenRefresh } from '../../RefreshToken';
 
@@ -13,6 +16,7 @@ const AllUsersAtendenceTotalPointsWitchGroup = ({tokenUsers, choiseGroupTeacher,
   const chartRef = useRef(null);
   const [NumberOfGr, setNumberOfGr] = useState(null);
   const navigate = useNavigate ();
+  const [requests, setRequests] = useState([]);
 
   
 
@@ -264,8 +268,19 @@ if (!AllUsersAtendenceTotalPointsWitchGroupData) {
 
     // }
     // }, [AllUsersAtendenceTotalPointsWitchGroupData]);
+
+    const requestUrl = `http://moais-dashboard.ru:8082/api/team_kr_total_points_attendance_dynamic?token=${tokenUsers}&group_by_teacher=${choiseGroupTeacher}${selectedTeachers ? `&teacher_list=${selectedTeachers.join(',')}` : ''}`;
   
+    const handleUpdateRequests = (updatedRequests) => {
+        setRequests(updatedRequests);
+      };
+
     return(<>
+    <RequestCheckbox
+        requestUrl={requestUrl}
+        requestName="Ваши команды"
+        onUpdateRequests={handleUpdateRequests}
+      />
       <Bar ref={chartRef} data={data} options={options} />;
       
   </>) 

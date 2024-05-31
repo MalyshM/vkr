@@ -1,9 +1,12 @@
 import React, { useState, useEffect,useRef } from 'react';
-import { Select, Table, Typography, Cascader, Spin,Button} from 'antd';
+import { Select, Table, Typography, Spin,} from 'antd';
+
 import { useAuth } from '../useAuth';
 import {fetchWithTokenRefresh} from '../RefreshToken'
+
+import RequestCheckbox from '../ReportSystem/RequestCheckbox';
+
 import { useNavigate } from 'react-router-dom';
-import { SelectProps } from 'antd';
 import { InputNumber } from 'antd';
 import { Tooltip } from 'antd';
 
@@ -11,6 +14,8 @@ const { Option } = Select;
 const { Title } = Typography;
 
 const LeastPage = () => {
+
+  const [requests, setRequests] = useState([]);
 
     const navigate = useNavigate();
     const {userToken} = useAuth()
@@ -152,23 +157,6 @@ const LeastPage = () => {
               fetchSpeciality();
           }
       if (userToken) {fetchData();} }, [userToken]);
-
-        // useEffect(() => {
-        //   if (dataInTable && dataInTable.length > 0) {
-        //     const updatedLaggingStudents = dataInTable.map(group => {
-        //       const updatedResult1 = group.result1.map(item => ({
-        //         ...item,
-        //         name: group.name, // Adding 'name' field from the group object
-        //         lesson_counter: group.lesson_counter, // Adding 'lesson_counter' field from the group object
-        //       }));
-        //       return {
-        //         ...group,
-        //         result1: updatedResult1,
-        //       };
-        //     });
-        //     setDataInTable(updatedLaggingStudents);
-        //   }
-        // }, [dataInTable]);
         
         useEffect(() => { //limit requests
           if (userToken) {
@@ -226,37 +214,7 @@ const LeastPage = () => {
             }
             console.log('CHANGES KR')
           };
-
-          // const toggleTable = (index) => {
-          //   setExpandedGroups((prev) => ({
-          //     ...prev,
-          //     [index]: !prev[index],
-          //   }));
-          // };
-        
        
-          
-
-
-      //   const columns_group_true_stud = [
-      //   { title: 'Команда', dataIndex: 'team_name', key: 'team_name',
-      //   render: (text, record) => (
-      //     <a
-      //         onClick={() => navigate(`/main/${record.team_id}`)}
-      //     >
-      //       {text}
-      //     </a>
-      //   ),
-
-      // },
-      //   { title: 'Преподаватель', dataIndex: 'teacher_name', key: 'teacher_name'},
-      //   { title: 'Контрольная точка', dataIndex: 'name', key: 'name'},
-      //   { title: 'Медианная Успеваемость', dataIndex: 'Успеваемость_средняя', key: 'Успеваемость_средняя'},
-      //   { title: 'Медианная Посещаемость', dataIndex: 'Посещаемость_средняя', key: 'Посещаемость_средняя'},
-      // ];  
-
-      // const columns_group_false = [
-        
         const columns = [
         { title: 'ID Студента', dataIndex: 'stud_id', key: 'stud_id',
         render: (text, record) => (
@@ -274,13 +232,30 @@ const LeastPage = () => {
         { title: 'Кол-во встреч', dataIndex: 'lesson_counter', key: 'lesson_counter'},
       ];  
 
-
-      // const columns = 
-      // isGroupBy === false ? columns_group_false :
-      // isTypeGroup === true ? columns_group_true_stud :
-      // [];
-      
-
+      const params = new URLSearchParams({
+        token: userToken,
+        is_group_by: isGroupBy,
+        is_by_mark: isByMark,
+        threshold: isThreshold,
+      });
+      if (isGroupBy === true) {
+        params.append('type_group_by', isTypeGroup);
+      }
+      if (SelectedTeacher && SelectedTeacher.length > 0) {
+        params.append('teacher_list', SelectedTeacher.join(','));
+      }
+      if (SelectedSpeciality && SelectedSpeciality.length > 0) {
+        params.append('speciality_list', SelectedSpeciality.join(','));
+      }
+      if (SelectedTeam && SelectedTeam.length > 0) {
+        params.append('team_list', SelectedTeam.join(','));
+      }
+      const requestUrl = `http://moais-dashboard.ru:8082/api/lagging_students?${params.toString()}`;
+    
+      const handleUpdateRequests = (updatedRequests) => {
+        setRequests(updatedRequests);
+      };
+    
 
         return(
             <>
@@ -410,6 +385,18 @@ const LeastPage = () => {
             </Option>
         ))}
         </Select>
+
+        {/* <RequestCheckbox requestUrl={requestUrl} requestName="Список отстающих" /> */}
+
+        <RequestCheckbox
+        requestUrl={requestUrl}
+        requestName="Список отстающих"
+        onUpdateRequests={handleUpdateRequests}
+      />
+        
+        {/* <RequestCheckbox requestUrl={requestUrl} requestName="Список отстающих" onUpdateRequests={(requests) => setRequests(requests)} /> */}
+
+
     </div>
     
         <div style={{

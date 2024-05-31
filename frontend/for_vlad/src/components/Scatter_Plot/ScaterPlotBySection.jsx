@@ -1,20 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import Plot from 'react-plotly.js';
 import { fetchWithTokenRefresh } from '../RefreshToken';
-import {Select,Box,Flex} from '@chakra-ui/react';
+import { Select, Row, Col } from 'antd';
+import RequestCheckbox from '../ReportSystem/RequestCheckbox';
+
+const { Option } = Select;
 
 const ScaterPlotBySection = ({ tokenUsers, type_group_by, teacher_list, speciality_list, team_list }) => {
   const [ScaterPlotBySectionData, setScatterPlotData] = useState(null);
   const [selectedName, setSelectedName] = useState(null);
+  const [requests, setRequests] = useState([]);
 
-  const handleNameSelect = value => { // click on select for choose name of learn meeting
+  const handleNameSelect = value => {
     setSelectedName(value);
   };
-
-  // console.log('test teacher_list - ', teacher_list)
-  // console.log('test team_list - ', team_list)
-  // console.log('test speciality_list - ', speciality_list)
-
 
   useEffect(() => {
     const fetchScaterPlotBySection = async () => {
@@ -38,19 +37,16 @@ const ScaterPlotBySection = ({ tokenUsers, type_group_by, teacher_list, speciali
     return <div>Loading...</div>;
   }
 
-  const uniqueNames = [...new Set(ScaterPlotBySectionData.map(item => item.name))]; // get name of learn meeting (kr) from object's array
-
+  const uniqueNames = [...new Set(ScaterPlotBySectionData.map(item => item.name))];
   const filteredData = ScaterPlotBySectionData.filter(item => item.name === selectedName);
 
   const teamColors = {};
-  
   const data = filteredData.map(item => {
     const teamId = item.team_id;
     const speciality = item.speciality;
     const teacher_id = item.teacher_id;
-    
+
     let label = "";
-    
     if (teamId) {
       label = `${teamId}`;
     } else if (speciality) {
@@ -58,22 +54,18 @@ const ScaterPlotBySection = ({ tokenUsers, type_group_by, teacher_list, speciali
     } else if (teacher_id) {
       label = `${teacher_id}`;
     }
-    
+
     const key = `${label}`;
-    
     if (!(key in teamColors)) {
-        teamColors[key] = `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`;
-      }
+      teamColors[key] = `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 1)`;
+    }
 
+    const xValue = item['Медианная_посещаемость'];
+    const yValue = item['Медианная_успеваемость'];
 
-      const xValue = item['Медианная_посещаемость'];
-      const yValue = item['Медианная_успеваемость'];
-
-      
-    
     return {
-      x: [xValue], // Создаем массив с одним элементом, чтобы хранить значение x для каждого объекта
-      y: [yValue], 
+      x: [xValue],
+      y: [yValue],
       mode: 'markers',
       type: 'scatter',
       marker: {
@@ -85,20 +77,18 @@ const ScaterPlotBySection = ({ tokenUsers, type_group_by, teacher_list, speciali
   });
 
   const layout = {
-    width: 890, // Ширина окна
-    height: 730, // Высота окна
-
+    width: 890,
+    height: 730,
     responsive: true,
     legend: {
       display: true,
-      orientation: "h" 
-
+      orientation: "h"
     },
     title: {
       text: 'Группы',
     },
     xaxis: {
-      title: 'Медианная посещаемость', 
+      title: 'Медианная посещаемость',
     },
     yaxis: {
       title: 'Медианная успеваемость',
@@ -114,46 +104,44 @@ const ScaterPlotBySection = ({ tokenUsers, type_group_by, teacher_list, speciali
     displayModeBar: false
   };
 
+  const requestUrl = `http://moais-dashboard.ru:8082/api/scatter_plot_by_section?token=${tokenUsers}&type_group_by=${type_group_by}${teacher_list ? `&teacher_list=${Array.isArray(teacher_list) ? teacher_list.join(',') : teacher_list}` : ''}${speciality_list ? `&speciality_list=${Array.isArray(speciality_list) ? speciality_list.join(',') : speciality_list}` : ''}${team_list ? `&team_list=${Array.isArray(team_list) ? team_list.join(',') : team_list}` : ''}`;
+
+  const handleUpdateRequests = (updatedRequests) => {
+    setRequests(updatedRequests);
+  };
+
   return (
     <>
-     
-<Select
-  ml={'auto'}
-  mr={'auto'}
-  mb={4}
-  borderRadius="lg" 
-  width='270px'
-  borderWidth={1}
-  fontFamily='Trebuchet MS'
-  placeholder="Выберите учебную встречу"
-  borderColor='black'
-  _active={{ borderColor: "black" }} 
-  _hover={{ color: "blue" }}
-  _selected={{ bg: "black.500", borderColor: "red.500", color: "white" }}
-  onChange={(e) => handleNameSelect(e.target.value, e.target.selectedOptions[0].text)} // Changed from label to text
-  value={selectedName}
->
-  {Array.isArray(uniqueNames) && uniqueNames.length > 0 ? (
-    uniqueNames.map((nameOfMeeting) => (
-      <option key={nameOfMeeting} value={nameOfMeeting}>
-        {nameOfMeeting}
-      </option>
-    ))
-  ) : (
-    <option disabled>data is not available</option> 
-  )}
-</Select>
+      <Select
+        style={{ width: '270px', marginBottom: '16px' }}
+        placeholder="Выберите учебную встречу"
+        onChange={(value) => handleNameSelect(value)}
+        value={selectedName}
+      >
+        {Array.isArray(uniqueNames) && uniqueNames.length > 0 ? (
+          uniqueNames.map((nameOfMeeting) => (
+            <Option key={nameOfMeeting} value={nameOfMeeting}>
+              {nameOfMeeting}
+            </Option>
+          ))
+        ) : (
+          <Option disabled>Данные не доступны</Option>
+        )}
+      </Select>
 
+      <RequestCheckbox
+        requestUrl={requestUrl}
+        requestName="Диаграмма рассеяния по группам"
+        onUpdateRequests={handleUpdateRequests}
+      />
 
-  <Flex direction={'column'}>
-    <Flex ml={'auto'} mr={'auto'}>
-      <div style={{ width: '100%', height: '100vh' }}>
-        <Plot config={config} data={data} layout={layout} style={{ width: '100%', height: '100%' }} />
-      </div>
-    </Flex>
-  </Flex>
-
-
+      <Row justify="center">
+        <Col span={24}>
+          <div style={{ width: '100%', height: '100vh' }}>
+            <Plot config={config} data={data} layout={layout} style={{ width: '100%', height: '100%' }} />
+          </div>
+        </Col>
+      </Row>
     </>
   );
 };

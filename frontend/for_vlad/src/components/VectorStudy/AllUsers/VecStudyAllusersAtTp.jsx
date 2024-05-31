@@ -5,6 +5,7 @@ import 'chartjs-plugin-datalabels'; // Импортируйте плагин
 import { useNavigate  } from 'react-router-dom';
 import { Text } from '@chakra-ui/react'
 import { Legend } from 'react-chartjs-2';
+import RequestCheckbox from '../../ReportSystem/RequestCheckbox'
 
 import { fetchWithTokenRefresh } from '../../RefreshToken';
 
@@ -13,6 +14,7 @@ const VecStudyAllusersAtTp = ({tokenUsers, choiseGroupSpeciality, selectedTeache
   const [VecStudyAllusersAtTpData, setVecStudyAllusersAtTpData] = useState(null);
   const chartRef = useRef(null);
   const [NumberOfGr, setNumberOfGr] = useState(null);
+  const [requests, setRequests] = useState([]);
 
 //   useEffect(() => {
 //     if (chartRef.current) {
@@ -309,10 +311,22 @@ function getColorByTeacherAndSpeciality(teacherId, speciality) {
         },
     };
 
+    const requestUrl=`http://moais-dashboard.ru:8082/api/speciality_kr_total_points_attendance_dynamic?token=${tokenUsers}&group_by_speciality=${choiseGroupSpeciality}${selectedTeachers ? `&teacher_list=${selectedTeachers.join(',')}` : ''}${selectedSpeciality ? `&speciality_list=${selectedSpeciality.join(',')}` : ''}`;
+    
+    const handleUpdateRequests = (updatedRequests) => {
+        setRequests(updatedRequests);
+      };
     // }
     // }, [VecStudyAllusersAtTpData]);
   
     return(<>
+
+    <RequestCheckbox
+        requestUrl={requestUrl}
+        requestName="Ваши направления"
+        onUpdateRequests={handleUpdateRequests}
+      />
+      
       <Bar ref={chartRef} data={data} options={options} />;
       
   </>) 

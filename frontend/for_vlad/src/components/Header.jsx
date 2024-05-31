@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button, Layout, Menu, Dropdown, Typography, Space, Segmented } from 'antd';
 import { QuestionOutlined } from '@ant-design/icons';
-import ExportData from './ExportData';
+import ExportData from './ReportSystem/ExportData';
 import '.././thems/style.css';
 import { HomeOutlined, TrophyOutlined, TeamOutlined, MehOutlined, AreaChartOutlined, GroupOutlined, AimOutlined, DotChartOutlined, LogoutOutlined, FileTextOutlined } from '@ant-design/icons';
 
@@ -11,20 +11,25 @@ const { Text } = Typography;
 
 const CustomHeader = () => {
   const location = useLocation();
+
   const currentPath = location.pathname;
+
   const [currentDate, setCurrentDate] = useState(new Date());
+
   const navigate = useNavigate();
 
-  const [exportDataVisible, setExportDataVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
 
-  const handleOpenExportDataModal = () => {
-    setExportDataVisible(true);
-  };
+  // const [exportDataVisible, setExportDataVisible] = useState(false);
 
-  // Функция для закрытия модального окна
-  const handleCloseExportDataModal = () => {
-    setExportDataVisible(false);
-  };
+  // const handleOpenExportDataModal = () => {
+  //   setExportDataVisible(true);
+  // };
+
+  // // Функция для закрытия модального окна
+  // const handleCloseExportDataModal = () => {
+  //   setExportDataVisible(false);
+  // };
 
   const handleSegmentChange = (value) => {
     navigate(value);
@@ -81,11 +86,16 @@ return (
 
     </Space>
     
-    <Button icon={<FileTextOutlined />} style={{ backgroundColor: '#58c622' }} className="nav-link" type="primary" onClick={handleOpenExportDataModal}>
+    {/* <Button icon={<FileTextOutlined />} style={{ backgroundColor: '#58c622' }} className="nav-link" type="primary" onClick={handleOpenExportDataModal}>
+        Экспорт данных
+      </Button> */}
+      {/* <ExportData visible={exportDataVisible} onClose={handleCloseExportDataModal} /> */}
+
+      <Button icon={<FileTextOutlined />} style={{ backgroundColor: '#58c600' }} type="primary" onClick={() => setModalVisible(true)}>
         Экспорт данных
       </Button>
+      <ExportData visible={modalVisible} onClose={() => setModalVisible(false)} />
 
-      <ExportData visible={exportDataVisible} onClose={handleCloseExportDataModal} />
   </Header>
 );
 };
