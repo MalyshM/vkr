@@ -2,13 +2,12 @@ import React, { useEffect, useState } from 'react';
 import Plot from 'react-plotly.js';
 import { fetchWithTokenRefresh } from '../RefreshToken';
 import {Heading,Select,Box,Flex} from '@chakra-ui/react';
+import RequestCheckbox from '../ReportSystem/RequestCheckbox';
 
 const ScatterPlotDiagram = ({ tokenUsers, type_group_by, teacher_list, speciality_list, team_list,CheckboxOne,CheckboxMany }) => {
   const [scatterPlotData, setScatterPlotData] = useState(null);
   const [selectedName, setSelectedName] = useState(null);
-
-  console.log('CheckboxMany',CheckboxMany)
-  console.log('CheckboxOne',CheckboxOne)
+  const [requests, setRequests] = useState([]);
 
   const handleNameSelect = value => { // click on select for choose name of learn meeting
     setSelectedName(value);
@@ -21,7 +20,18 @@ const ScatterPlotDiagram = ({ tokenUsers, type_group_by, teacher_list, specialit
           if (type_group_by === 3) {
             type_group_by = 0;
           }
-          const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/stud_scatter_plot?token=${tokenUsers}&type_group_by=${type_group_by}${teacher_list ? `&teacher_list=${Array.isArray(teacher_list) ? teacher_list.join(',') : teacher_list}` : ''}${speciality_list ? `&speciality_list=${Array.isArray(speciality_list) ? speciality_list.join(',') : speciality_list}` : ''}${team_list ? `&team_list=${Array.isArray(team_list) ? team_list.join(',') : team_list}` : ''}`);
+
+          const params = new URLSearchParams({
+            token: tokenUsers,
+            type_group_by,
+            ...(teacher_list && { teacher_list: Array.isArray(teacher_list) ? teacher_list.join(',') : teacher_list }),
+            ...(speciality_list && { speciality_list: Array.isArray(speciality_list) ? speciality_list.join(',') : speciality_list }),
+            ...(team_list && { team_list: Array.isArray(team_list) ? team_list.join(',') : team_list })
+          });
+
+          const requestUrl = `http://moais-dashboard.ru:8082/api/stud_scatter_plot?${params.toString()}`;
+
+          const response = await fetchWithTokenRefresh(requestUrl);
           const result = await response.json();
           setScatterPlotData(result);
         }
@@ -31,6 +41,7 @@ const ScatterPlotDiagram = ({ tokenUsers, type_group_by, teacher_list, specialit
     };
     fetchScatterPlot();
   }, [tokenUsers, type_group_by, teacher_list, speciality_list, team_list]);
+
 
   // console.log('scatterPlotData after request - ', scatterPlotData)
 
@@ -170,9 +181,26 @@ const layoutOne = {
   hovertemplate: `%{customdata}<extra></extra>`,
 
 };
+  const config = { displayModeBar: false };
+
+  const params = new URLSearchParams({
+    token: tokenUsers,
+    type_group_by,
+    ...(teacher_list && { teacher_list: Array.isArray(teacher_list) ? teacher_list.join(',') : teacher_list }),
+    ...(speciality_list && { speciality_list: Array.isArray(speciality_list) ? speciality_list.join(',') : speciality_list }),
+    ...(team_list && { team_list: Array.isArray(team_list) ? team_list.join(',') : team_list })
+  });
+
+  const requestUrl = `http://moais-dashboard.ru:8082/api/stud_scatter_plot?${params.toString()}`;
 
 
-const config = { displayModeBar: false };
+
+
+  const handleUpdateRequests = (updatedRequests) => {
+    setRequests(updatedRequests);
+  };
+
+
 
   return (
     <>
@@ -204,6 +232,12 @@ const config = { displayModeBar: false };
     <option disabled>data is not available</option> 
   )}
 </Select>
+
+<RequestCheckbox
+        requestUrl={requestUrl}
+        requestName="Диаграмма рассеяния по студентам"
+        onUpdateRequests={handleUpdateRequests}
+      />
 
 
       {CheckboxOne && (

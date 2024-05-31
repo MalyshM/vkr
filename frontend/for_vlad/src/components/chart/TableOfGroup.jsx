@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Flex, Table, Thead, Tbody, Tr, Th, Td, IconButton, Box } from "@chakra-ui/react";
 import { ChevronUpIcon, ChevronDownIcon } from '@chakra-ui/icons';
 import {TableContainer,Text} from '@chakra-ui/react'
+import RequestCheckbox from '../ReportSystem/RequestCheckbox';
 
 import {Tooltip } from '@chakra-ui/react';
 import { QuestionOutlineIcon } from '@chakra-ui/icons'
@@ -12,6 +13,7 @@ import { fetchWithTokenRefresh } from '../RefreshToken';
 const TableOfGroup = ({ teamId, selectedLesson }) => {
   const [TableOfGroupData, setTableOfGroupData] = useState(null);
   const [sortColumn, setSortColumn] = useState({ key: '', ascending: true });
+  const [requests, setRequests] = useState([]);
 
    useEffect(() => {
     const fetchTableOfGroup = async () => {
@@ -31,6 +33,12 @@ const TableOfGroup = ({ teamId, selectedLesson }) => {
   },[teamId,selectedLesson]);
 
 console.log("dataArray - ", TableOfGroupData)
+
+const requestUrl = `http://moais-dashboard.ru:8082/api/attendance_num_for_stud_for_team_stat_table?id_team=${teamId}&name_of_lesson=${selectedLesson}`;
+
+const handleUpdateRequests = (updatedRequests) => {
+  setRequests(updatedRequests);
+};
 
   const handleSort = (key) => {
     setSortColumn({ key, ascending: !sortColumn.ascending });
@@ -61,6 +69,11 @@ console.log("dataArray - ", TableOfGroupData)
       </Tooltip>
 
     <Text  as={'b'} p={2} color='#808080' fontFamily={'Trebuchet MS'} fontSize='xl'>{selectedLesson ? `Название встречи: ${selectedLesson}` : 'Выберите встречу'}</Text>
+
+    <RequestCheckbox
+      requestUrl={requestUrl}
+      requestName={`Студенты пропустившие занятие ${selectedLesson}`}
+      onUpdateRequests={handleUpdateRequests} />
 
       </Flex>
       

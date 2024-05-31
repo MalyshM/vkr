@@ -2,12 +2,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Chart } from 'chart.js/auto';
 import { Text } from '@chakra-ui/react';
 import { BoxPlotChart } from '@sgratzl/chartjs-chart-boxplot';
-
+import RequestCheckbox from '../ReportSystem/RequestCheckbox';
 import { fetchWithTokenRefresh } from '../RefreshToken';
 
 const AnalysKrSimple = ({ tokenUsers, type, kr }) => {
   const [AnalysKrSimpleData, setAnalysKrSimpleData] = useState(null);
   const chartRef = useRef(null);
+  const [requests, setRequests] = useState([]);
 
   useEffect(() => {
     const fetchAnalysKrSimpleData = async () => {
@@ -147,9 +148,19 @@ const AnalysKrSimple = ({ tokenUsers, type, kr }) => {
     return <div>Loading...</div>;
   }
 
+  const requestUrl=`http://moais-dashboard.ru:8082/api/kr_analyse_simple?type_group_by=${type}&kr=${kr}&token=${tokenUsers}`;
+
+  const handleUpdateRequests = (updatedRequests) => {
+    setRequests(updatedRequests);
+  };
+  
   return (
-    
-      <canvas ref={chartRef} > </canvas>
+    <><RequestCheckbox
+      requestUrl={requestUrl}
+      requestName="Диаграмма размаха общая"
+      onUpdateRequests={handleUpdateRequests} />
+      
+      <canvas ref={chartRef}> </canvas></>
   );
 };
 

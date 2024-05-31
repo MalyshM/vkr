@@ -6,6 +6,7 @@ import TableOfGroup from './TableOfGroup';
 import { useNavigate  } from 'react-router-dom';
 import { Box } from "@chakra-ui/react";
 import { useNumberItems } from './NumberItemsContext';
+import RequestCheckbox from '../ReportSystem/RequestCheckbox';
 
 import {Tooltip, Text,Flex } from '@chakra-ui/react';
 import { QuestionOutlineIcon } from '@chakra-ui/icons'
@@ -19,6 +20,7 @@ const NumCountStudInLern = ({ teamId,onLessonSelect, numberOfItems}) => {
   const [selectedLesson, setSelectedLesson] = useState(null);
   const chartRef = useRef(null);
   const [numberOfday ,setNumberOfday] = useState(null)
+  const [requests, setRequests] = useState([]);
 
 
   const handleBarClick = (_, elements) => {
@@ -50,7 +52,11 @@ const NumCountStudInLern = ({ teamId,onLessonSelect, numberOfItems}) => {
   },[teamId]);
 
 
-  
+  const requestUrl =`http://moais-dashboard.ru:8082/api/attendance_num_for_stud_for_team?id_team=${teamId}`;
+
+  const handleUpdateRequests = (updatedRequests) => {
+    setRequests(updatedRequests);
+  };
   
 
   if (!AtendanceNumCountStudInLernData) {
@@ -167,6 +173,12 @@ return (<>
       <Tooltip label="График отображающий кол-во студентов на каждой учебной встрече во время прохождения курса" aria-label="A tooltip">
         <QuestionOutlineIcon ml={2} boxSize={4} cursor="pointer" />
       </Tooltip>
+
+      <RequestCheckbox
+      requestUrl={requestUrl}
+      requestName="Кол-во студентов на встрече"
+      onUpdateRequests={handleUpdateRequests} />
+
   <Bar ref={chartRef} data={data} options={options} />
 
 </Box>

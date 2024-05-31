@@ -4,6 +4,7 @@ import { Flex, Box,Text } from '@chakra-ui/react';
 import 'chartjs-plugin-datalabels';
 import { Avatar } from '@chakra-ui/react'
 import styled from 'styled-components';
+import RequestCheckbox from '../ReportSystem/RequestCheckbox';
 
 import {Tooltip } from '@chakra-ui/react';
 import { QuestionOutlineIcon } from '@chakra-ui/icons'
@@ -12,6 +13,7 @@ import { fetchWithTokenRefresh } from '../RefreshToken';
 
 const StataOfGroup = ({teamId,teamName}) => {
     const [stataOfGroupData, setStataOfGroupData] = useState(null);
+    const [requests, setRequests] = useState([]);
 
     useEffect(() => {
         const fetchSetStataOfGroupData = async () => {
@@ -35,6 +37,12 @@ const StataOfGroup = ({teamId,teamName}) => {
         return <div>Loading...</div>;
       }
 
+
+      const requestUrl = `http://moais-dashboard.ru:8082/api/total_marks_for_team?id_team=${teamId}`;
+
+      const handleUpdateRequests = (updatedRequests) => {
+        setRequests(updatedRequests);
+      };
 
       const chartData = {
         // labels: [],
@@ -126,7 +134,10 @@ const StataOfGroup = ({teamId,teamName}) => {
               <Text as={'b'} color='#808080' fontFamily={'Trebuchet MS'} fontSize='2xl'>Оценки группы {teamName}</Text>
 
             </Flex>
-            
+            <RequestCheckbox
+      requestUrl={requestUrl}
+      requestName="Оценки группы"
+      onUpdateRequests={handleUpdateRequests} />
             <Flex alignItems={'center'}>
 
           {/* <Flex mb={10} direction="column" ml={5} mt={10}> */}

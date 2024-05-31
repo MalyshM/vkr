@@ -5,12 +5,14 @@ import {fetchWithTokenRefresh} from '../RefreshToken'
 import { useNavigate } from 'react-router-dom';
 import { SelectProps } from 'antd';
 
+import RequestCheckbox from '../ReportSystem/RequestCheckbox';
 
 const { Option } = Select;
 const { Title } = Typography;
 
 const TopsTeam = () => {
-    
+  const [requests, setRequests] = useState([]);
+
     const { userToken } = useAuth();
     
     const navigate = useNavigate();
@@ -159,8 +161,26 @@ const TopsTeam = () => {
         setSelectedTeam(teamValues);
     };
 
-    
-    
+    const params = new URLSearchParams({
+      token: userToken,
+      is_by_mark: isByMark,
+      type_group_by : isTypeGroup,
+    });
+    if (SelectedTeacher && SelectedTeacher.length > 0) {
+      params.append('teacher_list', SelectedTeacher.join(','));
+    }
+    if (SelectedSpeciality && SelectedSpeciality.length > 0) {
+      params.append('speciality_list', SelectedSpeciality.join(','));
+    }
+    if (SelectedTeam && SelectedTeam.length > 0) {
+      params.append('team_list', SelectedTeam.join(','));
+    }
+
+    const handleUpdateRequests = (updatedRequests) => {
+      setRequests(updatedRequests);
+    };
+  
+    const requestUrl = `http://moais-dashboard.ru:8082/api/top_10_most_and_least_teams?${params.toString()}`;
 
 
       const handleKRChange = (value) => { // condition - 
@@ -412,6 +432,13 @@ const TopsTeam = () => {
         </Option>
     ))}
     </Select>
+
+    <RequestCheckbox
+        requestUrl={requestUrl}
+        requestName="Топ команд"
+        onUpdateRequests={handleUpdateRequests}
+    />
+
 </div>
 
 

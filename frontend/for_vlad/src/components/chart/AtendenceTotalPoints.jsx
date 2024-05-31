@@ -4,7 +4,9 @@ import { Bar } from 'react-chartjs-2';
 import { useNavigate  } from 'react-router-dom';
 import { Flex, Text, NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, Center, Spacer, theme  } from '@chakra-ui/react';
 import { ChakraProvider, Button, Box } from '@chakra-ui/react';
+
 import { useNumberItems } from './NumberItemsContext';
+import RequestCheckbox from '../ReportSystem/RequestCheckbox';
 
 import {Tooltip } from '@chakra-ui/react';
 import { QuestionOutlineIcon } from '@chakra-ui/icons'
@@ -14,12 +16,12 @@ import { fetchWithTokenRefresh } from '../RefreshToken';
 import 'chartjs-plugin-trendline';
 
 const AtendenceTotalPoints = ({teamId,teamName}) => {
+  const [requests, setRequests] = useState([]);
 
   const navigate = useNavigate ();
   const [attendanceTotalPointsData, setAttendanceTotalPointsData] = useState(null);
   const chartRef = useRef(null);
   const [sortBy, setSortBy] = useState('Успеваемость'); // По умолчанию сортировка по посещаемости
-  const [threshold, setThreshold] = useState(61);  
   
   const [totalPointsAvg, setTotalPointsAvg] = useState(null);
   const [arrivalAvg, setArrivalAvg] = useState(null);
@@ -111,16 +113,7 @@ const handleButtonClick = (sortType) => {
     labels: attendanceTotalPointsData.map((item => item.stud_id)),
     
     datasets: [
-      {
-        label: 'Линия уровня',
-        data: Array(attendanceTotalPointsData.length).fill(threshold), // Постоянное значение y
-        borderColor: 'rgba(0, 0, 0, 0.8)', // Цвет линии уровня
-        borderWidth: 2,
-        fill: false,
-        // borderDash: [5, 5], // Пунктирный стиль (по желанию)
-        type: 'line',
-        radius: 0,
-      },
+      
         
       {
         label: 'Успеваемость',
@@ -243,6 +236,11 @@ onClick: handleChartClick,
 
 };
 
+const requestUrl=`http://moais-dashboard.ru:8082/api/total_points_attendance_per_stud_for_team?id_team=${teamId}`;
+
+const handleUpdateRequests = (updatedRequests) => {
+  setRequests(updatedRequests);
+};
 
 return (
 <>
@@ -279,32 +277,13 @@ return (
   </Flex>
 
   <Flex align="center"> 
-    <Text bg={'white'} fontFamily={'Trebuchet MS'} borderColor={'rgba(0, 28, 172, 1)'} mr={3} p={2} borderWidth={2} borderRadius={6}>Медиана поещаемости:{Math.round(arrivalAvg)}%</Text>
+    <Text bg={'white'} fontFamily={'Trebuchet MS'} borderColor={'rgba(0, 28, 172, 1)'} mr={3} p={2} borderWidth={2} borderRadius={6}>Медиана поещаемости:{totalPointsAvg.toFixed(2)}
+    </Text>
     
-    <Text bg={'white'} fontFamily={'Trebuchet MS'} borderColor={'rgb(255,100,50)'} mr={3} p={2} borderWidth={2} borderRadius={6}>Медиана Успеваемости:{totalPointsAvg.toFixed(2)}</Text>
+    <Text bg={'white'} fontFamily={'Trebuchet MS'} borderColor={'rgb(255,100,50)'} mr={3} p={2} borderWidth={2} borderRadius={6}>Медиана Успеваемости:{Math.round(arrivalAvg)}%</Text>
   </Flex>
   <Flex>
-    <Text fontFamily={'Trebuchet MS'} ml={10}>Установите порог:</Text>
-    
-    <NumberInput
-      bg={'white'}
-      borderColor={'teal'}
-      fontFamily={'Trebuchet MS'}
-      borderWidth={0}
-      ml={2}
-      min={0}
-      max={100}
-      maxW={24} 
-      value={threshold}
-      onChange={(valueAsString, valueAsNumber) => setThreshold(valueAsNumber)}
-    >
-      <NumberInputField />
-      <NumberInputStepper>
-        <NumberIncrementStepper />
-        <NumberDecrementStepper />
-      </NumberInputStepper>
-    </NumberInput> 
-   
+
   </Flex>
 
 </Flex>
@@ -315,6 +294,10 @@ return (
         <Tooltip label="Диаграмма отображающая баллы и процент посещаемости каждого студента в выбранной группе" aria-label="A tooltip">
             <QuestionOutlineIcon ml={2} boxSize={4} cursor="pointer" />
         </Tooltip>
+        <RequestCheckbox
+      requestUrl={requestUrl}
+      requestName="Посещаемсть и успеваемость"
+      onUpdateRequests={handleUpdateRequests} />
 
     
       <Bar ref={chartRef} data={data} options={options} />

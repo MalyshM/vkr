@@ -4,14 +4,15 @@ import { useAuth } from '../useAuth';
 import {fetchWithTokenRefresh} from '../RefreshToken'
 import { useNavigate } from 'react-router-dom';
 import { Tooltip } from 'antd';
-
-import { saveAs } from 'file-saver';
-import * as XLSX from 'xlsx';
+import RequestCheckbox from '../ReportSystem/RequestCheckbox';
 
 const { Option } = Select;
 const { Title } = Typography;
 
 const TopPage = () => {
+
+  const [requests, setRequests] = useState([]);
+
   const { userToken } = useAuth();
   const navigate = useNavigate();
   const fetchTimer = useRef(null);
@@ -212,23 +213,6 @@ useEffect(() => {
 }, [Top_10_most_and_least, typeGroupBy]);
 
 
-  const exportToExcel = (bestData, leastData, allData, filename) => {
-    const workbook = XLSX.utils.book_new();
-
-    if (allData.length > 0) {
-      const allDataWorksheet = XLSX.utils.json_to_sheet(allData);
-      XLSX.utils.book_append_sheet(workbook, allDataWorksheet, 'All Students');
-    } else {
-      const bestWorksheet = XLSX.utils.json_to_sheet(bestData);
-      const leastWorksheet = XLSX.utils.json_to_sheet(leastData);
-      XLSX.utils.book_append_sheet(workbook, bestWorksheet, 'Best Students');
-      XLSX.utils.book_append_sheet(workbook, leastWorksheet, 'Least Students');
-    }
-
-    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-    saveAs(blob, `${filename}.xlsx`);
-  };
 
   const handleChangeTeam = (value) => {
     const teamValues = Array.isArray(value) ? value.map(v => v.toString()) : [value.toString()];
@@ -245,38 +229,6 @@ const handleChangeSpeciality = (value) => {
     setSelectedSpeciality(specialityValues);
 };
   
-  const handleDownload = () => {
-    if (isGroupBy) {
-      exportToExcel(studentsBest, studentsLeast, [], 'Данные по студентам');
-    } else {
-      exportToExcel([], [], filteredData, 'Данные по студентам');
-    }
-  };
-
-  
-    // const handleGroupByChange = (value) => {
-    //   setSelectedGroupBy(value);
-    
-    //   if (!value) {
-    //     setStudentsBest([]);
-    //     setStudentsLeast([]);
-    //     return;
-    //   }
-    
-    //   if (Top_10_most_and_least) {
-    //     const filteredData = Top_10_most_and_least.filter(item =>
-    //       item.team_id === value || item.speciality === value || item.teacher_id === value
-    //     );
-      
-    
-    //   const studentsBest = filteredData.flatMap(item => item.top_10_best || []);
-    //   const studentsLeast = filteredData.flatMap(item => item.top_10_least || []);
-    
-    //   setStudentsBest(studentsBest);
-    //   setStudentsLeast(studentsLeast);
-    //   }
-    // };
-  
  
   const handleKRChange = (value) => { // condition - 
     setSelectedKR(value);
@@ -287,9 +239,6 @@ const handleChangeSpeciality = (value) => {
     }
     console.log('CHANGES KR')
   };
-
- 
-  
 
  
   const createGroupByOptions = (data, typeGroupBy) => {
@@ -334,7 +283,6 @@ const handleChangeSpeciality = (value) => {
     return [];
   };
   
-
 
   const columnsForFiltr = [
     { title: 'ID Студента', dataIndex: 'stud_id', key: 'stud_id',
@@ -384,6 +332,30 @@ const handleChangeSpeciality = (value) => {
     { title: 'Преподаватель', dataIndex: 'teacher_name', key: 'teacher_name' }, // Add teacher_name column
   ];
   
+  const params = new URLSearchParams({
+    token: userToken,
+    is_by_mark: isByMark,
+    is_group_by: isGroupBy,
+  });
+
+  if (isGroupBy === true) {
+    params.append('type_group_by', typeGroupBy);
+  }
+  if (SelectedTeacher && SelectedTeacher.length > 0) {
+    params.append('teacher_list', SelectedTeacher.join(','));
+  }
+  if (SelectedSpeciality && SelectedSpeciality.length > 0) {
+    params.append('speciality_list', SelectedSpeciality.join(','));
+  }
+  if (SelectedTeam && SelectedTeam.length > 0) {
+    params.append('team_list', SelectedTeam.join(','));
+  }
+
+  const requestUrl = `http://moais-dashboard.ru:8082/api/top_10_most_and_least_studs?${params.toString()}`;
+    
+      const handleUpdateRequests = (updatedRequests) => {
+        setRequests(updatedRequests);
+      };
 
   return (
     <>
@@ -510,6 +482,12 @@ const handleChangeSpeciality = (value) => {
         ))}
         </Select>
         </Tooltip>
+
+        <RequestCheckbox
+        requestUrl={requestUrl}
+        requestName="Топ студентов"
+        onUpdateRequests={handleUpdateRequests}
+        />
 
           {/* <Button style={{background: "green", color: "white"}} onClick={handleDownload}>Скачать данные</Button> */}
 

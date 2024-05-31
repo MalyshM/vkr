@@ -4,10 +4,12 @@ import { Text } from '@chakra-ui/react';
 import { BoxPlotChart } from '@sgratzl/chartjs-chart-boxplot';
 
 import { fetchWithTokenRefresh } from '../RefreshToken';
+import RequestCheckbox from '../ReportSystem/RequestCheckbox';
 
 const AnalysKrFiltres = ({ tokenUsers, type, kr, teacher,speciality,team }) => {
   const [AnalysKrFiltresData, setAnalysKrFiltresData] = useState(null);
   const chartRef = useRef(null);
+  const [requests, setRequests] = useState([]);
 
   console.log('tokenUsers,',tokenUsers)
   console.log('type',type)
@@ -164,10 +166,21 @@ const AnalysKrFiltres = ({ tokenUsers, type, kr, teacher,speciality,team }) => {
     return <div>Loading...</div>;
   }
 
+  const requestUrl=`http://moais-dashboard.ru:8082/api/kr_analyse_with_filters?token=${tokenUsers}&type_select=${type}&kr=${kr}${teacher ? `&teacher=${Array.isArray(teacher) ? teacher.join(',') : teacher}` : ''}${speciality ? `&speciality=${Array.isArray(speciality) ? speciality.join(',') : speciality}` : ''}${team ? `&team=${Array.isArray(team) ? team.join(',') : team}` : ''}`
+
+  const handleUpdateRequests = (updatedRequests) => {
+    setRequests(updatedRequests);
+  };
+
   return (
-    
+    <>
+    <RequestCheckbox
+    requestUrl={requestUrl}
+    requestName="Диаграмма размаха выборочная"
+    onUpdateRequests={handleUpdateRequests} />
       <canvas ref={chartRef} > </canvas>
     
+    </>
   );
 };
 
