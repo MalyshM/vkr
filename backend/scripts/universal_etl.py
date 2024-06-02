@@ -11,7 +11,7 @@ import pandas as pd
 from models import *
 
 
-def etl(file_path='трек HARD.xlsx', rmup_name='Математический анализ',
+def etl(file_path='/backend/scripts/трек HARD.xlsx', rmup_name='Математический анализ',
         sheets=['Информация по студентам', 'Информация по студентам_', 'Информация по студентам__',
                 'Преподаватели Л, П']):
     dfs = []
@@ -209,9 +209,9 @@ def etl(file_path='трек HARD.xlsx', rmup_name='Математический 
 
     df_true = pd.DataFrame(df_list)
     df_true = df_true.T
-    df_true.to_csv(index=False, path_or_buf='df_test.csv', sep="_", header=False)
+    df_true.to_csv(index=False, path_or_buf='/backend/scripts/df_test.csv', sep="_", header=False)
 
-    df_real = pd.read_csv('df_test.csv', delimiter='_', header=None)
+    df_real = pd.read_csv('/backend/scripts/df_test.csv', delimiter='_', header=None)
 
     print(df_real.columns)
     df_real.columns = df_real.columns.astype(str)
