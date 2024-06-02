@@ -8,3 +8,4 @@
 /filebeat
 /docker_volumes
 /fastapi-logs
+*.xlsx
