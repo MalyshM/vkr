@@ -1,21 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import Plot from 'react-plotly.js';
 import { fetchWithTokenRefresh } from '../RefreshToken';
-import { Select, Row, Col } from 'antd';
+import {Spin, Select, Row, Col,Layout } from 'antd';
 import RequestCheckbox from '../ReportSystem/RequestCheckbox';
 
 const { Option } = Select;
+const { Content } = Layout;
 
 const ScaterPlotBySection = ({ tokenUsers, type_group_by, teacher_list, speciality_list, team_list }) => {
   const [ScaterPlotBySectionData, setScatterPlotData] = useState(null);
   const [selectedName, setSelectedName] = useState(null);
   const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(false); // state for spin
 
   const handleNameSelect = value => {
     setSelectedName(value);
   };
 
   useEffect(() => {
+    setLoading(true);
     const fetchScaterPlotBySection = async () => {
       try {
         if (tokenUsers !== null) {
@@ -28,13 +31,15 @@ const ScaterPlotBySection = ({ tokenUsers, type_group_by, teacher_list, speciali
         }
       } catch (error) {
         console.error('ScaterPlotBySection - Error fetching ScaterPlotBySection:', error);
+      }finally {
+        setLoading(false); // Устанавливаем состояние загрузки в false после завершения запроса
       }
     };
     fetchScaterPlotBySection();
   }, [tokenUsers, type_group_by, teacher_list, speciality_list, team_list]);
 
   if (!ScaterPlotBySectionData) {
-    return <div>Loading...</div>;
+    return <Spin spinning={loading} tip="Loading" size="large" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 10 }} />;
   }
 
   const uniqueNames = [...new Set(ScaterPlotBySectionData.map(item => item.name))];
@@ -112,38 +117,49 @@ const ScaterPlotBySection = ({ tokenUsers, type_group_by, teacher_list, speciali
 
   return (
     <>
-      <Select
-        style={{ width: '270px', marginBottom: '16px' }}
-        placeholder="Выберите учебную встречу"
-        onChange={(value) => handleNameSelect(value)}
-        value={selectedName}
-      >
-        {Array.isArray(uniqueNames) && uniqueNames.length > 0 ? (
-          uniqueNames.map((nameOfMeeting) => (
-            <Option key={nameOfMeeting} value={nameOfMeeting}>
-              {nameOfMeeting}
-            </Option>
-          ))
-        ) : (
-          <Option disabled>Данные не доступны</Option>
-        )}
-      </Select>
+      <Layout style={{ padding: '12px' }}>
+        <Content>
+        <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+          <div>
 
-      <RequestCheckbox
-        requestUrl={requestUrl}
-        requestName="Диаграмма рассеяния по группам"
-        onUpdateRequests={handleUpdateRequests}
-      />
-
-      <Row justify="center">
-        <Col span={24}>
-          <div style={{ width: '100%', height: '100vh' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', align: "center"}}>
+            <Col>
+          <Select
+            style={{ width: '270px', marginBottom: '16px', marginRight:"10px" }}
+            placeholder="Выберите учебную встречу"
+            onChange={(value) => handleNameSelect(value)}
+            value={selectedName}
+            
+          >
+            {Array.isArray(uniqueNames) && uniqueNames.length > 0 ? (
+              uniqueNames.map((nameOfMeeting) => (
+                <Option key={nameOfMeeting} value={nameOfMeeting}>
+                  {nameOfMeeting}
+                </Option>
+              ))
+            ) : (
+              <Option disabled>Данные не доступны</Option>
+            )}
+          </Select>
+          
+          <RequestCheckbox
+            requestUrl={requestUrl}
+            requestName="Диаграмма рассеяния по группам"
+            onUpdateRequests={handleUpdateRequests}
+          />
+          </Col>
+          </div>
+  
             <Plot config={config} data={data} layout={layout} style={{ width: '100%', height: '100%' }} />
           </div>
-        </Col>
-      </Row>
+        </div>
+
+        </Content>
+      </Layout>
     </>
   );
+  
 };
+
 
 export default ScaterPlotBySection;

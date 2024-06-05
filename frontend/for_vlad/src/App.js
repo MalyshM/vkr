@@ -26,6 +26,8 @@ import TopsPage from './components/Tops/TopsPage';
 import TopsTeam from './components/Tops/TopsTeam';
 import LeastPage from './components/Tops/Least';
 
+import AboutUs from './components/AboutUs';
+import MapSite from './components/MapSite';
 
 function App() {
 
@@ -54,6 +56,8 @@ function App() {
         <Route path='/tops_stud' element={<TopsPage/>}/>
         <Route path='/tops_team' element={<TopsTeam/>}/>
         <Route path='/least' element={<LeastPage/>}/>
+        <Route path='/about_us' element={<AboutUs/>}/>
+        <Route path='/map_site' element={<MapSite/>}/>
 
 
       </Routes>

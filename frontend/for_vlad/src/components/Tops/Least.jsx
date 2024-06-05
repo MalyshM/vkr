@@ -108,7 +108,6 @@ const LeastPage = () => {
         }
         
       };
-      console.log('LaggingStudents',LaggingStudents)
 
       const fetchTeam = async () => {
         try {
@@ -259,187 +258,184 @@ const LeastPage = () => {
 
         return(
             <>
-    <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', margin: '10px 0' }}>
+    <div style={{ position: 'relative', minHeight: '100px' }}>
+      <Spin
+        spinning={loading}
+        tip="Loading"
+        size="large"
+        style={{
+          position: 'absolute',
+          top: '8%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 10
+        }}
+      />
     
-            <Spin 
-                spinning={loading} 
-                tip="Loading"
-                size="large"
-                style={{ 
-                position: 'absolute', 
-                top: '8%', 
-                left: '50%', 
-                transform: 'translate(-50%, -50%)', 
-                zIndex: 10 
-                }} 
-            />
     
-    
-            <Title level={2}>Отстающие</Title>
-    
-            <Tooltip title="Укажите режим">
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center',marginTop: "10px" }}>
+          <Title level={2} style={{ margin: 0 }}>Отстающие</Title>
+        </div>
+        
+        <div style={{ display: 'flex', justifyContent: 'space-evenly', flexWrap: 'wrap', alignItems: 'center' ,marginTop: "10px"}}>
+          <Tooltip title="Укажите режим">
             <Select
-                placeholder="* Группировать?"
-                style={{ width: 150 }}
-                value={isGroupBy}
-                onChange={value => setGroupBy(value)}
-                allowClear
-                >
-            <Option value={true}>Группировать</Option>
-            <Option value={false}>Без группировки</Option>
+              placeholder="* Группировать?"
+              style={{ width: 150 }}
+              value={isGroupBy}
+              onChange={value => setGroupBy(value)}
+              allowClear
+            >
+              <Option value={true}>Группировать</Option>
+              <Option value={false}>Без группировки</Option>
             </Select>
-            </Tooltip>
-            
-            <Tooltip title="Укажите тип сортировки">
-            <Select
-                placeholder="* Сортировать по:"
-                style={{ width: 160 }}
-                value={isByMark}
-                onChange={value => setIsByMark(value)}
-                allowClear
-                >
-            <Option value={true}>Успеваемость</Option>
-            <Option value={false}>Посещаемость</Option>
-            </Select>
-            </Tooltip>
+          </Tooltip>
 
-            <Tooltip title="Укажите, чтобы задать ограничение">
+          <Tooltip title="Укажите тип сортировки">
+            <Select
+              placeholder="* Сортировать по:"
+              style={{ width: 160 }}
+              value={isByMark}
+              onChange={value => setIsByMark(value)}
+              allowClear
+            >
+              <Option value={true}>Успеваемость</Option>
+              <Option value={false}>Посещаемость</Option>
+            </Select>
+          </Tooltip>
+
+          <Tooltip title="Укажите, чтобы задать ограничение">
             <InputNumber
-              placeholder="* Установите порог:" 
-              allowClear 
-              min={0} 
-              max={120} 
-              // defaultValue={61} 
+              placeholder="* Установите порог:"
+              allowClear
+              min={0}
+              max={120}
               value={isThreshold}
               onChange={value => setThreshold(value)}
               style={{ width: 160 }}
-              />
-              </Tooltip>
-            
-            <Tooltip title="Укажите тип, если группируете">
-            <Select
-                placeholder="Тип группировки:"
-                style={{ width: 170 }}
-                  value={isTypeGroup} 
-                onChange={value => setTypeGroupBy(value)}
-                allowClear
-                >
-            <Option value={0}>По командам</Option>
-            <Option value={1}>По направлениям</Option>
-            <Option value={2}>По преподавателям</Option>
-            </Select>
-            </Tooltip>
+            />
+          </Tooltip>
 
-            <Tooltip title="Укажите контрольную точку для отсеивания друих">
-            <Select placeholder="Выберите контрольную точку" 
-                style={{ width: 200 }} 
-                onChange={handleKRChange}
-                allowClear
-                >
-            {uniqueKRNames.map(point => (
-                <Option key={point} value={point}>
-                {point}
-                </Option>
-            ))}
-            </Select>
-            </Tooltip>
-    
+          <Tooltip title="Укажите тип, если группируете">
             <Select
-          mode="multiple"
-          allowClear
-          style={{ width: 200 }}
-          placeholder="Выберите группу"
-          onChange={handleChangeTeam}
+              placeholder="Тип группировки:"
+              style={{ width: 170 }}
+              value={isTypeGroup}
+              onChange={value => setTypeGroupBy(value)}
+              allowClear
+            >
+              <Option value={0}>По командам</Option>
+              <Option value={1}>По направлениям</Option>
+              <Option value={2}>По преподавателям</Option>
+            </Select>
+          </Tooltip>
+
+          <Tooltip title="Укажите контрольную точку для отсеивания других">
+            <Select
+              placeholder="Выберите контрольную точку"
+              style={{ width: 200 }}
+              onChange={handleKRChange}
+              allowClear
+            >
+              {uniqueKRNames.map(point => (
+                <Option key={point} value={point}>
+                  {point}
+                </Option>
+              ))}
+            </Select>
+          </Tooltip>
+
+          <Select
+            mode="multiple"
+            allowClear
+            style={{ width: 200 }}
+            placeholder="Выберите группу"
+            onChange={handleChangeTeam}
           >
             {TeamData && TeamData.map(team => (
-                <Option key={team.id} value={team.id}>
-                    {team.name}
-                </Option>
-            ))} 
-            </Select>
-    
-            <Select
-          mode="multiple"
-          allowClear
-          style={{ width: 280 }}
-          placeholder="Выберите направление"
-          onChange={handleChangeSpeciality}
+              <Option key={team.id} value={team.id}>
+                {team.name}
+              </Option>
+            ))}
+          </Select>
+
+          <Select
+            mode="multiple"
+            allowClear
+            style={{ width: 280 }}
+            placeholder="Выберите направление"
+            onChange={handleChangeSpeciality}
           >
-                 {SpecialityData && SpecialityData.map(spec => (
-            <Option key={spec.speciality} value={spec.peciality}>
-                {spec.peciality}
-            </Option>
-        ))} 
-        </Select>
-    
-            <Select
-          mode="multiple"
-          allowClear
-          style={{ width: 280 }}
-          placeholder="Выберите преподавателя"
-          onChange={handleChangeTeacher}
-            >
-                 {TeacherData && TeacherData.map((teacher, index) => (
-            <Option key={`${teacher.id}-${index}`} value={teacher.name}> 
+            {SpecialityData && SpecialityData.map(spec => (
+              <Option key={spec.speciality} value={spec.speciality}>
+                {spec.speciality}
+              </Option>
+            ))}
+          </Select>
+
+          <Select
+            mode="multiple"
+            allowClear
+            style={{ width: 280 }}
+            placeholder="Выберите преподавателя"
+            onChange={handleChangeTeacher}
+          >
+            {TeacherData && TeacherData.map((teacher, index) => (
+              <Option key={`${teacher.id}-${index}`} value={teacher.name}>
                 {teacher.name}
-            </Option>
-        ))}
-        </Select>
+              </Option>
+            ))}
+          </Select>
 
-        {/* <RequestCheckbox requestUrl={requestUrl} requestName="Список отстающих" /> */}
-
-        <RequestCheckbox
-        requestUrl={requestUrl}
-        requestName="Список отстающих"
-        onUpdateRequests={handleUpdateRequests}
-      />
-        
-        {/* <RequestCheckbox requestUrl={requestUrl} requestName="Список отстающих" onUpdateRequests={(requests) => setRequests(requests)} /> */}
-
-
-    </div>
-    
-        <div style={{
-            display: 'flex', 
-            // justifyContent: 'space-around', 
-            flexWrap: 'wrap',
-            gap: '20px',
-            // gap: '20px', 
-            marginTop: 20 }}>
-    
-            {isGroupBy && dataInTable && dataInTable.length > 0 && dataInTable.map((group, index) => (
-            <Table
-                key={index}
-                style={{ width: '30%' }}
-                dataSource={group.result1 ? group.result1.map((item, i) => ({ ...item, key: i })) : []}
-                columns={columns}
-                title={() => {
-                    switch (isTypeGroup) {
-                        case 0:
-                            return `${group.team_id} ${SelectedTeacher},${ SelectedSpeciality}` ;
-                        case 1:
-                            return `${group.speciality} ${SelectedTeacher}`;
-                        case 2:
-                            return `${group.teacher_id} `;
-                        default:
-                            return '';
-                    }
-                }}
-            />
-        ))}
-
-            {!isGroupBy && (
-                <Table
-                    style={{ width: '100%' }}
-                    dataSource={dataInTable.map((item, index) => ({ ...item, key: `${item.stud_id}-${index}` }))}
-                    columns={columns}
-                    rowKey="key"
-                />
-            )}
-
+          <RequestCheckbox
+            requestUrl={requestUrl}
+            requestName="Список отстающих"
+            onUpdateRequests={handleUpdateRequests}
+          />
         </div>
-    
-</>
-)
-}
+      </div>
+
+      <div style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '20px',
+        marginTop: 20
+      }}>
+
+        {isGroupBy && dataInTable && dataInTable.length > 0 && dataInTable.map((group, index) => (
+          <Table
+            key={index}
+            style={{ width: '30%' }}
+            dataSource={group.result1 ? group.result1.map((item, i) => ({ ...item, key: i })) : []}
+            columns={columns}
+            title={() => {
+              switch (isTypeGroup) {
+                case 0:
+                  return `${group.team_id} ${SelectedTeacher},${SelectedSpeciality}`;
+                case 1:
+                  return `${group.speciality} ${SelectedTeacher}`;
+                case 2:
+                  return `${group.teacher_id}`;
+                default:
+                  return '';
+              }
+            }}
+          />
+        ))}
+
+      {!isGroupBy && (
+          <Table
+            style={{ width: '100%' }}
+            dataSource={dataInTable.map((item, index) => ({ ...item, key: `${item.stud_id}-${index}` }))}
+            columns={columns}
+            rowKey="key"
+          />
+        )}
+
+      </div>
+
+    </>
+    )
+  }
+
 export default LeastPage;

@@ -1,27 +1,21 @@
-
-import React, { useEffect, useRef ,useState} from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Bar } from 'react-chartjs-2';
-import TableOfGroup from './TableOfGroup';
-// import { TableOfGroup } from './TableOfGroup';
-import { useNavigate  } from 'react-router-dom';
-import { Box } from "@chakra-ui/react";
-import { useNumberItems } from './NumberItemsContext';
+import { useNavigate } from 'react-router-dom';
+import { Layout, Tooltip, Typography, Row, Col, Space, Avatar } from 'antd';
+import { QuestionCircleOutlined } from '@ant-design/icons';
+import styled from 'styled-components';
 import RequestCheckbox from '../ReportSystem/RequestCheckbox';
-
-import {Tooltip, Text,Flex } from '@chakra-ui/react';
-import { QuestionOutlineIcon } from '@chakra-ui/icons'
-
 import { fetchWithTokenRefresh } from '../RefreshToken';
 
-const NumCountStudInLern = ({ teamId,onLessonSelect, numberOfItems}) => {
-  const numberOfItemsRef = useNumberItems();
+const { Content } = Layout;
+const { Title, Text } = Typography;
 
+const NumCountStudInLern = ({ teamId, onLessonSelect, numberOfItems }) => {
+  const chartRef = useRef(null);
   const [AtendanceNumCountStudInLernData, setAtendanceNumCountStudInLernData] = useState(null);
   const [selectedLesson, setSelectedLesson] = useState(null);
-  const chartRef = useRef(null);
-  const [numberOfday ,setNumberOfday] = useState(null)
+  const [numberOfday, setNumberOfday] = useState(null);
   const [requests, setRequests] = useState([]);
-
 
   const handleBarClick = (_, elements) => {
     if (elements && elements.length > 0) {
@@ -29,7 +23,6 @@ const NumCountStudInLern = ({ teamId,onLessonSelect, numberOfItems}) => {
       const dataIndex = clickedElement.index;
       const selectedLessonName = AtendanceNumCountStudInLernData[dataIndex].name;
       setSelectedLesson(selectedLessonName);
-      
       onLessonSelect(selectedLessonName);
     }
   };
@@ -41,151 +34,187 @@ const NumCountStudInLern = ({ teamId,onLessonSelect, numberOfItems}) => {
           const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/attendance_num_for_stud_for_team?id_team=${teamId}`);
           const result = await response.json();
           setAtendanceNumCountStudInLernData(result);
-          setNumberOfday(result.length)
-
+          setNumberOfday(result.length);
         }
       } catch (error) {
         console.error('Error fetching attendanceTotalPoints data:', error);
       }
     };
     fetchAtendanceNumCountStudInLernData();
-  },[teamId]);
+  }, [teamId]);
 
-
-  const requestUrl =`http://moais-dashboard.ru:8082/api/attendance_num_for_stud_for_team?id_team=${teamId}`;
+  const requestUrl = `http://moais-dashboard.ru:8082/api/attendance_num_for_stud_for_team?id_team=${teamId}`;
 
   const handleUpdateRequests = (updatedRequests) => {
     setRequests(updatedRequests);
   };
-  
 
   if (!AtendanceNumCountStudInLernData) {
     return <div>Loading...</div>;
   }
 
-//   const labelsWithIndex = AtendanceNumCountStudInLernData.map((item, index) => ({ name: item.name, index: index + 1 }));
-
   const data = {
     labels: AtendanceNumCountStudInLernData.map((item, index) => `${index + 1}. ${item.name}`),
-
     datasets: [
-        {
-            label: `Кол-во студентов`,
-            data: AtendanceNumCountStudInLernData.map((item) => item.Посещаемость),
-            backgroundColor: 'rgb(49,141,159, 0.8)',
-            borderColor: 'rgb(49,141,159, 0.8)',
-            borderWidth: 2,  
-            type: 'line',
-          },
+      {
+        label: 'Кол-во студентов',
+        data: AtendanceNumCountStudInLernData.map((item) => item.Посещаемость),
+        backgroundColor: 'rgba(49, 141, 159, 0.8)',
+        borderColor: 'rgba(49, 141, 159, 1)',
+        borderWidth: 2,
+        type: 'line',
+        tension: 0.4,
+        pointBackgroundColor: 'rgba(49, 141, 159, 1)',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        hoverBackgroundColor: 'rgba(49, 141, 159, 0.9)',
+        hoverBorderColor: 'rgba(49, 141, 159, 1)',
+      },
     ],
   };
-
-const options = {
-
-  onClick: handleBarClick,
-  scales: {
-    x: {
-        ticks: {
-          callback: (value, index) => (index + 1).toString(), 
-        },
-      type: 'category',
-      position: 'bottom',
-      title: {
-        display: true,
-        text: 'Учебная встреча',
-        font: {
-          size: 20,
-          fontColor: 'black',
-          family: 'Trebuchet MS',
-        },
-      },
-    },
-    y: {
-      type: 'linear',
-      position: 'left',
-      title: {
-        display: true,
-        text: 'Количество студентов',
-        font: {
-          size: 20,
-          fontColor: 'black',
-          family: 'Trebuchet MS',
-        },
-      },
-      id: 'y-axis-0',
-      ticks: {
-        callback: (value) => value.toString(), // Установка значения для оси Y
-      },
-      
-    },
-  },
-  plugins: {
-    datalabels: {
-      display: true,
-        anchor: 'end',
-        align: 'end',
-        color: 'black',
-        formatter: (value, context) => {
-          return `${value}`; // Замените на тот формат, который вам нужен
-        },
-      },
-    title: {
-      display: true,
-      text: `Количество студентов на практике`,
-      font: {
-        size: 22,
-        fontColor: 'black',
-        family: 'Trebuchet MS',
-      },
-    },
-    legend: {
-      display: false,
-      position: 'top',
-    },
-
-  },
-  maintainAspectRatio: false, 
-  layout: {
-    padding: {
-      left: 40,
-      right: 10,
-      top: 10,
-      bottom: 10,
-    },
-  },
-  elements: {
-    bar: {
-      barThickness: 400,
-      borderRadius: 6,
-    },
-  },
-  animation: {
-    duration: 2000,
-  },
-
-};
-
-
-
-return (<>
   
-  <Box  h={'34vh'} bg={'white'} borderRadius={20}>
-      <Tooltip label="График отображающий кол-во студентов на каждой учебной встрече во время прохождения курса" aria-label="A tooltip">
-        <QuestionOutlineIcon ml={2} boxSize={4} cursor="pointer" />
-      </Tooltip>
+  const options = {
+    onClick: handleBarClick,
+    scales: {
+      x: {
+        ticks: {
+          callback: (value, index) => (index + 1).toString(),
+          font: {
+            size: 14,
+            family: 'Trebuchet MS',
+          },
+          color: '#666',
+        },
+        type: 'category',
+        position: 'bottom',
+        title: {
+          display: true,
+          text: 'Учебная встреча',
+          font: {
+            size: 20,
+            family: 'Trebuchet MS',
+          },
+          color: '#666',
+        },
+        grid: {
+          display: false,
+        },
+      },
+      y: {
+        type: 'linear',
+        position: 'left',
+        title: {
+          display: true,
+          text: 'Количество студентов',
+          font: {
+            size: 20,
+            family: 'Trebuchet MS',
+          },
+          color: '#666',
+        },
+        id: 'y-axis-0',
+        ticks: {
+          callback: (value) => value.toString(),
+          font: {
+            size: 14,
+            family: 'Trebuchet MS',
+          },
+          color: '#666',
+        },
+        grid: {
+          color: 'rgba(200, 200, 200, 0.3)',
+        },
+      },
+    },
+    plugins: {
+      datalabels: {
+        display: true,
+        anchor: 'start',
+        align: 'start',
+        color: '#000',
+        formatter: (value, context) => `${value}`,
+        font: {
+          size: 12,
+          family: 'Trebuchet MS',
+        },
+      },
+      title: {
+        display: true,
+        text: 'Количество студентов на учебной встрече',
+        font: {
+          size: 22,
+          family: 'Trebuchet MS',
+        },
+        color: '#333',
+      },
+      legend: {
+        display: true,
+        position: 'bottom',
+        labels: {
+          font: {
+            size: 14,
+            family: 'Trebuchet MS',
+          },
+          color: '#333',
+          padding: 20,
+        },
+      },
+    },
+    maintainAspectRatio: false,
+    layout: {
+      padding: {
+      },
+    },
+    elements: {
+      line: {
+        borderWidth: 2,
+        borderColor: 'rgba(49, 141, 159, 1)',
+        backgroundColor: 'rgba(49, 141, 159, 0.8)',
+        fill: false,
+      },
+      point: {
+        radius: 5,
+        backgroundColor: 'rgba(49, 141, 159, 1)',
+        borderColor: '#fff',
+        borderWidth: 2,
+        hoverRadius: 7,
+        hoverBorderWidth: 3,
+      },
+    },
+    animation: {
+      duration: 1500,
+      easing: 'easeOutBounce',
+    },
+  };
+  
 
-      <RequestCheckbox
-      requestUrl={requestUrl}
-      requestName="Кол-во студентов на встрече"
-      onUpdateRequests={handleUpdateRequests} />
+  return (
+    <Layout>
+      <Content style={{ padding: '24px', background: '#fff', borderRadius: '20px',borderRadius: "20px", border: "1px solid lavender" 
+ }}>
 
-  <Bar ref={chartRef} data={data} options={options} />
+        <Row align="middle" gutter={16} justify="center">
+          <Col>
+            <Tooltip title="График отображающий количество студентов на каждой учебной встрече во время прохождения курса">
+              <QuestionCircleOutlined />
+            </Tooltip>
+          </Col>
+          
+          <RequestCheckbox
+            requestUrl={requestUrl}
+            requestName="Кол-во студентов на встрече"
+            onUpdateRequests={handleUpdateRequests}
+          />
+        </Row>
 
-</Box>
+          <div style={{ width: '100%', height: '27vh' }}>
+            <Bar  ref={chartRef} data={data} options={options} />
+          </div>
 
-</>);
+      </Content>
+    </Layout>
+  );
 };
-
 
 export default NumCountStudInLern;
-

@@ -1,0 +1,65 @@
+@keyframes moveBackground {
+    0% {
+      background-position: left top;
+    }
+    50% {
+      background-position: right bottom;
+    }
+    100% {
+      background-position: left top;
+    }
+  }
+  
+  .layout {
+    position: relative;
+    background: linear-gradient(135deg, #00aeef, #0e3affd2);
+    background-size: 200% 200%;
+    animation: moveBackground 10s infinite;
+    overflow: hidden;
+  }
+  /* 
+  @keyframes float {
+    0% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+    100% {
+      transform: translateY(0);
+    }
+  }
+  
+  .particle {
+    position: absolute;
+    bottom: -50px;
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    border-radius: 50%;
+    opacity: 0.8;
+    animation: float 4s ease-in-out infinite;
+  } */
+  @keyframes moveDots {
+    0%, 100% {
+      transform: translateX(0) translateY(0);
+    }
+    50% {
+      transform: translateX(400px) translateY(400px);
+    }
+  }
+  
+  .particle {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    background-color: white;
+    border-radius: 50%;
+    opacity: 0.3;
+    animation: moveDots 5s infinite;
+    left: calc(100% * var(--i) / 10);
+    top: calc(100% * var(--i) / 10);
+  }
+  
+
+  

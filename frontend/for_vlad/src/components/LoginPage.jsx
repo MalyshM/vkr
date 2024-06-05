@@ -136,7 +136,7 @@ const LoginPage = () => {
 
 
 return (
-  <Layout style={{ minHeight: '100vh', backgroundColor: '#00aeef', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+  <Layout className="layout" style={{ minHeight: '100vh',  display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
       <Card
         style={{
           width: '500px',

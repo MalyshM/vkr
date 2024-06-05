@@ -58,7 +58,7 @@ const YourGroup = () => {
                     <Select
                         mode="multiple"
                         placeholder="Выбрать преподавателей"
-                        style={{ width: 240 }}
+                        style={{ width: 400 }}
                         onChange={handleTeacherSelect}
                         value={selectedTeachers}
                         // allowClear

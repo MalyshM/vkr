@@ -130,53 +130,53 @@ function getColorByTeacherAndSpeciality(teacherId, speciality) {
 
         datasets: [
           {
-              label: ` Средняя посещаемость (после 1й КР)`,
+              label: ` Медианная посещаемость (после 1й КР)`,
               data: VecStudyAllusersAtTpData.map((item) => item.Посещаемость_средняя),
               backgroundColor: VecStudyAllusersAtTpData.map((item) => getColorByTeacherAndSpeciality(item.teacher_id, item.stud_speciality)),
               borderWidth: 1,
             },
       
           {
-              label: `Средняя успеваемость (после 1й КР)`,
+              label: `Медианная успеваемость (после 1й КР)`,
               data: VecStudyAllusersAtTpData.map((item) => item.Успеваемость_средняя),
               backgroundColor: VecStudyAllusersAtTpData.map((item) => getColorByTeacherAndSpeciality(item.teacher_id, item.stud_speciality)),
               borderWidth: 1,        
           },
           {
-            label: `Средняя посещаемость (после 2й КР)`,
+            label: `Медианная посещаемость (после 2й КР)`,
             data: VecStudyAllusersAtTpData.map((item) => item.Посещаемость_средняя0),
             backgroundColor: VecStudyAllusersAtTpData.map((item) => getColorByTeacherAndSpeciality(item.teacher_id, item.stud_speciality)),
             borderWidth: 1,
     
         },
         {
-            label: `Средняя успеваемость (после 2й КР)`,
+            label: `Медианная успеваемость (после 2й КР)`,
             data: VecStudyAllusersAtTpData.map((item) => item.Успеваемость_средняя0),
             backgroundColor: VecStudyAllusersAtTpData.map((item) => getColorByTeacherAndSpeciality(item.teacher_id, item.stud_speciality)),
             borderWidth: 1,        
         },
         {
-          label: `Средняя посещаемость (после 3й КР)`,
+          label: `Медианная посещаемость (после 3й КР)`,
           data: VecStudyAllusersAtTpData.map((item) => item.Посещаемость_средняя1),
           backgroundColor: VecStudyAllusersAtTpData.map((item) => getColorByTeacherAndSpeciality(item.teacher_id, item.stud_speciality)),
           borderWidth: 1,
   
       },
       {
-          label: `Средняя успеваемость (после 3й КР)`,
+          label: `Медианная успеваемость (после 3й КР)`,
           data: VecStudyAllusersAtTpData.map((item) => item.Успеваемость_средняя1),
           backgroundColor: VecStudyAllusersAtTpData.map((item) => getColorByTeacherAndSpeciality(item.teacher_id, item.stud_speciality)),
           borderWidth: 1,        
       },
       {
-        label: `Средняя посещаемость (после аттестации)`,
+        label: `Медианная посещаемость (после аттестации)`,
         data: VecStudyAllusersAtTpData.map((item) => item.Посещаемость_средняя2),
         backgroundColor: VecStudyAllusersAtTpData.map((item) => getColorByTeacherAndSpeciality(item.teacher_id, item.stud_speciality)),
         borderWidth: 1,
   
     },
     {
-        label: `Средняя успеваемость (после аттестации)`,
+        label: `Медианная успеваемость (после аттестации)`,
         data: VecStudyAllusersAtTpData.map((item) => item.Успеваемость_средняя2),
         backgroundColor: VecStudyAllusersAtTpData.map((item) => getColorByTeacherAndSpeciality(item.teacher_id, item.stud_speciality)),
         borderWidth: 1,        

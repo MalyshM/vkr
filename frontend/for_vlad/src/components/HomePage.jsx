@@ -1,16 +1,14 @@
 import React from 'react';
 import { Button, Layout, Typography, Card } from 'antd';
 import { Link } from 'react-router-dom';
+import '.././thems/frames.css';
 
 const { Content } = Layout;
 const { Title } = Typography;
 
-
 const HomePage = () => {
-
-    return (
-
-      <Layout style={{ minHeight: '100vh', backgroundColor: '#00aeef' }}>
+  return (
+    <Layout className="layout" style={{ minHeight: '100vh' }}>
       <Content style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <Card
           style={{
@@ -26,38 +24,29 @@ const HomePage = () => {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: 'white'
+            backgroundColor: 'white',
           }}
         >
           <Title level={1} style={{ marginBottom: '24px', fontFamily: 'Trebuchet MS' }}>
             Добро пожаловать!
           </Title>
 
-          <Link to='/login'>
-          <Button
-            type="primary"
-            style={{ width: '200px', margin: '8px' }}
-            size="large"
-          >
-            Войти
-          </Button>
+          <Link to="/login">
+            <Button type="primary" style={{ width: '200px', margin: '8px' }} size="large">
+              Войти
+            </Button>
           </Link>
 
-          <Link to="/register"> 
-          <Button
-            type="default"
-            style={{ width: '200px', margin: '8px' }}
-            size="large"
-          >
-            Создать аккаунт
-          </Button>
+          <Link to="/register">
+            <Button type="default" style={{ width: '200px', margin: '8px' }} size="large">
+              Создать аккаунт
+            </Button>
           </Link>
-          
         </Card>
+       
       </Content>
     </Layout>
-    
-      );
-    };
-    
+  );
+};
+
 export default HomePage;

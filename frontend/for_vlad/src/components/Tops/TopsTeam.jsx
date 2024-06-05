@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Select, Table, Typography, Cascader, Spin,Button} from 'antd';
+import { Select, Table, Typography, Cascader, Spin,Button,Row} from 'antd';
 import { useAuth } from '../useAuth';
 import {fetchWithTokenRefresh} from '../RefreshToken'
 import { useNavigate } from 'react-router-dom';
@@ -333,150 +333,136 @@ const TopsTeam = () => {
       
 
 
-    return(
-        <>
-<div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', margin: '10px 0' }}>
-
-        <Spin 
-            spinning={loading} 
+    return (
+      <>
+        <div style={{ position: 'relative', minHeight: '100px' }}>
+          <Spin
+            spinning={loading}
             tip="Loading"
             size="large"
-            style={{ 
-            position: 'absolute', 
-            top: '8%', 
-            left: '50%', 
-            transform: 'translate(-50%, -50%)', 
-            zIndex: 10 
-            }} 
-        />
+            style={{
+              position: 'absolute',
+              top: '8%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              zIndex: 10
+            }}
+          />
+    
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '10px 0' }}>
+              <Title level={2} style={{ margin: 0 }}>Топ команд</Title>
+            </div>
 
-
-        <Title level={2}>Топ команд</Title>
-
-        <Select
-            placeholder="Сортировать по: *"
-            style={{ width: 200 }}
-            value={isByMark}
-            onChange={value => setIsByMark(value)}
-            allowClear
-            >
-        <Option value={true}>Успеваемость</Option>
-        <Option value={false}>Посещаемость</Option>
-        </Select>
-
-
-
-        <Select
-            placeholder="Тип группировки: *"
-            style={{ width: 200 }}
-              value={isTypeGroup} 
-            onChange={value => setTypeGroupBy(value)}
-            allowClear
-            >
-        <Option value={0}>По командам</Option>
-        <Option value={1}>По направлениям</Option>
-        <Option value={2}>По преподавателям</Option>
-        </Select>
-
-        <Select placeholder="Выберите контрольную точку" 
-            style={{ width: 200 }} 
-            onChange={handleKRChange}
-            allowClear
-            >
-        {uniqueKRNames.map(point => (
-            <Option key={point} value={point}>
-            {point}
-            </Option>
-        ))}
-        </Select>
-        
-
-        <Select
-      mode="multiple"
-      allowClear
-      style={{ width: 200 }}
-      placeholder="Выберите группу"
-      onChange={handleChangeTeam}
-      >
-        {TeamData && TeamData.map(team => (
-            <Option key={team.id} value={team.id}>
-                {team.name}
-            </Option>
-        ))} 
-        </Select>
-
-        <Select
-      mode="multiple"
-      allowClear
-      style={{ width: 280 }}
-      placeholder="Выберите направление"
-      onChange={handleChangeSpeciality}
-      >
-             {SpecialityData && SpecialityData.map(spec => (
-        <Option key={spec.speciality} value={spec.peciality}>
-            {spec.peciality}
-        </Option>
-    ))} 
-    </Select>
-
-        <Select
-      mode="multiple"
-      allowClear
-      style={{ width: 280 }}
-      placeholder="Выберите преподавателя"
-      onChange={handleChangeTeacher}
-        >
-             {TeacherData && TeacherData.map((teacher, index) => (
-        <Option key={`${teacher.id}-${index}`} value={teacher.name}> 
-            {teacher.name}
-        </Option>
-    ))}
-    </Select>
-
-    <RequestCheckbox
-        requestUrl={requestUrl}
-        requestName="Топ команд"
-        onUpdateRequests={handleUpdateRequests}
-    />
-
-</div>
-
-
-    <div style={{
-        display: 'flex', 
-        justifyContent: 'space-around', 
-        gap: '20px', 
-        marginTop: 20 }}>
-
-        <Table
-        style={{ width: '50%' }} 
-        dataSource={dataInTable.slice(0, Math.ceil(dataInTable.length / 2))}
-        columns={columns}
-        rowKey="team_name"
-        title={() => 'Отстающие'}
-        />
-        <Table
-        style={{ width: '50%' }} 
-        dataSource={dataInTable.slice(Math.ceil(dataInTable.length / 2))}
-        columns={columns}
-        rowKey="team_name"
-        title={() => 'Преуспевающие'}
-        />
-
-    </div>
-
-
-        {/* <Table
-            dataSource={dataInTable}
-            columns={columns}
-            rowKey="team_name"
-            // title={() => 'Отстающие'}
-        /> */}
-        
-
-
-        </>
-    )
-}
+            <div style={{ display: 'flex', justifyContent: 'space-evenly', flexWrap: 'wrap', alignItems: 'center' }}>
+              <Select
+                placeholder="Сортировать по: *"
+                style={{ width: 200 }}
+                value={isByMark}
+                onChange={value => setIsByMark(value)}
+                allowClear
+              >
+                <Option value={true}>Успеваемость</Option>
+                <Option value={false}>Посещаемость</Option>
+              </Select>
+    
+              <Select
+                placeholder="Тип группировки: *"
+                style={{ width: 200 }}
+                value={isTypeGroup}
+                onChange={value => setTypeGroupBy(value)}
+                allowClear
+              >
+                <Option value={0}>По командам</Option>
+                <Option value={1}>По направлениям</Option>
+                <Option value={2}>По преподавателям</Option>
+              </Select>
+    
+              <Select
+                placeholder="Выберите контрольную точку"
+                style={{ width: 200 }}
+                onChange={handleKRChange}
+                allowClear
+              >
+                {uniqueKRNames.map(point => (
+                  <Option key={point} value={point}>
+                    {point}
+                  </Option>
+                ))}
+              </Select>
+    
+              <Select
+                mode="multiple"
+                allowClear
+                style={{ width: 200 }}
+                placeholder="Выберите группу"
+                onChange={handleChangeTeam}
+              >
+                {TeamData && TeamData.map(team => (
+                  <Option key={team.id} value={team.id}>
+                    {team.name}
+                  </Option>
+                ))}
+              </Select>
+    
+              <Select
+                mode="multiple"
+                allowClear
+                style={{ width: 280 }}
+                placeholder="Выберите направление"
+                onChange={handleChangeSpeciality}
+              >
+                {SpecialityData && SpecialityData.map(spec => (
+                  <Option key={spec.speciality} value={spec.speciality}>
+                    {spec.speciality}
+                  </Option>
+                ))}
+              </Select>
+    
+              <Select
+                mode="multiple"
+                allowClear
+                style={{ width: 280 }}
+                placeholder="Выберите преподавателя"
+                onChange={handleChangeTeacher}
+              >
+                {TeacherData && TeacherData.map((teacher, index) => (
+                  <Option key={`${teacher.id}-${index}`} value={teacher.name}>
+                    {teacher.name}
+                  </Option>
+                ))}
+              </Select>
+    
+              <RequestCheckbox
+                requestUrl={requestUrl}
+                requestName="Топ команд"
+                onUpdateRequests={handleUpdateRequests}
+              />
+            </div>
+          </div>
+    
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-around',
+            gap: '20px',
+            marginTop: 20
+          }}>
+            <Table
+              style={{ width: '50%' }}
+              dataSource={dataInTable.slice(0, Math.ceil(dataInTable.length / 2))}
+              columns={columns}
+              rowKey="team_name"
+              title={() => 'Отстающие'}
+            />
+            <Table
+              style={{ width: '50%' }}
+              dataSource={dataInTable.slice(Math.ceil(dataInTable.length / 2))}
+              columns={columns}
+              rowKey="team_name"
+              title={() => 'Преуспевающие'}
+            />
+          </div>
+      </>
+    );
+  }
 
 export default TopsTeam;
