@@ -346,7 +346,13 @@ async def attendance_num_for_stud_for_team_stat_table(id_team: int, name_of_less
                 (SELECT s.name FROM stud s WHERE s.id = l.stud_id) AS stud_name,
                 (SELECT s.id FROM stud s WHERE s.id = l.stud_id) AS id,
                 l.name,
-                ROUND(COUNT(id) FILTER (WHERE l.arrival = 'П') OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) * 100 / COUNT(id) OVER (PARTITION BY l.stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::DECIMAL, 2) AS Посещаемость,
+                ROUND((
+                        ROUND(COUNT(l.id) FILTER (WHERE l.arrival = 'П') OVER (
+                            PARTITION BY l.stud_id 
+                            ORDER BY l.id 
+                            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+                        )::DECIMAL, 2)
+                    )::DECIMAL, 2) AS Посещаемость,
                 ROUND((SUM(l.mark_for_work) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) + SUM(l.test) OVER (PARTITION BY stud_id ORDER BY l.id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW))::DECIMAL, 2) AS Успеваемость,
                 l.arrival
               FROM
