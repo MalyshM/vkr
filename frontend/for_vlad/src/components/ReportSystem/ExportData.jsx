@@ -1,16 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Checkbox, List } from 'antd';
-
+import { SendOutlined} from '@ant-design/icons';
 const ExportData = ({ visible, onClose }) => {
   const [selectedRequests, setSelectedRequests] = useState([]);
   const [requests, setRequests] = useState([]);
-
-  // useEffect(() => {
-  //   const storedRequests = JSON.parse(localStorage.getItem('selectedRequests'));
-  //   if (storedRequests) {
-  //     setRequests(storedRequests);
-  //   }
-  // }, []);
 
   useEffect(() => {
     const storedRequests = JSON.parse(localStorage.getItem('selectedRequests'));
@@ -25,6 +18,15 @@ const ExportData = ({ visible, onClose }) => {
       setRequests(storedRequests);
     }
   }, [selectedRequests]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      localStorage.removeItem('selectedRequests');
+      setRequests([]);
+    }, 1800000); // 30 минут в миллисекундах
+
+    return () => clearInterval(interval); // Очищаем интервал при размонтировании
+  }, []);
 
 
   const handleOk = async () => {
@@ -60,7 +62,7 @@ const ExportData = ({ visible, onClose }) => {
       const downloadUrl = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = downloadUrl;
-      a.download = 'Данные_студентов.csv';
+      a.download = 'Данные_студентов.xlsx';
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -86,8 +88,9 @@ const ExportData = ({ visible, onClose }) => {
       visible={visible}
       onOk={handleOk}
       onCancel={onClose}
-      okText="Получить"
+      okText="Получить" 
       cancelText="Отмена"
+      
     >
       <List
         dataSource={requests}

@@ -359,7 +359,7 @@ const handleChangeSpeciality = (value) => {
 
   return (
     <>
-     <div style={{ position: 'relative', minHeight: '100px' }}> 
+    <div style={{ position: 'relative', minHeight: '100px' }}> 
      {/* Контейнер с position: relative */}
       <Spin 
         spinning={loading} 
@@ -373,9 +373,13 @@ const handleChangeSpeciality = (value) => {
         }} 
       />
 
-<div>
-        <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', margin: '10px 0' }}>
-          <Title level={2} style={{ margin: 0 }}>Топ учеников</Title>
+
+
+<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center',marginTop: "10px" }}>
+    <Title level={2} >Топ студентов</Title>
+  </div>
+
+  <div style={{ display: 'flex', justifyContent: 'space-evenly', flexWrap: 'wrap', alignItems: 'center'}}>
 
           <Tooltip title="Укажите режим">
           <Select
@@ -491,7 +495,7 @@ const handleChangeSpeciality = (value) => {
 
           {/* <Button style={{background: "green", color: "white"}} onClick={handleDownload}>Скачать данные</Button> */}
 
-        </div>
+    </div>
 
         {isGroupBy ? (
           <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: 20 }}>
@@ -551,10 +555,11 @@ const handleChangeSpeciality = (value) => {
               columns={columnsForFiltr}
               rowKey="stud_id"
               title={() => 'Преуспевающие'}
-/>
+            />
           </div>
         )}
-      </div>
+        
+    
     </div>
   </>
 )}

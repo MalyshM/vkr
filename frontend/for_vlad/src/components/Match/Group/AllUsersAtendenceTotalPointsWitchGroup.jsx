@@ -18,24 +18,6 @@ const AllUsersAtendenceTotalPointsWitchGroup = ({tokenUsers, choiseGroupTeacher,
   const navigate = useNavigate ();
   const [requests, setRequests] = useState([]);
 
-  
-
-//   useEffect(() => {
-//     if (chartRef.current) {
-//       // Сохраняем значение в переменную
-//       const currentChartRef = chartRef.current;
-  
-//       // Уничтожаем чарт при размонтировании компонента
-//       return () => {
-//         if (currentChartRef) {
-//           const chartInstance = Chart.getChart(currentChartRef); // Получаем экземпляр чарта
-//           if (chartInstance) {
-//             chartInstance.destroy(); // Уничтожаем чарт
-//           }
-//         }
-//       };
-//     }
-//   }, []);
 
   console.log("choiseGroupTeacher до запроса: ", choiseGroupTeacher)
 
@@ -96,53 +78,53 @@ if (!AllUsersAtendenceTotalPointsWitchGroupData) {
 
     datasets: [
         {
-            label: ` Средняя посещаемость (после 1й КР)`,
+            label: ` Медианная посещаемость (после 1й КР)`,
             data: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => item.Посещаемость_средняя),
             backgroundColor: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => colorsByTeacherId[item.teacher_id]),
             borderWidth: 1,
     
         },
         {
-            label: `Средняя успеваемость (после 1й КР)`,
+            label: `Медианная успеваемость (после 1й КР)`,
             data: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => item.Успеваемость_средняя),
             backgroundColor: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => colorsByTeacherId[item.teacher_id]),
             borderWidth: 1,        
         },
         {
-          label: `Средняя посещаемость (после 2й КР)`,
+          label: `Медианная посещаемость (после 2й КР)`,
           data: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => item.Посещаемость_средняя0),
           backgroundColor: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => colorsByTeacherId[item.teacher_id]),
           borderWidth: 1,
   
       },
       {
-          label: `Средняя успеваемость (после 2й КР)`,
+          label: `Медианная успеваемость (после 2й КР)`,
           data: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => item.Успеваемость_средняя0),
           backgroundColor: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => colorsByTeacherId[item.teacher_id]),
           borderWidth: 1,        
       },
       {
-        label: `Средняя посещаемость (после 3й КР)`,
+        label: `Медианная посещаемость (после 3й КР)`,
         data: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => item.Посещаемость_средняя1),
         backgroundColor: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => colorsByTeacherId[item.teacher_id]),
         borderWidth: 1,
 
     },
     {
-        label: `Средняя успеваемость (после 3й КР)`,
+        label: `Медианная успеваемость (после 3й КР)`,
         data: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => item.Успеваемость_средняя1),
         backgroundColor: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => colorsByTeacherId[item.teacher_id]),
         borderWidth: 1,        
     },
     {
-      label: `Средняя посещаемость (после аттестации)`,
+      label: `Медианная посещаемость (после аттестации)`,
       data: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => item.Посещаемость_средняя2),
       backgroundColor: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => colorsByTeacherId[item.teacher_id]),
       borderWidth: 1,
 
   },
   {
-      label: `Средняя успеваемость (после аттестации)`,
+      label: `Медианная успеваемость (после аттестации)`,
       data: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => item.Успеваемость_средняя2),
       backgroundColor: AllUsersAtendenceTotalPointsWitchGroupData.map((item) => colorsByTeacherId[item.teacher_id]),
       borderWidth: 1,        
@@ -213,7 +195,7 @@ if (!AllUsersAtendenceTotalPointsWitchGroupData) {
 
         title: {
             display: true,
-            text: `Учебные показатели после КР, кол-во: ${NumberOfGr}`,
+            text: `Учебные показатели после контрольных точек, кол-во групп: ${NumberOfGr}`,
             font: {
             size: 22,
             fontColor: 'black',

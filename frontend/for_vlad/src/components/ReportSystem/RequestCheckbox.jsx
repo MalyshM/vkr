@@ -31,8 +31,6 @@ const handleCheckboxChange = (e) => {
     }
   };
 
-  console.log('requestName in RCh',requestName)
-
   return (
     <Checkbox checked={isChecked} onChange={handleCheckboxChange}>
     {requestName}

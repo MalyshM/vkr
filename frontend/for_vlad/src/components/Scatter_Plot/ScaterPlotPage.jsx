@@ -273,7 +273,7 @@ const ScaterPlotPage = () => {
                 </Col>
             </Row>
             <Row>
-                <Col span={24} style={{ padding: '12px' }}>
+                <Col span={24} style={{ padding: '6px' }}>
                     {SelectedMode && (
                         <ScaterPlotDiagram
                             CheckboxMany={CheckboxMany}
@@ -288,7 +288,7 @@ const ScaterPlotPage = () => {
                 </Col>
             </Row>
             <Row>
-                <Col span={24} style={{ padding: '12px' }}>
+                <Col span={24} style={{ padding: '6px' }}>
                     {SelectedMode && (
                         <ScaterPlotBySection
                             tokenUsers={userToken}
