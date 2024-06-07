@@ -55,7 +55,7 @@ return (
           { label: <><TrophyOutlined /> Топы студентов</>, value: '/tops_stud' },
           { label: <><TeamOutlined /> Топы команд</>, value: '/tops_team' },
           { label: <><FallOutlined /> Отстающие</>, value: '/least' },
-          { label: <><BoxPlotOutlined /> Анализ КР</>, value: '/analys_kr' },
+          { label: <><BoxPlotOutlined /> Анализ КТ</>, value: '/analys_kr' },
           { label: <><AppstoreOutlined /> Ваши группы</>, value: '/your_group' },
           { label: <><GlobalOutlined /> Ваши направления</>, value: '/your_vectorstudy' },
           { label: <><DotChartOutlined /> Диаграмма рассеяния</>, value: '/scater_plot' },

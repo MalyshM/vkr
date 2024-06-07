@@ -95,7 +95,11 @@ const GeneralStudPage = () => {
       scales: {
         x: {
           ticks: {
-            display: false,
+            callback: (value, index, values) => {
+                  const counterValues = attendanceData && Array.isArray(attendanceData) ? attendanceData.map(item => item.counter) : [];
+                  return counterValues[index] || '';
+                },
+            display: true,
           },
           display: true,
           type: 'category',
@@ -177,7 +181,11 @@ const GeneralStudPage = () => {
       scales: {
         x: {
           ticks: {
-            display: false,
+            callback: (value, index, values) => {
+              const counterValues = attendanceData && Array.isArray(attendanceData) ? attendanceData.map(item => item.counter) : [];
+              return counterValues[index] || '';
+            },
+        display: true,
           },
           display: true,
           type: 'category',
@@ -262,7 +270,11 @@ const GeneralStudPage = () => {
       scales: {
         x: {
           ticks: {
-            display: false,
+            callback: (value, index, values) => {
+              const counterValues = attendanceData && Array.isArray(attendanceData) ? attendanceData.map(item => item.counter) : [];
+              return counterValues[index] || '';
+            },
+        display: true,
           },
           display: true,
           type: 'category',

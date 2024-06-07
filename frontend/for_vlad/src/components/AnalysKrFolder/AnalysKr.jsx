@@ -184,7 +184,7 @@ const AnalysRr = () => {
             <Row justify="space-between" align="middle" style={{ padding: '12px' }}>
 
                 <Row >
-                    <Title level={2}>Анализ Контрольных работ</Title>
+                    <Title level={2}>Анализ контрольных точек</Title>
 
                     <Tooltip title="Диаграмма отображающая распределения баллов студентов по КР через: Минимум, Первый квартиль, Медиана, Третий квартиль, Максимум, Выбросы">
                         <QuestionCircleOutlined style={{ marginLeft: 5, marginBottom: 5, fontSize: '20px', cursor: 'pointer' }} />
@@ -196,7 +196,7 @@ const AnalysRr = () => {
                 <Col >
                     <Select
                         style={{ width: 250, marginRight: 8 }}
-                        placeholder="Выберите контрольную работу"
+                        placeholder="Выберите контрольную точку"
                         onChange={handleKRChangeSimple}
                         value={selectedKRSimple}
                     >
@@ -244,7 +244,7 @@ const AnalysRr = () => {
     <Col>
         <Select
             style={{ width: 250, marginRight: '8px' }}
-            placeholder="Выберите контрольную работу"
+            placeholder="Выберите контрольную точку"
             onChange={handleKRChangeFiltr}
             value={selectedKRFiltr}
         >

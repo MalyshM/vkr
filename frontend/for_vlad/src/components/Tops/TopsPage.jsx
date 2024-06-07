@@ -17,9 +17,9 @@ const TopPage = () => {
   const navigate = useNavigate();
   const fetchTimer = useRef(null);
 
-  const [isGroupBy, setIsGroupBy] = useState(null);
-  const [isByMark, setIsByMark] = useState(null);
-  const [typeGroupBy, setTypeGroupBy] = useState(null);
+  const [isGroupBy, setIsGroupBy] = useState(true);
+  const [isByMark, setIsByMark] = useState(true);
+  const [typeGroupBy, setTypeGroupBy] = useState(0);
 
   const [TeacherData, SetTeacherData] = useState(null);
   const [SelectedTeacher, setSelectedTeacher] = useState([]);
@@ -33,7 +33,7 @@ const TopPage = () => {
   const [Top_10_most_and_least, setTop_10_most_and_least] = useState([])
   
   const [uniqueKRNames, setUniqueKRNames] = useState([]);
-  const [selectedKR, setSelectedKR] = useState(null);
+  const [selectedKR, setSelectedKR] = useState("Аттестация00");
   const [filteredData, setFilteredData] = useState([]); 
 
   const [options_, setOptions] = useState([]);
@@ -213,7 +213,6 @@ useEffect(() => {
 }, [Top_10_most_and_least, typeGroupBy]);
 
 
-
   const handleChangeTeam = (value) => {
     const teamValues = Array.isArray(value) ? value.map(v => v.toString()) : [value.toString()];
     setSelectedTeam(teamValues);
@@ -296,7 +295,9 @@ const handleChangeSpeciality = (value) => {
   },
     { title: 'Успеваемость (баллы)', dataIndex: 'Успеваемость', key: 'marks' },
     { title: 'Посещаемость (макс 22)', dataIndex: 'Посещаемость', key: 'attendance' },
-    { title: 'Контрольная точка', dataIndex: 'name', key: 'name' },
+    ...(selectedKR === null ? [
+      { title: 'Контрольная точка', dataIndex: 'name', key: 'name' }
+    ] : []),
     { title: 'Количество занятий', dataIndex: 'lesson_counter', key: 'lesson_counter' },
   ];
 
@@ -312,7 +313,9 @@ const handleChangeSpeciality = (value) => {
      },
     { title: 'Успеваемость (баллы)', dataIndex: 'Успеваемость', key: 'marks' },
     { title: 'Посещаемость (макс 22)', dataIndex: 'Посещаемость', key: 'attendance' },
-    { title: 'Контрольная точка', dataIndex: 'name', key: 'name' },
+    ...(selectedKR === null ? [
+      { title: 'Контрольная точка', dataIndex: 'name', key: 'name' }
+    ] : []),
     { title: 'Количество занятий', dataIndex: 'lesson_counter', key: 'lesson_counter' },
   ];
 
@@ -357,6 +360,7 @@ const handleChangeSpeciality = (value) => {
         setRequests(updatedRequests);
       };
 
+
   return (
     <>
     <div style={{ position: 'relative', minHeight: '100px' }}> 
@@ -372,7 +376,6 @@ const handleChangeSpeciality = (value) => {
           zIndex: 10 
         }} 
       />
-
 
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center',marginTop: "10px" }}>
@@ -407,6 +410,7 @@ const handleChangeSpeciality = (value) => {
           </Select>
           </Tooltip>
 
+          {isGroupBy && (
           <Tooltip title="Укажите тип, если группируете">
             <Select
             allowClear
@@ -420,7 +424,8 @@ const handleChangeSpeciality = (value) => {
               <Option value={2}>По преподавателям</Option>
             </Select>
           </Tooltip>
-
+          )}
+          
           <Tooltip title="Укажите контрольную точку для отсеивания друих">
           <Select
             style={{ width: 200 }}
