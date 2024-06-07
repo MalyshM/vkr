@@ -17,8 +17,8 @@ const TopsTeam = () => {
     
     const navigate = useNavigate();
 
-    const [isByMark, setIsByMark] = useState(null);
-    const [isTypeGroup, setTypeGroupBy] = useState(null);
+    const [isByMark, setIsByMark] = useState(true);
+    const [isTypeGroup, setTypeGroupBy] = useState(0);
 
     const [TeacherData, SetTeacherData] = useState(null);
     const [SelectedTeacher, setSelectedTeacher] = useState([]);
@@ -32,7 +32,7 @@ const TopsTeam = () => {
     const [Top_10_most_and_least_team, setTop_10_most_and_least_team] = useState([])
     
     const [uniqueKRNames, setUniqueKRNames] = useState([]);
-    const [selectedKR, setSelectedKR] = useState(null);
+    const [selectedKR, setSelectedKR] = useState("Аттестация00");
 
 
     const [loading, setLoading] = useState(false); // Состояние загрузки
@@ -213,9 +213,9 @@ const TopsTeam = () => {
             key: 'teacher_name'
         },
         { 
-            title: 'Контрольная точка', 
-            dataIndex: 'name', 
-            key: 'name'
+          ...(selectedKR === null ? [
+            { title: 'Контрольная точка', dataIndex: 'name', key: 'name' }
+          ] : []),
         },
         { 
             title: 'Медианная Успеваемость', 
@@ -380,6 +380,7 @@ const TopsTeam = () => {
               <Select
                 placeholder="Выберите контрольную точку"
                 style={{ width: 200 }}
+                value={selectedKR}
                 onChange={handleKRChange}
                 allowClear
               >

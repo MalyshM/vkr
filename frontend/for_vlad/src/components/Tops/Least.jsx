@@ -21,10 +21,10 @@ const LeastPage = () => {
     const {userToken} = useAuth()
     const fetchTimer = useRef(null);
 
-    const [isGroupBy, setGroupBy] = useState(null) // groun or not
-    const [isByMark, setIsByMark] = useState(null); // atendace or mark
-    const [isTypeGroup, setTypeGroupBy] = useState(null); // mode of group
-    const [isThreshold, setThreshold] = useState() //threshold for stud-t
+    const [isGroupBy, setGroupBy] = useState(true) // groun or not
+    const [isByMark, setIsByMark] = useState(true); // atendace or mark
+    const [isTypeGroup, setTypeGroupBy] = useState(0); // mode of group
+    const [isThreshold, setThreshold] = useState(60) //threshold for stud-t
 
     const [TeacherData, SetTeacherData] = useState(null); //storage list of teacher
     const [SelectedTeacher, setSelectedTeacher] = useState([]);
@@ -39,7 +39,7 @@ const LeastPage = () => {
 
 
     const [uniqueKRNames, setUniqueKRNames] = useState([]); // kontrol point 
-    const [selectedKR, setSelectedKR] = useState(null); // state for update table if changes kr
+    const [selectedKR, setSelectedKR] = useState("Аттестация00"); // state for update table if changes kr
     const [loading, setLoading] = useState() // state for spin
 
     const [dataInTable,setDataInTable] = useState([]) // state for show data on table
@@ -223,13 +223,14 @@ const LeastPage = () => {
             {text}
           </a>
         ),
-
       },
-        { title: 'Успеваемость', dataIndex: 'Успеваемость', key: 'Успеваемость'},
-        { title: 'Посещаемость', dataIndex: 'Посещаемость', key: 'Посещаемость'},      
-        { title: 'Контрольная точка', dataIndex: 'name', key: 'name'},
-        { title: 'Кол-во встреч', dataIndex: 'lesson_counter', key: 'lesson_counter'},
-      ];  
+        { title: 'Успеваемость', dataIndex: 'Успеваемость', key: 'Успеваемость' },
+        { title: 'Посещаемость', dataIndex: 'Посещаемость', key: 'Посещаемость' },
+        ...(selectedKR === null ? [
+          { title: 'Контрольная точка', dataIndex: 'name', key: 'name' }
+        ] : []),
+        { title: 'Кол-во встреч', dataIndex: 'lesson_counter', key: 'lesson_counter' },
+      ];
 
       const params = new URLSearchParams({
         token: userToken,
@@ -316,6 +317,7 @@ const LeastPage = () => {
             />
           </Tooltip>
 
+        {isGroupBy && (
           <Tooltip title="Укажите тип, если группируете">
             <Select
               placeholder="Тип группировки:"
@@ -329,11 +331,13 @@ const LeastPage = () => {
               <Option value={2}>По преподавателям</Option>
             </Select>
           </Tooltip>
+        )}
 
           <Tooltip title="Укажите контрольную точку для отсеивания других">
             <Select
               placeholder="Выберите контрольную точку"
               style={{ width: 200 }}
+              value={selectedKR}
               onChange={handleKRChange}
               allowClear
             >
@@ -411,9 +415,9 @@ const LeastPage = () => {
             title={() => {
               switch (isTypeGroup) {
                 case 0:
-                  return `${group.team_id} ${SelectedTeacher},${SelectedSpeciality}`;
+                  return `${group.team_id}`;
                 case 1:
-                  return `${group.speciality} ${SelectedTeacher}`;
+                  return `${group.speciality}`;
                 case 2:
                   return `${group.teacher_id}`;
                 default:
