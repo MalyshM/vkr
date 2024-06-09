@@ -23,17 +23,17 @@ const AnalysRr = () => {
     const [TeachersForSelectedSpeciality, setTeachersForSelectedSpeciality] = useState(null);
 
     const [SpecialityData, setSpeciality] = useState(null);
-    const [SelectedSpeciality, setSelectedSpeciality] = useState([]);
+    const [SelectedSpeciality, setSelectedSpeciality] = useState(["02.03.03 Математическое обеспечение и администрирование информационных систем"]);
     const [SpecialityForSelectedTeacher, setSpecialityForSelectedTeacher] = useState(null);
 
-    const [selectedKRSimple, setSelectedKRSimple] = useState(null);
+    const [selectedKRSimple, setSelectedKRSimple] = useState("Организация функций30");
     const [KRSimple, setKRSimple] = useState(null);
 
-    const [selectedKRFiltr, setSelectedKRFiltr] = useState(null);
+    const [selectedKRFiltr, setSelectedKRFiltr] = useState("Организация функций30");
     const [KRFiltr, setKRFiltr] = useState(null);
 
-    const [selectedModeSimple, setSelectedModeSimple] = useState(null);
-    const [selectedModeFiltr, setSelectedModeFiltr] = useState(null);
+    const [selectedModeSimple, setSelectedModeSimple] = useState(0);
+    const [selectedModeFiltr, setSelectedModeFiltr] = useState(0);
 
     const fetchNameKR = async () => {
         try {
@@ -199,6 +199,7 @@ const AnalysRr = () => {
                         placeholder="Выберите контрольную точку"
                         onChange={handleKRChangeSimple}
                         value={selectedKRSimple}
+                        allowClear
                     >
                         {Array.isArray(KRSimple) ? (
                             KRSimple.map((task) => (
@@ -218,6 +219,7 @@ const AnalysRr = () => {
                         placeholder="Выберите режим"
                         onChange={handleModeChangeSimple}
                         value={selectedModeSimple}
+                        allowClear
                     >
                         <Option value={0}>По группам</Option>
                         <Option value={1}>По направлениям</Option>
@@ -247,6 +249,7 @@ const AnalysRr = () => {
             placeholder="Выберите контрольную точку"
             onChange={handleKRChangeFiltr}
             value={selectedKRFiltr}
+            allowClear
         >
             {Array.isArray(KRFiltr) ? (
                 KRFiltr.map((task) => (
@@ -266,6 +269,7 @@ const AnalysRr = () => {
             placeholder="Выберите режим"
             onChange={handleModeChangeFiltr}
             value={selectedModeFiltr}
+            allowClear
         >
             <Option value={0}>По группам</Option>
             <Option value={1}>По преподавателям</Option>
@@ -280,6 +284,7 @@ const AnalysRr = () => {
             placeholder="Выберите преподавателей"
             onChange={setSelectedTeacher}
             value={SelectedTeacher}
+            allowClear
         >
             {SelectedSpeciality.length > 0 && TeachersForSelectedSpeciality
                 ? TeachersForSelectedSpeciality.map((teacher) => (
@@ -303,6 +308,7 @@ const AnalysRr = () => {
             placeholder="Выберите группы"
             onChange={setSelectedTeam}
             value={SelectedTeam}
+            allowClear
         >
             {SelectedTeacher.length > 0 && TeamsForSelectedTeacher
                 ? TeamsForSelectedTeacher.map((team) => (
@@ -332,6 +338,7 @@ const AnalysRr = () => {
             placeholder="Выберите направления"
             onChange={setSelectedSpeciality}
             value={SelectedSpeciality}
+            allowClear
         >
             {SelectedTeacher.length > 0 && SpecialityForSelectedTeacher
                 ? SpecialityForSelectedTeacher.map((spec) => (

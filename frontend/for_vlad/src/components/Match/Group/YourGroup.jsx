@@ -23,6 +23,10 @@ const YourGroup = () => {
                     const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_all_teachers?token=${userToken}`);
                     const result = await response.json();
                     setTeachers(result);
+                    if (result.length > 0) {
+                        setSelectedTeachers([result[22].name]);
+                        console.log(result[22].name)
+                    }
                 }
             } catch (error) {
                 console.error('teachersData - Error fetching attendance data:', error);
@@ -61,7 +65,7 @@ const YourGroup = () => {
                         style={{ width: 400 }}
                         onChange={handleTeacherSelect}
                         value={selectedTeachers}
-                        // allowClear
+                        allowClear
                     >
                         {teachersData && teachersData.map((teacher) => (
                             <Option key={teacher.id} value={teacher.name}>

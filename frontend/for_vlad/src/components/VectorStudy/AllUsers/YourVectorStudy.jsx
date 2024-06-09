@@ -14,7 +14,7 @@ const YourVectorStudy = () => {
     const [teachersData, setTeachers] = useState(null);
     const [selectedTeachers, setSelectedTeachers] = useState([]);
     const [SpecialityData, setSpecialityData] = useState(null);
-    const [selectedSpeciality, setSelectedTSpeciality] = useState([]);
+    const [selectedSpeciality, setSelectedTSpeciality] = useState(["02.03.03 Математическое обеспечение и администрирование информационных систем"]);
 
     useEffect(() => {
         const fetchAllTeachersData = async () => {
@@ -23,6 +23,10 @@ const YourVectorStudy = () => {
                     const response = await fetchWithTokenRefresh(`http://moais-dashboard.ru:8082/api/get_all_teachers?token=${userToken}`);
                     const result = await response.json();
                     setTeachers(result);
+                    if (result.length > 0) {
+                        setSelectedTeachers([result[22].name]);
+                        console.log(result[22].name)
+                    }
                 }
             } catch (error) {
                 console.error('teachersData - Error fetching attendance data:', error);

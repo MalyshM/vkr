@@ -46,3 +46,13 @@
     height: 40vh; /* Высота в половину экрана */
 }
 
+/* @media (max-width: 768px) {
+  .custom-segmented {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .ant-segmented-item {
+    flex-shrink: 0;
+  }
+} */
