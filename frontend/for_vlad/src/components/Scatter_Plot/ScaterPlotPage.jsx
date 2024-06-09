@@ -22,12 +22,12 @@ const ScaterPlotPage = () => {
     const [TeachersForSelectedSpeciality, setTeachersForSelectedSpeciality] = useState(null);
 
     const [SpecialityData, SetSpecialityData] = useState(null);
-    const [SelectedSpeciality, setSelectedSpeciality] = useState([]);
+    const [SelectedSpeciality, setSelectedSpeciality] = useState(["02.03.03 Математическое обеспечение и администрирование информационных систем"]);
     const [SpecialityForSelectedTeacher, setSpecialityForSelectedTeacher] = useState(null);
 
-    const [CheckboxOne, setCheckboxOne] = useState(false);
-    const [CheckboxMany, setCheckboxMany] = useState(false);
-    const [SelectedMode, setSelectedMode] = useState(null);
+    const [CheckboxOne, setCheckboxOne] = useState(true);
+    const [CheckboxMany, setCheckboxMany] = useState(true);
+    const [SelectedMode, setSelectedMode] = useState(3);
 
     const fetchTeamForTeacher = async () => {
         try {

@@ -1,0 +1,53 @@
+/* Основные стили */
+body {
+  background-color: #f0f2f5;
+  color: #000;
+}
+
+.custom-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #00aeef;
+  padding: 0 16px;
+}
+
+.ant-segmented {
+  flex-grow: 1;
+  overflow-x: auto;
+}
+
+.ant-segmented-item {
+  flex: 1 0 auto;
+  text-align: center;
+  white-space: nowrap;
+  color: #fff;
+}
+
+.ant-segmented-item:hover, .ant-segmented-item-selected {
+  color: #fff;
+  background-color: #1890ff;
+}
+
+.ant-btn {
+  color: #fff;
+  border: none;
+}
+
+.ant-btn-primary {
+  background-color: #58c600;
+  border-color: #58c600;
+}
+
+.ant-btn-primary:hover {
+  background-color: #4eb500;
+  border-color: #4eb500;
+}
+
+.custom-segmented {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  background-color: #00aeef;
+}
+

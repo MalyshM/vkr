@@ -10,7 +10,7 @@ const { Content } = Layout;
 
 const ScatterPlotDiagram = ({ tokenUsers, type_group_by, teacher_list, speciality_list, team_list, CheckboxOne, CheckboxMany }) => {
   const [scatterPlotData, setScatterPlotData] = useState(null);
-  const [selectedName, setSelectedName] = useState(null);
+  const [selectedName, setSelectedName] = useState("Аттестация00");
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(false); // state for spin
 
