@@ -1,3 +1,6 @@
+import asyncio
+from typing import Any
+
 from sqladmin import ModelView, BaseView, expose
 from sqladmin.authentication import AuthenticationBackend
 from starlette import status
@@ -5,7 +8,7 @@ from starlette.responses import RedirectResponse
 
 from models import User, async_session_users, connect_db_users
 from routers.registration_page.registration_router import login_standard
-from routers.util_funcs import get_current_user_dev
+from routers.util_funcs import get_current_user_dev, Hasher
 from schemas import UserRegistration, UserLogin
 from starlette.requests import Request
 
@@ -13,6 +16,14 @@ from starlette.requests import Request
 class UserAdmin(ModelView, model=User):
     column_list = [User.id, User.isadmin, User.iscurator, User.isteacher, User.fio, User.email, User.username,
                    User.date_of_add, ]
+
+    async def on_model_change(
+            self, data: dict, model: Any, is_created: bool, request: Request
+    ) -> None:
+        await asyncio.sleep(0)
+        password = data.get("password", None)
+        if password:
+            data["password"] = Hasher.get_password_hash(password)
 
 
 class AdminAuth(AuthenticationBackend):
@@ -57,8 +68,10 @@ class AdminAuth(AuthenticationBackend):
         else:
             return False
 
+
 class ETLView(BaseView):
     name = "Import dataset"
+
     @expose("/etl", methods=["GET", "POST"])
     async def etl(self, request: Request):
         if request.method == "GET":
