@@ -24,8 +24,7 @@ const YourGroup = () => {
                     const result = await response.json();
                     setTeachers(result);
                     if (result.length > 0) {
-                        setSelectedTeachers([result[22].name]);
-                        console.log(result[22].name)
+                        setSelectedTeachers([result[0].name]);
                     }
                 }
             } catch (error) {
