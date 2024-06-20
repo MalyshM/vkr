@@ -30,7 +30,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
                                       isCurator: bool
                                   (по сути просто словарь с ключами FIO, username и тд)
                                   Raises:
-                                      Если юзер есть, то  raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Пользователь с такими данными уже существует(юзернейм, е-мейл)")
+                                      Если пользователь есть, то  raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Пользователь с такими данными уже существует(юзернейм, е-мейл)")
 
                                   Returns:
                                       {"access_token": access_token, "token_type": "bearer"}
@@ -87,10 +87,10 @@ async def registration_standard(user: UserRegistration, request: Request, db: As
                                       username: str
                                       password: str
                                       email: str
-                                  (по сути просто словарь с ключами FIO, username и тд)
+                                  (словарь с ключами FIO, username и тд)
                                   Raises:
-                                      Если юзера нет, то  raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Нельзя войти в несуществующий аккаунт/Неправильно введены данные")
-                                      Если пароль не трушный, то raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                                      Если пользователя нет, то  raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Нельзя войти в несуществующий аккаунт/Неправильно введены данные")
+                                      Если пароль не верный, то raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                                          detail="Нельзя войти в несуществующий аккаунт/Неправильно введены данные")
                                   Returns:
                                       {"access_token": access_token, "token_type": "bearer"}
@@ -145,7 +145,7 @@ async def login_standard(user: UserLogin, request: Request, db: AsyncSession = D
                           """
                                   Получает token: str
                                   Raises:
-                                      Если юзера нет, то  HTTPException(
+                                      Если пользователя нет, то  HTTPException(
                                         status_code=status.HTTP_401_UNAUTHORIZED,
                                         detail="Нерабочий токен",
                                         headers={"WWW-Authenticate": "Bearer"},
