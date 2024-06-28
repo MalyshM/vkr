@@ -68,7 +68,7 @@ const YourVectorStudy = () => {
                 <Col>
                     <Row align="middle">
                         <Title level={2}>Ваши направления</Title>
-                        <Tooltip title="Диаграмма отображающая медианные посещения (динамическое. В %) и успеваемость (в баллах) направлений/специальностей после КР и атестации">
+                        <Tooltip title="Диаграмма отображающая медианные посещения (динамическое. В %) и успеваемость (в баллах) направлений/специальностей после контрольных точек">
                             <QuestionCircleOutlined style={{ marginLeft: 5,marginBottom: 5, fontSize: '20px', cursor: 'pointer' }} />
                         </Tooltip>
                     </Row>
@@ -78,7 +78,7 @@ const YourVectorStudy = () => {
                     <Select
                         mode="multiple"
                         placeholder="Выбрать преподавателей"
-                        style={{ width: 240 }}
+                        style={{ minWidth: 240, maxWidth: 'auto' }}
                         onChange={handleTeacherSelect}
                         value={selectedTeachers}
                     >

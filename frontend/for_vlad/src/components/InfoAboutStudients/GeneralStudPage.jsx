@@ -19,7 +19,9 @@ const GeneralStudPage = () => {
   const [attendanceStaticData, setAttendanceStaticData] = useState(null);
   const [isTest, setIsTest] = useState(false);
   const [teamId, setTeamId] = useState(null);
+  const [showCharts, setShowCharts] = useState(true);
 
+  
   const handleTeamIdFetch = (teamId) => {
     setTeamId(teamId);
   };
@@ -57,7 +59,7 @@ const GeneralStudPage = () => {
     labels: attendanceData && Array.isArray(attendanceData) ? attendanceData.map(item => item.name) : [],
     datasets: [
       {
-        label: 'cum_sum',
+        label: 'кумулятивная сумма',
         data: attendanceData && Array.isArray(attendanceData) ? attendanceData.map(item => item.cum_sum) : [],
         fill: true,
         borderColor: 'rgb(0,174,239)',
@@ -70,7 +72,7 @@ const GeneralStudPage = () => {
     labels: attendanceDynamicData && Array.isArray(attendanceDynamicData) ? attendanceDynamicData.map(item => item.name) : [],
     datasets: [
       {
-        label: 'dynamical_arrival',
+        label: 'динамическое посещение',
         data: attendanceDynamicData && Array.isArray(attendanceDynamicData) ? attendanceDynamicData.map(item => item.dynamical_arrival) : [],
         fill: true,
         borderColor: 'rgb(95,122,208)',
@@ -82,7 +84,7 @@ const GeneralStudPage = () => {
     labels: attendanceStaticData && Array.isArray(attendanceStaticData) ? attendanceStaticData.map(item => item.name) : [],
     datasets: [
       {
-        label: 'static_arrival',
+        label: 'статическое посещение',
         data: attendanceStaticData && Array.isArray(attendanceStaticData) ? attendanceStaticData.map(item => item.static_arrival) : [],
         fill: true,
         borderColor: 'rgb(251,157,47)',
@@ -367,7 +369,7 @@ const GeneralStudPage = () => {
                   {studentId && <StudentInfo studentId={studentId} onTeamIdFetch={handleTeamIdFetch} />}
                 </Flex>
               </Box>
-
+          
               
               <Box h={'40vh'} flex="1" minWidth={{ base: '100%', md: '50%' }} p={4}>
                 <Line data={chartAttendanceData} options={OptionsChartAttendance} />
@@ -389,37 +391,7 @@ const GeneralStudPage = () => {
 
       </Flex>
 
-      // <Flex direction="column" height="90vh">
-    
-      //   <Flex mt={10} justifyContent="space-around">
 
-      //     <Box mr={5} h={[400]} bg={'white'} borderRadius={20} flex="1">
-
-      //       <Flex mt={14} direction="column" alignItems="center" justifyContent="center">
-      //         <Avatar size="2xl" src="https://bit.ly/broken-link" mr={5} />
-      //         {studentId && <StudentInfo studentId={studentId} teamName={teamName} />}
-      //       </Flex>
-      //     </Box>
-
-      //     <Box ml={5} h={[400]} bg={'white'} borderRadius={20} flex="1">
-      //       <Line data={chartAttendanceData} options={OptionsChartAttendance} />
-      //     </Box>
-
-      //   </Flex>
-    
-      //   <Flex mt={5} justifyContent="space-around">
-
-      //     <Box mr={5} h={[400]} bg={'white'} borderRadius={20} flex="1">
-      //       <Line data={chartStaticData} options={OptionsStaticChart} />
-      //     </Box>
-
-      //     <Box ml={5} h={[400]} bg={'white'} borderRadius={20} flex="1">
-      //       <Line data={charDynamictData} options={OptionsDynamicChart} />
-      //     </Box>
-      
-      //   </Flex>
-    
-      // </Flex>
     );
     
 };

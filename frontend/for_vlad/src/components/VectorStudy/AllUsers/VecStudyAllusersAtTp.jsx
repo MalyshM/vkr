@@ -76,7 +76,7 @@ if (!VecStudyAllusersAtTpData) {
     11: '#a7f9f2', 
     12: '#a7c1f9', 
 
-    13: '#333333', 
+    13: '#ecc94b', 
 };
 
 
@@ -122,7 +122,9 @@ function getColorByTeacherAndSpeciality(teacherId, speciality) {
     const data = {
       labels: VecStudyAllusersAtTpData.map(item => {
         if (item.teacher_name) {
-            return `${item.stud_speciality} - ${item.teacher_name}`;
+            return `${item.stud_speciality}`;
+            // return `${item.stud_speciality} - ${item.teacher_name}`;
+
         } else {
             return item.stud_speciality;
         }
@@ -228,6 +230,7 @@ function getColorByTeacherAndSpeciality(teacherId, speciality) {
                 family: 'Trebuchet MS'
             },
             },
+            max: 110,
         },
         },
         plugins: {
@@ -247,7 +250,7 @@ function getColorByTeacherAndSpeciality(teacherId, speciality) {
 
         title: {
             display: true,
-            text: `Учебные показатели после КР, кол-во: ${NumberOfGr}`,
+            text: `Учебные показатели после контрольных точек, кол-во: ${NumberOfGr}`,
             font: {
             size: 22,
             fontColor: 'black',
