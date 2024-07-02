@@ -97,7 +97,8 @@ async def stud_scatter_plot(token: str, type_group_by: int, teacher_list: Option
                     json_build_object(
                         'Успеваемость', sub.Успеваемость, 
                         'Посещаемость', sub.Посещаемость, 
-                        'stud_id', sub.stud_id
+                        'stud_id', sub.stud_id,
+                        'stud_name', sub.stud_name,
                     )
                 ) AS result1,
                 sub.name,
@@ -126,6 +127,7 @@ async def stud_scatter_plot(token: str, type_group_by: int, teacher_list: Option
                     )::DECIMAL, 2) AS Посещаемость,
                     l.name,
                     l.stud_id,
+                    (SELECT s.name FROM stud s WHERE s.id = l.stud_id) AS stud_name,
                     COUNT(l.name) OVER (
                             PARTITION BY l.team_id, l.stud_id 
                             ORDER BY l.id 
