@@ -4,6 +4,7 @@ import { useAuth } from '../useAuth';
 import {fetchWithTokenRefresh} from '../RefreshToken'
 import { useNavigate } from 'react-router-dom';
 import { SelectProps } from 'antd';
+import { Tooltip } from 'antd';
 
 import RequestCheckbox from '../ReportSystem/RequestCheckbox';
 
@@ -32,7 +33,7 @@ const TopsTeam = () => {
     const [Top_10_most_and_least_team, setTop_10_most_and_least_team] = useState([])
     
     const [uniqueKRNames, setUniqueKRNames] = useState([]);
-    const [selectedKR, setSelectedKR] = useState("Аттестация00");
+    const [selectedKR, setSelectedKR] = useState("Коллекции. Работа с файлами20");
 
 
     const [loading, setLoading] = useState(false); // Состояние загрузки
@@ -145,7 +146,18 @@ const TopsTeam = () => {
         console.log('dataInTable',dataInTable)
     }, [selectedKR, Top_10_most_and_least_team]);
 
+    
+    useEffect(() => {
+      if (Top_10_most_and_least_team.length > 0) {
+          if (selectedKR) {
+              setDataInTable(Top_10_most_and_least_team.filter(item => item.name === selectedKR));
+          } else {
+              setDataInTable(Top_10_most_and_least_team);
+          }
+      }
+  }, [Top_10_most_and_least_team, selectedKR]);
 
+  
     const handleChangeTeacher = (value) => {
         const teacherValues = Array.isArray(value) ? value.map(v => v.toString()) : [value.toString()];
         setSelectedTeacher(teacherValues);
@@ -354,6 +366,8 @@ const TopsTeam = () => {
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-evenly', flexWrap: 'wrap', alignItems: 'center' }}>
+            
+            <Tooltip title="Укажите режим">
               <Select
                 placeholder="Сортировать по: *"
                 style={{ width: 200 }}
@@ -364,7 +378,9 @@ const TopsTeam = () => {
                 <Option value={true}>Успеваемость</Option>
                 <Option value={false}>Посещаемость</Option>
               </Select>
+              </Tooltip>
     
+              <Tooltip title="Укажите тип сортировки">
               <Select
                 placeholder="Тип группировки: *"
                 style={{ width: 200 }}
@@ -376,7 +392,9 @@ const TopsTeam = () => {
                 <Option value={1}>По направлениям</Option>
                 <Option value={2}>По преподавателям</Option>
               </Select>
+              </Tooltip>
     
+              <Tooltip title="Укажите контрольную точку для отсеивания друих">
               <Select
                 placeholder="Выберите контрольную точку"
                 style={{ width: 200 }}
@@ -390,7 +408,9 @@ const TopsTeam = () => {
                   </Option>
                 ))}
               </Select>
+              </Tooltip>
     
+              <Tooltip title="Укажите желаемые учебные групы">
               <Select
                 mode="multiple"
                 allowClear
@@ -404,7 +424,9 @@ const TopsTeam = () => {
                   </Option>
                 ))}
               </Select>
+              </Tooltip>
     
+              <Tooltip title="Укажите желаемые направления">
               <Select
                 mode="multiple"
                 allowClear
@@ -418,7 +440,9 @@ const TopsTeam = () => {
                   </Option>
                 ))}
               </Select>
+              </Tooltip>
     
+              <Tooltip title="Укажите желаемых преподавателей">
               <Select
                 mode="multiple"
                 allowClear
@@ -432,6 +456,7 @@ const TopsTeam = () => {
                   </Option>
                 ))}
               </Select>
+              </Tooltip>
     
               <RequestCheckbox
                 requestUrl={requestUrl}

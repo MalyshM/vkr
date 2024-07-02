@@ -1,6 +1,9 @@
 import React, { useState, useEffect,useRef } from 'react';
-import { Select, Table, Typography, Spin,} from 'antd';
+import { Select, Table, Typography, Spin,Button} from 'antd';
+import * as XLSX from 'xlsx';
+import { DownloadIcon } from '@chakra-ui/icons'
 
+ 
 import { useAuth } from '../useAuth';
 import {fetchWithTokenRefresh} from '../RefreshToken'
 
@@ -13,6 +16,7 @@ import { Tooltip } from 'antd';
 const { Option } = Select;
 const { Title } = Typography;
 
+
 const LeastPage = () => {
 
   const [requests, setRequests] = useState([]);
@@ -24,26 +28,25 @@ const LeastPage = () => {
     const [isGroupBy, setGroupBy] = useState(true) // groun or not
     const [isByMark, setIsByMark] = useState(true); // atendace or mark
     const [isTypeGroup, setTypeGroupBy] = useState(0); // mode of group
-    const [isThreshold, setThreshold] = useState(60) //threshold for stud-t
+    const [isThreshold, setThreshold] = useState(61) //threshold for stud-t
 
-    const [TeacherData, SetTeacherData] = useState(null); //storage list of teacher
+    const [TeacherData, SetTeacherData] = useState([]);  //storage list of teacher
     const [SelectedTeacher, setSelectedTeacher] = useState([]);
 
-    const [SpecialityData, SetSpecialityData] = useState(null); //storage list of speciality
+    const [SpecialityData, SetSpecialityData] = useState([]);  //storage list of speciality
     const [SelectedSpeciality, setSelectedSpeciality] = useState([]);
 
-    const [TeamData, SetTeamData] = useState(null); //storage list of team
+    const [TeamData, SetTeamData] = useState([]);  //storage list of team
     const [SelectedTeam, setSelectedTeam] = useState([]);
 
     const [LaggingStudents, setLaggingStudents] = useState([]) //storage array object - stud-s
 
 
     const [uniqueKRNames, setUniqueKRNames] = useState([]); // kontrol point 
-    const [selectedKR, setSelectedKR] = useState("Аттестация00"); // state for update table if changes kr
+    const [selectedKR, setSelectedKR] = useState("Коллекции. Работа с файлами20"); // state for update table if changes kr
     const [loading, setLoading] = useState() // state for spin
 
     const [dataInTable,setDataInTable] = useState([]) // state for show data on table
-    const [expandedGroups, setExpandedGroups] = useState({});
 
 
     const fetch_lagging_students = async () => {
@@ -80,17 +83,18 @@ const LeastPage = () => {
           const data = await response.json();
           setLaggingStudents(data);
 
-          const updatedLaggingStudents = data.map(group => {
-            const updatedResult1 = group.result1.map(item => ({
-                ...item,
-                name: group.name,
-                lesson_counter: group.lesson_counter,
+          const updatedLaggingStudents = (data || []).map(group => {
+            const updatedResult1 = (group.result1 || []).map(item => ({
+              ...item,
+              name: group.name,
+              lesson_counter: group.lesson_counter,
             }));
             return {
-                ...group,
-                result1: updatedResult1,
+              ...group,
+              result1: updatedResult1,
             };
-        });
+          });
+          
         
         setLaggingStudents(updatedLaggingStudents);
 
@@ -188,6 +192,31 @@ const LeastPage = () => {
           console.log('dataInTable',dataInTable)
       }, [selectedKR, LaggingStudents]);
 
+      const exportToExcel = () => {
+        const wb = XLSX.utils.book_new();
+      
+        // Для каждой таблицы  создаем новый лист в книге Excel
+        dataInTable.forEach((group, index) => {
+          const sheetName = group.team_id || group.speciality || group.teacher_id || `Лист ${index + 1}`;
+      
+          const wsData = group.result1.map(item => ({
+            'ФИО студента': item.stud_name,
+            'Успеваемость': item.Успеваемость,
+            'Посещаемость': item.Посещаемость,
+            'Контрольная точка': group.name,
+            'Кол-во встреч': group.lesson_counter
+          }));
+      
+          const ws = XLSX.utils.json_to_sheet(wsData);
+          XLSX.utils.book_append_sheet(wb, ws, sheetName);
+        });
+      
+        // Сохраняем файл Excel
+        XLSX.writeFile(wb, 'отстающие.xlsx');
+      };
+      
+    
+
 
         const handleChangeTeacher = (value) => {
             const teacherValues = Array.isArray(value) ? value.map(v => v.toString()) : [value.toString()];
@@ -213,9 +242,36 @@ const LeastPage = () => {
             }
             console.log('CHANGES KR')
           };
+          
+        const truncateName = (name) => {
+          if (!name) {
+            return ''; // Возвращаем пустую строку, если name не существует
+          }
+          const words = name.split(' ');
+        
+          if (words.length < 3) {
+            return words.join(' '); // Если слов меньше трех, вернуть оригинальное значение
+          }
+        
+          const firstNamePart = words[0].substring(0, 3);
+          const secondNamePart = words[1].substring(0, 1) + '.';
+          const thirdNamePart = words[2].substring(0, 1) + '.';
+        
+          return `${firstNamePart} ${secondNamePart}${thirdNamePart}`;
+        };
+      
+        const updatedDataInTable = dataInTable.map(group => ({
+          ...group,
+          result1: group.result1.map(item => ({
+            ...item,
+            stud_name: truncateName(item.stud_name)
+          }))
+        }));
+        
+         
        
         const columns = [
-        { title: 'ID Студента', dataIndex: 'stud_id', key: 'stud_id',
+        { title: 'ФИО студента', dataIndex: 'stud_name', key: 'stud_name',
         render: (text, record) => (
           <a
               onClick={() => navigate(`/student/${record.stud_id}`)}
@@ -277,8 +333,14 @@ const LeastPage = () => {
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center',marginTop: "10px" }}>
           <Title level={2} style={{ margin: 0 }}>Отстающие</Title>
         </div>
-        
+
+
         <div style={{ display: 'flex', justifyContent: 'space-evenly', flexWrap: 'wrap', alignItems: 'center' ,marginTop: "10px"}}>
+
+        <Tooltip title="Нажмите для экспорта данных">
+        <Button shape="circle" size='large' icon={<DownloadIcon />}  onClick={exportToExcel}/>
+        </Tooltip>
+
           <Tooltip title="Укажите режим">
             <Select
               placeholder="* Группировать?"
@@ -349,6 +411,7 @@ const LeastPage = () => {
             </Select>
           </Tooltip>
 
+          <Tooltip title="Укажите желаемые учебные групы">
           <Select
             mode="multiple"
             allowClear
@@ -362,7 +425,9 @@ const LeastPage = () => {
               </Option>
             ))}
           </Select>
+          </Tooltip>
 
+          <Tooltip title="Укажите желаемые направления">
           <Select
             mode="multiple"
             allowClear
@@ -376,7 +441,9 @@ const LeastPage = () => {
               </Option>
             ))}
           </Select>
+          </Tooltip>
 
+          <Tooltip title="Укажите желаемых преподавателей">
           <Select
             mode="multiple"
             allowClear
@@ -390,6 +457,7 @@ const LeastPage = () => {
               </Option>
             ))}
           </Select>
+          </Tooltip>
 
           <RequestCheckbox
             requestUrl={requestUrl}
@@ -406,7 +474,7 @@ const LeastPage = () => {
         marginTop: 20
       }}>
 
-        {isGroupBy && dataInTable && dataInTable.length > 0 && dataInTable.map((group, index) => (
+        {isGroupBy && updatedDataInTable && updatedDataInTable.length > 0 && updatedDataInTable.map((group, index) => (
           <Table
             key={index}
             style={{ width: '30%' }}
@@ -430,7 +498,8 @@ const LeastPage = () => {
       {!isGroupBy && (
           <Table
             style={{ width: '100%' }}
-            dataSource={dataInTable.map((item, index) => ({ ...item, key: `${item.stud_id}-${index}` }))}
+            dataSource={updatedDataInTable.map((item, index) => ({ ...item, key: `${item.stud_id}-${index}` }))}
+            
             columns={columns}
             rowKey="key"
           />

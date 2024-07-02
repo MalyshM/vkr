@@ -59,6 +59,10 @@ const ScatterPlotDiagram = ({ tokenUsers, type_group_by, teacher_list, specialit
 
   console.log('filteredData-', filteredData)
 
+  // Вычисляем количество команд и студентов
+  const numTeams = filteredData.length;
+  const numStudents = filteredData.reduce((total, currentItem) => total + currentItem.result1.length, 0);
+
   const data = [];
   const dataArray = []; // Массив для хранения каждого result
   const teamColors = {}; // Объект для хранения цветов команд
@@ -99,6 +103,7 @@ const ScatterPlotDiagram = ({ tokenUsers, type_group_by, teacher_list, specialit
       },
       name: label, // Имя трассировки
       customdata: [],
+      text: [],
     };
 
     const lessonCounterValues = filteredData.map(item => item.lesson_counter);
@@ -116,14 +121,30 @@ const ScatterPlotDiagram = ({ tokenUsers, type_group_by, teacher_list, specialit
 
     // Добавление значений посещаемости и успеваемости из каждого студента в трассировку
     item.result1.forEach(student => {
-      trace.x.push(student['Посещаемость']);
-      trace.y.push(student['Успеваемость']);
+      const fullName = student['stud_name'].split(' ');
+      if (fullName.length >= 3) {
+        const [lastName, firstName, middleName] = fullName;
+        const initials = `${firstName[0]}. ${middleName[0]}.`;
+        const shortName = `${lastName} ${initials}`;
+    
+        trace.x.push(student['Посещаемость']);
+        trace.y.push(student['Успеваемость']);
+        trace.customdata.push(shortName);
+        trace.text.push(shortName);
+      } else {
+        trace.x.push(student['Посещаемость']);
+        trace.y.push(student['Успеваемость']);
+        trace.customdata.push(student['stud_name']);  // Или другой обработчик ошибки
+        trace.text.push(student['stud_name']);       // Или другой обработчик ошибки
+      }
     });
+    
     data.push(trace);
     dataArray.push(trace); // Добавление трассировки в массив данных
   });
 
   console.log('data', data)
+
 
   const layoutMany = {
     width: 400, // Ширина окна
@@ -137,7 +158,21 @@ const ScatterPlotDiagram = ({ tokenUsers, type_group_by, teacher_list, specialit
       text: ``,
     },
     xaxis: {
+      // title: 'Посещаемость',
+      // tickmode: 'array',
+      // tickvals: scatterPlotData
+      // .flatMap(item => item.result1.map(student => student['Посещаемость']))
+      // .filter((value, index, self) => self.indexOf(value) === index && Number.isInteger(value)),
+      // tickangle: 0, // Настройка угла меток оси X
+
       title: 'Посещаемость',
+      
+    tickmode: 'auto',
+    nticks: 4, // Количество меток на оси X
+    // tickangle: 0, // Настройка угла меток оси X
+    tickformat: ',d', // Формат меток: только целые числа
+
+
     },
     yaxis: {
       title: 'Успеваемость (баллы)',
@@ -156,11 +191,19 @@ const ScatterPlotDiagram = ({ tokenUsers, type_group_by, teacher_list, specialit
       orientation: "h"
     },
     title: {
-      text: `Студенты`,
+      text: `Студенты: ${numStudents } (группы: ${numTeams})`,
     },
     xaxis: {
-      title: 'Посещаемость'
+    title: {
+      text: 'Посещаемость',
+      standoff: 0,
     },
+    side: 'top',
+    tickmode: 'linear',
+    nticks: scatterPlotData.length-1,  // Количество меток равно количеству элементов в данных
+    
+  },
+
     yaxis: {
       title: 'Успеваемость (баллы)',
     },
@@ -209,7 +252,7 @@ const ScatterPlotDiagram = ({ tokenUsers, type_group_by, teacher_list, specialit
           {Array.isArray(uniqueNames) && uniqueNames.length > 0 ? (
             uniqueNames.map((nameOfMeeting) => (
               <Option key={nameOfMeeting} value={nameOfMeeting}>
-                {nameOfMeeting}
+                {nameOfMeeting.slice(0, -2)}
               </Option>
             ))
           ) : (

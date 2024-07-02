@@ -1,19 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button, Layout, Menu, Dropdown, Typography, Space, Segmented } from 'antd';
-import { QuestionOutlined } from '@ant-design/icons';
+import React, { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Button, Layout, Typography, Space, Select, Tabs, Row, Col } from 'antd';
+import { SearchOutlined, DownloadOutlined, FundViewOutlined, TrophyOutlined, TeamOutlined, FallOutlined, BoxPlotOutlined, AppstoreOutlined, GlobalOutlined, DotChartOutlined, QuestionCircleOutlined, LogoutOutlined } from '@ant-design/icons';
 
 import ExportData from './ReportSystem/ExportData';
+import SearchStudentButton from './SearchStudentButton';
 
 import '.././thems/style.css';
 
-import { HomeOutlined, TrophyOutlined, TeamOutlined, MehOutlined, BoxPlotOutlined, GroupOutlined, AimOutlined, DotChartOutlined, LogoutOutlined, FileTextOutlined,SearchOutlined,QuestionCircleOutlined, FundViewOutlined, FallOutlined,DownloadOutlined, AppstoreOutlined, GlobalOutlined} from '@ant-design/icons';
-import SearchStudentButton from './SearchStudentButton';
-
-import { DownOutlined, SmileOutlined } from '@ant-design/icons';
-
 const { Header } = Layout;
 const { Text } = Typography;
+const { Option } = Select;
+const { TabPane } = Tabs;
 
 const CustomHeader = () => {
   const location = useLocation();
@@ -21,10 +19,15 @@ const CustomHeader = () => {
   const navigate = useNavigate();
 
   const [modalVisible, setModalVisible] = useState(false);
-  const [searchModal, setsearchModal] = useState(false);
-  
-  const handleSegmentChange = (value) => {
-    navigate(value);
+  const [searchModal, setSearchModal] = useState(false);
+  const [selectedSemester, setSelectedSemester] = useState('1 семестр - 2022-2023гг.');
+
+  const handleTabChange = (key) => {
+    navigate(key);
+  };
+
+  const handleSelectChange = (value) => {
+    setSelectedSemester(value);
   };
 
   const isAuthPage = ["/login", "/register", "/"].includes(currentPath);
@@ -33,48 +36,44 @@ const CustomHeader = () => {
     return null;
   }
 
-return (
-  <Header className="custom-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#00aeef' }}>
-   
-    <Space>
-    <Button icon={<SearchOutlined />} onClick={() => setsearchModal(true)}>
-          Поиск студента
-        </Button>
-        <SearchStudentButton visible={searchModal} onClose={() => setsearchModal(false)}/>
+  return (
+    <Header  style={{ backgroundColor: '#e4e4e4' }}>
+      <Row align="middle" style={{ flexWrap: 'nowrap', justifyContent: 'start', width: '68%' }}>
+        <Col>
+          <Space>
+            <Text style={{ whiteSpace: 'nowrap' }}>Плотоненко Юрий Анатольевич</Text>
 
-      <Button icon={<DownloadOutlined />} style={{ backgroundColor: '#58c600' }} type="primary" onClick={() => setModalVisible(true)}>
-        Экспорт данных
-      </Button>
-      <ExportData visible={modalVisible} onClose={() => setModalVisible(false)} />
+            <Select defaultValue="1 семестр - 2022-2023гг." style={{ width: '200px', marginLeft: '0px' }} onChange={handleSelectChange}>
+              <Option value="1 семестр - 2022-2023гг.">1 семестр - 2022-2023гг.</Option>
+            </Select>
+          </Space>
+        </Col>
+        <Col>
+          <Space style={{ marginLeft: '10px' }}>
+            <Button shape="round" size='middle' icon={<SearchOutlined />} onClick={() => setSearchModal(true)} />
+            <SearchStudentButton visible={searchModal} onClose={() => setSearchModal(false)} />
 
-      {/* <SettingOutlined /> */}
-
-      <Segmented
-        options={[
-          { label: <><FundViewOutlined /> Обзор группы</>, value: '/main' },
-          { label: <><TrophyOutlined /> Топы студентов</>, value: '/tops_stud' },
-          { label: <><TeamOutlined /> Топы команд</>, value: '/tops_team' },
-          { label: <><FallOutlined /> Отстающие</>, value: '/least' },
-          { label: <><BoxPlotOutlined /> Анализ КР</>, value: '/analys_kr' },
-          { label: <><AppstoreOutlined /> Ваши группы</>, value: '/your_group' },
-          { label: <><GlobalOutlined /> Ваши направления</>, value: '/your_vectorstudy' },
-          { label: <><DotChartOutlined /> Диаграмма рассеяния</>, value: '/scater_plot' },
-          { label: <><QuestionCircleOutlined/> Карта сайта</>, value: '/map_site' },
-          { label: <><LogoutOutlined className="logout-icon" /> Выход</>, value: '/' },
-        ]}
-        onChange={handleSegmentChange}
-        defaultValue={currentPath}
-        className="custom-segmented"
-        style={{ backgroundColor: '#00aeef', marginRight: 'auto'  }}
-      />
-       
-
-    </Space>
-
-     
-
-  </Header>
-);
+            <Button  shape="round" size='middle' icon={<DownloadOutlined />} style={{ marginRight: '10px', backgroundColor: '#58c600' }} type="primary" onClick={() => setModalVisible(true)} />
+            <ExportData visible={modalVisible} onClose={() => setModalVisible(false)} />
+          </Space>
+        </Col>
+        <Col flex="auto">
+          <Tabs defaultActiveKey={currentPath} onChange={handleTabChange} tabBarStyle={{ margin: 0 }}>
+            <TabPane tab={<span><FundViewOutlined /> Обзор группы</span>} key="/main" />
+            <TabPane tab={<span><TrophyOutlined /> Топы студентов</span>} key="/tops_stud" />
+            <TabPane tab={<span><TeamOutlined /> Топы команд</span>} key="/tops_team" />
+            <TabPane tab={<span><FallOutlined /> Отстающие</span>} key="/least" />
+            <TabPane tab={<span><BoxPlotOutlined /> Обзор КР</span>} key="/analys_kr" />
+            <TabPane tab={<span><AppstoreOutlined /> Ваши группы</span>} key="/your_group" />
+            <TabPane tab={<span><GlobalOutlined /> Ваши направления</span>} key="/your_vectorstudy" />
+            <TabPane tab={<span><DotChartOutlined /> Диаграмма рассеяния</span>} key="/scater_plot" />
+            <TabPane tab={<span><QuestionCircleOutlined /> Карта сайта</span>} key="/map_site" />
+            <TabPane tab={<span><LogoutOutlined className="logout-icon" /> Выход</span>} key="/" />
+          </Tabs>
+        </Col>
+      </Row>
+    </Header>
+  );
 };
 
 export default CustomHeader;

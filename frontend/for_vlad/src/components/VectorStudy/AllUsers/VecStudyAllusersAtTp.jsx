@@ -15,25 +15,15 @@ const VecStudyAllusersAtTp = ({tokenUsers, choiseGroupSpeciality, selectedTeache
   const chartRef = useRef(null);
   const [NumberOfGr, setNumberOfGr] = useState(null);
   const [requests, setRequests] = useState([]);
-
-//   useEffect(() => {
-//     if (chartRef.current) {
-//       // Сохраняем значение в переменную
-//       const currentChartRef = chartRef.current;
   
-//       // Уничтожаем чарт при размонтировании компонента
-//       return () => {
-//         if (currentChartRef) {
-//           const chartInstance = Chart.getChart(currentChartRef); // Получаем экземпляр чарта
-//           if (chartInstance) {
-//             chartInstance.destroy(); // Уничтожаем чарт
-//           }
-//         }
-//       };
-//     }
-//   }, []);
-
-//   console.log("choiseGroupTeacher до запроса: ": '#', choiseGroupTeacher)
+  const [showAttendance1, setShowAttendance1] = useState(true);
+  const [showPerformance1, setShowPerformance1] = useState(true);
+  const [showAttendance2, setShowAttendance2] = useState(true);
+  const [showPerformance2, setShowPerformance2] = useState(true);
+  const [showAttendance3, setShowAttendance3] = useState(true);
+  const [showPerformance3, setShowPerformance3] = useState(true);
+  const [showAttendanceAttestation, setShowAttendanceAttestation] = useState(true);
+  const [showPerformanceAttestation, setShowPerformanceAttestation] = useState(true);
 
   useEffect(() => {
   const fetchVecStudyAllusersAtTpData = async () => {
@@ -76,7 +66,7 @@ if (!VecStudyAllusersAtTpData) {
     11: '#a7f9f2', 
     12: '#a7c1f9', 
 
-    13: '#333333', 
+    13: '#ecc94b', 
 };
 
 
@@ -121,12 +111,13 @@ function getColorByTeacherAndSpeciality(teacherId, speciality) {
 
     const data = {
       labels: VecStudyAllusersAtTpData.map(item => {
-        if (item.teacher_name) {
-            return `${item.stud_speciality} - ${item.teacher_name}`;
+        if (item.stud_speciality === "02.03.03 Математическое обеспечение и администрирование информационных систем") {
+          return "02.03.03 МОАИС";
         } else {
-            return item.stud_speciality;
+          return item.stud_speciality;
         }
-    }),
+      }),
+    
 
         datasets: [
           {
@@ -228,6 +219,7 @@ function getColorByTeacherAndSpeciality(teacherId, speciality) {
                 family: 'Trebuchet MS'
             },
             },
+            max: 110,
         },
         },
         plugins: {
@@ -247,7 +239,7 @@ function getColorByTeacherAndSpeciality(teacherId, speciality) {
 
         title: {
             display: true,
-            text: `Учебные показатели после КР, кол-во: ${NumberOfGr}`,
+            text: `Учебные показатели после контрольных точек, кол-во: ${NumberOfGr}`,
             font: {
             size: 22,
             fontColor: 'black',

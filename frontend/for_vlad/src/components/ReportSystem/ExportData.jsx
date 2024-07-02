@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Checkbox, List } from 'antd';
 import { SendOutlined} from '@ant-design/icons';
-const ExportData = ({ visible, onClose }) => {
+
+const ExportData = ({ visible, onClose ,requestTeamName }) => {
   const [selectedRequests, setSelectedRequests] = useState([]);
   const [requests, setRequests] = useState([]);
+  const [isCheckboxChecked, setIsCheckboxChecked] = useState(false);
+  // console.log('requestTeamName in ExportData',requestTeamName)
 
   useEffect(() => {
     const storedRequests = JSON.parse(localStorage.getItem('selectedRequests'));
@@ -82,6 +85,10 @@ const ExportData = ({ visible, onClose }) => {
     }
   };
 
+
+  
+  
+
   return (
     <Modal
       title="Экспорт данных"
@@ -92,12 +99,13 @@ const ExportData = ({ visible, onClose }) => {
       cancelText="Отмена"
       
     >
+    {/* <p>{`Команда: ${requestTeamName}`}</p> Display the team name */}
       <List
         dataSource={requests}
         renderItem={request => (
           <List.Item>
             <Checkbox onChange={(e) => handleCheckboxChange(e, request)} checked={selectedRequests.some(r => r.url === request.url)}>
-              {request.name || request.url}
+              { request.name || request.url}
             </Checkbox>
           </List.Item>
         )}

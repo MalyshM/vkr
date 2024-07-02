@@ -38,6 +38,24 @@ const StudentInfo = ({ studentId, onTeamIdFetch  }) => {
   {StudentInfoData && (
     <Flex direction="column">
         <Text fontSize={20}>ID Студента: {studentId}</Text>
+        <Text fontSize={20}>
+  ФИО студента: {
+    (() => {
+      const words = StudentInfoData[0].name.split(' ');
+
+      if (words.length < 3) {
+        return words.join(' '); // Если слов меньше трех, вернуть оригинальное значение
+      }
+
+      const firstNamePart = words[0].substring(0, 3);
+      const secondNamePart = words[1].substring(0, 1) + '.';
+      const thirdNamePart = words[2].substring(0, 1) + '.';
+
+      return `${firstNamePart} ${secondNamePart}${thirdNamePart}`;
+    })()
+  }
+</Text>
+
         <Text fontSize={20}>Подгруппа: {StudentInfoData[0].team_name}</Text>
         <Text fontSize={20}>Специальность: {StudentInfoData[0].speciality}</Text>
         <Text fontSize={20}>Email студента: {StudentInfoData[0].email}</Text>

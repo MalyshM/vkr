@@ -45,6 +45,8 @@ const ScaterPlotBySection = ({ tokenUsers, type_group_by, teacher_list, speciali
   const uniqueNames = [...new Set(ScaterPlotBySectionData.map(item => item.name))];
   const filteredData = ScaterPlotBySectionData.filter(item => item.name === selectedName);
 
+  const numTeams = filteredData.length;
+
   const teamColors = {};
   const data = filteredData.map(item => {
     const teamId = item.team_id;
@@ -90,10 +92,19 @@ const ScaterPlotBySection = ({ tokenUsers, type_group_by, teacher_list, speciali
       orientation: "h"
     },
     title: {
-      text: 'Группы',
+      text: type_group_by === 3 ? `Группы: ${numTeams}` :
+          type_group_by === 1 ? `Направления: ${numTeams}` :
+          type_group_by === 2 ? `Преподаватели: ${numTeams}` :
+          '',
     },
     xaxis: {
-      title: 'Медианная посещаемость',
+      title: {
+        text: 'Медианная посещаемость',
+        standoff: 0,
+      },
+      side: 'top',
+      tickmode: 'linear',
+      nticks: ScaterPlotBySectionData.length-1,
     },
     yaxis: {
       title: 'Медианная успеваемость',
@@ -134,7 +145,7 @@ const ScaterPlotBySection = ({ tokenUsers, type_group_by, teacher_list, speciali
             {Array.isArray(uniqueNames) && uniqueNames.length > 0 ? (
               uniqueNames.map((nameOfMeeting) => (
                 <Option key={nameOfMeeting} value={nameOfMeeting}>
-                  {nameOfMeeting}
+                  {nameOfMeeting.slice(0, -2)}
                 </Option>
               ))
             ) : (

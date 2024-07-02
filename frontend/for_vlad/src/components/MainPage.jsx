@@ -72,12 +72,16 @@ const MainPage = () => {
     setSelectedLessonMainPage(lesson);
   };
 
+  const handleSelectChange = (value) => {
+    
+  };
+
   return (
 
     <Layout style={{ minHeight: '90vh' }}>
-
+      {/* <Row> */}
         <Select
-          style={{ width: 270, marginTop:5, marginLeft:5 }}
+          style={{ width: 230, marginTop:10, marginLeft:45 }}
           placeholder="Выберите группу"
           onChange={handleTeamChange}
           value={selectedTeam}
@@ -92,6 +96,16 @@ const MainPage = () => {
             <Option disabled>Группа не выбрана</Option>
           )}
         </Select>
+
+        {/* <Select 
+        defaultValue="Программирование и основы алгоритмизации" 
+        // style={{ width: '100%' }} 
+        onChange={handleSelectChange}
+        style={{ width: 350, marginTop:5, marginLeft:5 }}>
+          <Option value="Программирование и основы алгоритмизации">Программирование и основы алгоритмизации</Option>
+        </Select>
+
+        </Row> */}
 
       <Content style={{ padding: '12px' }}>
         {selectedTeam ? (

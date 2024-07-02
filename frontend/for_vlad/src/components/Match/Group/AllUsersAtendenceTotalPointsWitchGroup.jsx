@@ -59,7 +59,7 @@ const colorsByTeacherId = {
     11: '#a7f9f2', // 
     12: '#a7c1f9', // 
 
-    13: '#333333', // 
+    13: '#ecc94b', // 
 };
 
 if (!AllUsersAtendenceTotalPointsWitchGroupData) {
@@ -70,7 +70,9 @@ if (!AllUsersAtendenceTotalPointsWitchGroupData) {
   const data = {
     labels: AllUsersAtendenceTotalPointsWitchGroupData.map(item => {
       if (item.team_name) {
-          return `${item.teacher_name} - ${item.team_name}`;
+        //   return `${item.teacher_name} - ${item.team_name}`;
+        return `${item.team_name}`;
+
       } else {
           return item.teacher_name;
       }
@@ -177,6 +179,9 @@ if (!AllUsersAtendenceTotalPointsWitchGroupData) {
                 family: 'Trebuchet MS'
             },
             },
+            min: 0, // минимальное значение оси y
+            max: 110, // максимальное значение оси y
+
         },
         },
         plugins: {

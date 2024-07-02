@@ -16,6 +16,18 @@ const NumCountStudInLern = ({ teamId, onLessonSelect, numberOfItems }) => {
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [numberOfday, setNumberOfday] = useState(null);
   const [requests, setRequests] = useState([]);
+  const [selectedIndex, setSelectedIndex] = useState(null); 
+
+
+  // const handleBarClick = (_, elements) => {
+  //   if (elements && elements.length > 0) {
+  //     const clickedElement = elements[0];
+  //     const dataIndex = clickedElement.index;
+  //     const selectedLessonName = AtendanceNumCountStudInLernData[dataIndex].name;
+  //     setSelectedLesson(selectedLessonName);
+  //     onLessonSelect(selectedLessonName);
+  //   }
+  // };
 
   const handleBarClick = (_, elements) => {
     if (elements && elements.length > 0) {
@@ -23,9 +35,11 @@ const NumCountStudInLern = ({ teamId, onLessonSelect, numberOfItems }) => {
       const dataIndex = clickedElement.index;
       const selectedLessonName = AtendanceNumCountStudInLernData[dataIndex].name;
       setSelectedLesson(selectedLessonName);
-      onLessonSelect(selectedLessonName);
+      setSelectedIndex(dataIndex); // Сохранение выбранного индекса
+      onLessonSelect(selectedLessonName, dataIndex); // Передача индекса в onLessonSelect
     }
   };
+
 
   useEffect(() => {
     const fetchAtendanceNumCountStudInLernData = async () => {
@@ -54,10 +68,13 @@ const NumCountStudInLern = ({ teamId, onLessonSelect, numberOfItems }) => {
   }
 
   const data = {
-    labels: AtendanceNumCountStudInLernData.map((item, index) => `${index + 1}. ${item.name}`),
+    labels: AtendanceNumCountStudInLernData.map((item, index) => {
+      const nameWithoutLastTwoChars = item.name.slice(0, -2);
+      return `${index + 1}. ${nameWithoutLastTwoChars}`;
+    }),
     datasets: [
       {
-        label: 'Кол-во студентов',
+        label: 'Количество студентов',
         data: AtendanceNumCountStudInLernData.map((item) => item.Посещаемость),
         backgroundColor: 'rgba(49, 141, 159, 0.8)',
         borderColor: 'rgba(49, 141, 159, 1)',
@@ -203,7 +220,7 @@ const NumCountStudInLern = ({ teamId, onLessonSelect, numberOfItems }) => {
           
           <RequestCheckbox
             requestUrl={requestUrl}
-            requestName="Кол-во студентов на встрече"
+            requestName="Количество студентов на встрече"
             onUpdateRequests={handleUpdateRequests}
           />
         </Row>
@@ -214,6 +231,7 @@ const NumCountStudInLern = ({ teamId, onLessonSelect, numberOfItems }) => {
 
       </Content>
     </Layout>
+    
   );
 };
 
