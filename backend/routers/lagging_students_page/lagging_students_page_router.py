@@ -75,7 +75,7 @@ async def lagging_students(token: str, is_group_by: bool, is_by_mark: bool, thre
             sub.Успеваемость,
             sub.Посещаемость,
             sub.stud_id,
-            sub.stud_name
+            sub.stud_name,
             """
     if is_by_mark:
         filter_clause = f"""
