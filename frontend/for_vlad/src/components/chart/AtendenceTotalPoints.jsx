@@ -95,7 +95,21 @@ const AtendenceTotalPoints = ({ teamId, teamName }) => {
   }
 
   const data = {
-    labels: attendanceTotalPointsData.map(item => item.stud_id),
+
+    labels: attendanceTotalPointsData.map(item => {
+      const words = item.stud_name.split(' ');
+      
+      if (words.length < 3) {
+          return item.stud_name; // Если слов меньше трех, вернуть оригинальное значение
+      }
+      
+      const firstNamePart = words[0].substring(0, 3);
+      const secondNamePart = words[1].substring(0, 1) + '.';
+      const thirdNamePart = words[2].substring(0, 1) + '.';
+      
+      return `${firstNamePart} ${secondNamePart}${thirdNamePart}`;
+  }),
+
     datasets: [
       {
         label: 'Успеваемость',

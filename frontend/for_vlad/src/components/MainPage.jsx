@@ -81,7 +81,7 @@ const MainPage = () => {
     <Layout style={{ minHeight: '90vh' }}>
       {/* <Row> */}
         <Select
-          style={{ width: 250, marginTop:5, marginLeft:5 }}
+          style={{ width: 230, marginTop:10, marginLeft:45 }}
           placeholder="Выберите группу"
           onChange={handleTeamChange}
           value={selectedTeam}

@@ -21,10 +21,15 @@ const HeaderContainer = styled.div`
   margin-bottom: 16px;
 `;
 
-const TableOfGroup = ({ teamId, selectedLesson }) => {
+const TableOfGroup = ({ teamId, selectedLesson, teamName }) => {
   const [TableOfGroupData, setTableOfGroupData] = useState(null);
   const [sortColumn, setSortColumn] = useState({ key: '', ascending: true });
   const [requests, setRequests] = useState([]);
+  const [isCheckboxChecked, setIsCheckboxChecked] = useState(false);
+
+  // const handleCheckboxChange = (event) => {
+  //   setIsCheckboxChecked(event.target.checked);
+  // };
 
   useEffect(() => {
     const fetchTableOfGroup = async () => {
@@ -61,17 +66,33 @@ const TableOfGroup = ({ teamId, selectedLesson }) => {
     return 0;
   });
 
+  const removeFirstWord = (name) => {
+    const words = name.split(' ');
+    
+    if (words.length < 3) {
+        return name.stud_name; // Если слов меньше трех, вернуть оригинальное значение
+    }
+    
+    const firstNamePart = words[0].substring(0, 3);
+    const secondNamePart = words[1].substring(0, 1) + '.';
+    const thirdNamePart = words[2].substring(0, 1) + '.';
+    
+    return `${firstNamePart} ${secondNamePart}${thirdNamePart}`;
+  };
+
   const columns = [
     {
       title: '№',
       dataIndex: 'index',
       key: 'index',
       render: (_, __, index) => index + 1,
+      width: 50, 
     },
     {
-      title: 'ID',
-      dataIndex: 'id',
+      title: 'ФИО',
+      dataIndex: 'stud_name',
       key: 'id',
+      render: (text) => removeFirstWord(text),
     },
     {
       title: (
@@ -91,7 +112,7 @@ const TableOfGroup = ({ teamId, selectedLesson }) => {
     {
       title: (
         <Space>
-          Посещение
+          Посещение (из 22)
           <Button
             type="link"
             size="small"
@@ -107,6 +128,11 @@ const TableOfGroup = ({ teamId, selectedLesson }) => {
 
   const count = TableOfGroupData ? sortedData.length : 0;
 
+  const trimmedSelectedLesson = selectedLesson ? selectedLesson.slice(0, -2) : '';
+
+
+  
+
   return (
     <TableContainer>
       <HeaderContainer>
@@ -115,7 +141,7 @@ const TableOfGroup = ({ teamId, selectedLesson }) => {
           
           <Col span={24}>
           <Text strong style={{ fontSize: '22px', color: '#808080' }}>
-            {selectedLesson ? `Название встречи: ${selectedLesson}` : 'Выберите встречу'}
+            {trimmedSelectedLesson ? `Название встречи: ${trimmedSelectedLesson}` : 'Выберите встречу'}
           </Text>
           </Col >
 
@@ -144,7 +170,9 @@ const TableOfGroup = ({ teamId, selectedLesson }) => {
 
         <RequestCheckbox
           requestUrl={requestUrl}
-          requestName={`Студенты пропустившие встречу ${selectedLesson}`}
+          requestName={`${trimmedSelectedLesson}`}
+          requestTeamName={`${teamName}`}
+
           onUpdateRequests={handleUpdateRequests}
           style={{ marginLeft: 'auto' }}
         />

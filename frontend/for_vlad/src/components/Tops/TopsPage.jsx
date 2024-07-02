@@ -33,7 +33,7 @@ const TopPage = () => {
   const [Top_10_most_and_least, setTop_10_most_and_least] = useState([])
   
   const [uniqueKRNames, setUniqueKRNames] = useState([]);
-  const [selectedKR, setSelectedKR] = useState("Аттестация00");
+  const [selectedKR, setSelectedKR] = useState("Коллекции. Работа с файлами20");
   const [filteredData, setFilteredData] = useState([]); 
 
   const [options_, setOptions] = useState([]);
@@ -76,6 +76,7 @@ const TopPage = () => {
       }
       
       const data = await response.json();
+      console.log('data',data)
        
       setTop_10_most_and_least(data);    
       // setFilteredData(data);
@@ -88,6 +89,7 @@ const TopPage = () => {
             team_name: group.team_name,
             lesson_counter: group.lesson_counter,
             speciality: group.speciality,
+            stud_name: item.stud_name,
 
         }));
         const updatedTop10least = (group.top_10_least || []).map(item => ({
@@ -97,6 +99,7 @@ const TopPage = () => {
           team_name: group.team_name,
           lesson_counter: group.lesson_counter,
           speciality: group.speciality,
+          stud_name: item.stud_name,
       }));
         return {
             ...group,
@@ -239,6 +242,27 @@ const handleChangeSpeciality = (value) => {
     console.log('CHANGES KR')
   };
 
+  const truncateName = (name) => {
+    if (!name) {
+      return ''; // Возвращаем пустую строку, если name не существует
+    }
+    const words = name.split(' ');
+  
+    if (words.length < 3) {
+      return words.join(' '); // Если слов меньше трех, вернуть оригинальное значение
+    }
+  
+    const firstNamePart = words[0].substring(0, 3);
+    const secondNamePart = words[1].substring(0, 1) + '.';
+    const thirdNamePart = words[2].substring(0, 1) + '.';
+  
+    return `${firstNamePart} ${secondNamePart}${thirdNamePart}`;
+  };
+
+  const updatedFilteredData = filteredData.map(student => ({
+    ...student,
+    stud_name: truncateName(student.stud_name)
+  }));
  
   const createGroupByOptions = (data, typeGroupBy) => {
     const uniqueSet = new Set();
@@ -284,7 +308,7 @@ const handleChangeSpeciality = (value) => {
   
 
   const columnsForFiltr = [
-    { title: 'ID Студента', dataIndex: 'stud_id', key: 'stud_id',
+    { title: 'ФИО Студента', dataIndex: 'stud_name', key: 'stud_name',
     render: (text, record) => (
       <a
           onClick={() => navigate(`/student/${record.stud_id}`)}
@@ -302,7 +326,7 @@ const handleChangeSpeciality = (value) => {
   ];
 
   const columnsForStudents = [
-    { title: 'ID Студента', dataIndex: 'stud_id', key: 'stud_id',
+    { title: 'ФИО Студента', dataIndex: 'stud_name', key: 'stud_name',
     render: (text, record) => (
       <a
         onClick={() => navigate(`/student/${record.stud_id}`)}
@@ -443,7 +467,7 @@ const handleChangeSpeciality = (value) => {
           </Tooltip>
 
 
-          <Tooltip title="Укажите желаемые учебные групыы">
+          <Tooltip title="Укажите желаемые учебные групы">
           <Select
             mode="multiple"
             allowClear
@@ -512,6 +536,7 @@ const handleChangeSpeciality = (value) => {
               Успеваемость: item.Успеваемость,
               Посещаемость: item.Посещаемость,
               stud_id: item.stud_id,
+              stud_name: truncateName(item.stud_name),
               name: item.name,
               lesson_counter: item.lesson_counter,
               teacher_name: group.teacher_name,
@@ -533,6 +558,7 @@ const handleChangeSpeciality = (value) => {
               Успеваемость: item.Успеваемость,
               Посещаемость: item.Посещаемость,
               stud_id: item.stud_id,
+              stud_name: truncateName(item.stud_name),
               name: item.name,
               lesson_counter: item.lesson_counter,
               teacher_name: group.teacher_name,
@@ -550,13 +576,13 @@ const handleChangeSpeciality = (value) => {
         ) : (
           <div style={{ display: 'flex', justifyContent: 'space-around', gap: '20px', marginTop: 20 }}>
             <Table
-              dataSource={filteredData.slice(0, Math.ceil(filteredData.length / 2))}
+              dataSource={updatedFilteredData.slice(0, Math.ceil(filteredData.length / 2))}
               columns={columnsForFiltr}
               rowKey="stud_id"
               title={() => 'Отстающие'}
             />
             <Table
-              dataSource={filteredData.slice(Math.ceil(filteredData.length / 2))}
+              dataSource={updatedFilteredData.slice(Math.ceil(filteredData.length / 2))}
               columns={columnsForFiltr}
               rowKey="stud_id"
               title={() => 'Преуспевающие'}

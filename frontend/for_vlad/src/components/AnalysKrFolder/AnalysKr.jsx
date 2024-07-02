@@ -184,7 +184,7 @@ const AnalysRr = () => {
             <Row justify="space-between" align="middle" style={{ padding: '12px' }}>
 
                 <Row >
-                    <Title level={2}>Анализ контрольных точек</Title>
+                    <Title level={2}>Обзор контрольных работ</Title>
 
                     <Tooltip title="Диаграмма отображающая распределения баллов студентов по КР через: Минимум, Первый квартиль, Медиана, Третий квартиль, Максимум, Выбросы">
                         <QuestionCircleOutlined style={{ marginLeft: 5, marginBottom: 5, fontSize: '20px', cursor: 'pointer' }} />
