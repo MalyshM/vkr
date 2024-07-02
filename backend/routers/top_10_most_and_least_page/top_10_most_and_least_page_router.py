@@ -77,7 +77,7 @@ async def top_10_most_and_least_studs(token: str, is_group_by: bool, is_by_mark:
             top_10.Успеваемость,
             top_10.Посещаемость,
             top_10.stud_id,
-            top_10.stud_name
+            top_10.stud_name,
             """
     partition_by = 'sub.name, sub.lesson_counter'
     if is_by_mark:
