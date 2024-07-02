@@ -14,7 +14,8 @@ from routers.util_funcs import get_teams_for_user_private_without_lect, get_team
 top_10_most_and_least_page_router = APIRouter(tags=["top 10 most and least page"])
 
 
-@top_10_most_and_least_page_router.get('/api/top_10_most_and_least_studs', name='Plot:plot', status_code=status.HTTP_200_OK,
+@top_10_most_and_least_page_router.get('/api/top_10_most_and_least_studs', name='Plot:plot',
+                                       status_code=status.HTTP_200_OK,
                                        description=
                                        """
                                                Получает token: str, type_group_by: int, teacher_list: Optional[str] = None,
@@ -46,9 +47,9 @@ top_10_most_and_least_page_router = APIRouter(tags=["top 10 most and least page"
                                                  ]
                                            """)
 async def top_10_most_and_least_studs(token: str, is_group_by: bool, is_by_mark: bool,
-                                type_group_by: int = None,
-                                teacher_list: Optional[str] = None, speciality_list: Optional[str] = None,
-                                team_list: Optional[str] = None, db: AsyncSession = Depends(connect_db_data)):
+                                      type_group_by: int = None,
+                                      teacher_list: Optional[str] = None, speciality_list: Optional[str] = None,
+                                      team_list: Optional[str] = None, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
     if team_list is not None:
         teams_true = ', '.join([f"'{team}'" for team in team_list.split(',')])
@@ -76,6 +77,7 @@ async def top_10_most_and_least_studs(token: str, is_group_by: bool, is_by_mark:
             top_10.Успеваемость,
             top_10.Посещаемость,
             top_10.stud_id,
+            top_10.stud_name
             """
     partition_by = 'sub.name, sub.lesson_counter'
     if is_by_mark:
@@ -94,7 +96,8 @@ async def top_10_most_and_least_studs(token: str, is_group_by: bool, is_by_mark:
                     json_build_object(
                         'Успеваемость', top_10.Успеваемость, 
                         'Посещаемость', top_10.Посещаемость, 
-                        'stud_id', top_10.stud_id
+                        'stud_id', top_10.stud_id,
+                        'stud_name', top_10.stud_name
                     ) {order_by_clause} DESC
                 ) AS top_10_best,"""
         fields_worst = f"""
@@ -102,7 +105,8 @@ async def top_10_most_and_least_studs(token: str, is_group_by: bool, is_by_mark:
                             json_build_object(
                                 'Успеваемость', top_10.Успеваемость, 
                                 'Посещаемость', top_10.Посещаемость, 
-                                'stud_id', top_10.stud_id
+                                'stud_id', top_10.stud_id,
+                                'stud_name', top_10.stud_name
                             ) {order_by_clause} ASC
                         ) AS top_10_least,"""
         fields = None
@@ -188,6 +192,7 @@ async def top_10_most_and_least_studs(token: str, is_group_by: bool, is_by_mark:
                         )::DECIMAL, 2) AS Посещаемость,
                         l.name,
                         l.stud_id,
+                        (SELECT s.name FROM stud s WHERE s.id = l.stud_id) AS stud_name,
                         COUNT(l.name) OVER (
                             PARTITION BY l.team_id, l.stud_id
                             ORDER BY l.id
@@ -222,7 +227,9 @@ async def top_10_most_and_least_studs(token: str, is_group_by: bool, is_by_mark:
         LOGGER.error(f"{href} Error {e}")
         raise e
 
-@top_10_most_and_least_page_router.get('/api/top_10_most_and_least_teams', name='Plot:plot', status_code=status.HTTP_200_OK,
+
+@top_10_most_and_least_page_router.get('/api/top_10_most_and_least_teams', name='Plot:plot',
+                                       status_code=status.HTTP_200_OK,
                                        description=
                                        """
                                                Получает token: str, type_group_by: int, teacher_list: Optional[str] = None,
@@ -254,9 +261,9 @@ async def top_10_most_and_least_studs(token: str, is_group_by: bool, is_by_mark:
                                                  ]
                                            """)
 async def top_10_most_and_least_teams(token: str, is_by_mark: bool,
-                                type_group_by: int,
-                                teacher_list: Optional[str] = None, speciality_list: Optional[str] = None,
-                                team_list: Optional[str] = None, db: AsyncSession = Depends(connect_db_data)):
+                                      type_group_by: int,
+                                      teacher_list: Optional[str] = None, speciality_list: Optional[str] = None,
+                                      team_list: Optional[str] = None, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
     if team_list is not None:
         teams_true = ', '.join([f"'{team}'" for team in team_list.split(',')])
