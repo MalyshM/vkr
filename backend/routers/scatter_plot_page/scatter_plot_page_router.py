@@ -98,7 +98,7 @@ async def stud_scatter_plot(token: str, type_group_by: int, teacher_list: Option
                         'Успеваемость', sub.Успеваемость, 
                         'Посещаемость', sub.Посещаемость, 
                         'stud_id', sub.stud_id,
-                        'stud_name', sub.stud_name,
+                        'stud_name', sub.stud_name
                     )
                 ) AS result1,
                 sub.name,
