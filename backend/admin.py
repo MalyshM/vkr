@@ -12,7 +12,8 @@ from routers.util_funcs import get_current_user_dev, Hasher
 from schemas import UserRegistration, UserLogin
 from starlette.requests import Request
 
-
+def create_bad_func():
+    return 0
 class UserAdmin(ModelView, model=User):
     column_list = [User.id, User.isadmin, User.iscurator, User.isteacher, User.fio, User.email, User.username,
                    User.date_of_add, ]

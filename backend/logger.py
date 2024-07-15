@@ -11,7 +11,7 @@ class LoggerSetup:
 
     def setup_logging(self):
         # add log format
-        LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        LOG_FORMAT = "%(asctime)s asd - %(name)s - %(levelname)s - %(message)s"
         logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT)
 
         # configure formmater for logger
