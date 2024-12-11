@@ -16,17 +16,17 @@ main_page_router = APIRouter(tags=["Main page"])
                       """
                               Получает команду по id
                               Returns:
-                                  массив словарей (Stud.name, Stud.id, Посещаемость)
+                                  массив словарей (stud_name, stud_id, Посещаемость)
                               \n
                               [
                                 {
-                                  "name": "297fa3e7b1df9f4e503ff4b76a9806be595bc79c38687b7c2d0d6301ec8eb04e",
-                                  "id": 86,
+                                  "stud_name": "297fa3e7b1df9f4e503ff4b76a9806be595bc79c38687b7c2d0d6301ec8eb04e",
+                                  "stud_id": 86,
                                   "Посещаемость": 0.8636363636363636
                                 },
                                 {
-                                  "name": "391c01a02b6fd2ffd532b8ee8b3b8f6c91d3082f220680904b042469b3beaea1",
-                                  "id": 231,
+                                  "stud_name": "391c01a02b6fd2ffd532b8ee8b3b8f6c91d3082f220680904b042469b3beaea1",
+                                  "stud_id": 231,
                                   "Посещаемость": 0.5
                                 },
                       """)
@@ -61,31 +61,32 @@ async def attendance_per_stud_for_team(id_team: int, db: AsyncSession = Depends(
                       """
                               Получает команду по id
                               Returns:
-                                  массив словарей (Stud.name, Stud.id, Успеваемость, Посещаемость)
-                              \n
+                                  массив словарей ("Успеваемость_средняя", "Посещаемость_средняя", "stud_name", "stud_id", "Посещаемость", "Успеваемость")\n
                               [
                                 {
-                                  "name": "297fa3e7b1df9f4e503ff4b76a9806be595bc79c38687b7c2d0d6301ec8eb04e",
-                                  "id": 86,
-                                  "Успеваемость": 77.5,
-                                  "Посещаемость": 86.36363636363636
+                                    "Успеваемость_средняя": 76.6,
+                                    "Посещаемость_средняя": 86.36,
+                                    "stud_name": "02045b53c0b6bff0153cbc64ff850efcdd448e6886740e97f5ad868083afb720",
+                                    "stud_id": 959,
+                                    "Посещаемость": 86.36,
+                                    "Успеваемость": 62.51
                                 },
                                 {
-                                  "name": "391c01a02b6fd2ffd532b8ee8b3b8f6c91d3082f220680904b042469b3beaea1",
-                                  "id": 231,
-                                  "Успеваемость": 5.93,
-                                  "Посещаемость": 50
+                                    "Успеваемость_средняя": 76.6,
+                                    "Посещаемость_средняя": 86.36,
+                                    "stud_name": "0d51af0f0062a519266207f4b540d5136a979172b8c47a3bd9e7e63d718cef12",
+                                    "stud_id": 197,
+                                    "Посещаемость": 95.45,
+                                    "Успеваемость": 77
                                 },
                                 ...
                                 {
-                                  "Stud_name": "ea8f90f44711633726715358e2a60d451b1123d91b75720276f82aecdd1fd6f9",
-                                  "Stud_id": 64,
-                                  "Успеваемость": 77.3,
-                                  "Посещаемость": 86.36363636363636
-                                },
-                                {
-                                  "total_points_avg": 67.72100005666667,
-                                  "arrival_avg": 77.8787878787879
+                                    "Успеваемость_средняя": 76.6,
+                                    "Посещаемость_средняя": 86.36,
+                                    "stud_name": "f7cd34b508d881e78766d70c591dc1eb34f7cae3887d927c0d2779d0046edd8c",
+                                    "stud_id": 814,
+                                    "Посещаемость": 54.55,
+                                    "Успеваемость": 63
                                 }
                       """)
 async def total_points_attendance_per_stud_for_team(id_team: int, db: AsyncSession = Depends(connect_db_data)):
@@ -138,17 +139,16 @@ async def total_points_attendance_per_stud_for_team(id_team: int, db: AsyncSessi
                       """
                               Получает команду по id
                               Returns:
-                                  массив словарей (Stud.name, Stud.id, Успеваемость)
-                              \n
+                                  массив словарей ("stud_name", "stud_id", "Успеваемость")\n
                               [
                                 {
-                                  "name": "297fa3e7b1df9f4e503ff4b76a9806be595bc79c38687b7c2d0d6301ec8eb04e",
-                                  "id": 86,
+                                  "stud_name": "297fa3e7b1df9f4e503ff4b76a9806be595bc79c38687b7c2d0d6301ec8eb04e",
+                                  "stud_id": 86,
                                   "Успеваемость": 77.5
                                 },
                                 {
-                                  "name": "391c01a02b6fd2ffd532b8ee8b3b8f6c91d3082f220680904b042469b3beaea1",
-                                  "id": 231,
+                                  "stud_name": "391c01a02b6fd2ffd532b8ee8b3b8f6c91d3082f220680904b042469b3beaea1",
+                                  "stud_id": 231,
                                   "Успеваемость": 5.93
                                 },
                       """)
@@ -183,30 +183,30 @@ async def total_points_per_stud_for_team(id_team: int, db: AsyncSession = Depend
           
                               Получает команду по id
                               Returns:
-                                  массив словарей 'avg_total_points', 'mark','percent'
+                                  массив словарей ("mark","percent", "avg_total_points")
                               \n
-                              [
-                                {
-                                  "avg_total_points": 10.879999925,
-                                  "mark": "неудовл.",
-                                  "percent": 0.13333333333333333
-                                },
-                                {
-                                  "avg_total_points": 62.515000333333326,
-                                  "mark": "удовл.",
-                                  "percent": 0.2
-                                },
-                                {
-                                  "avg_total_points": 77.5925,
-                                  "mark": "хор.",
-                                  "percent": 0.5333333333333333
-                                },
-                                {
-                                  "avg_total_points": 92.885,
-                                  "mark": "отл.",
-                                  "percent": 0.13333333333333333
-                                }
-                              ]
+                            [
+                              {
+                                "mark": "неудовл.",
+                                "percent": 0.13,
+                                "avg_total_points": 7
+                              },
+                              {
+                                "mark": "отл.",
+                                "percent": 0.13,
+                                "avg_total_points": 91
+                              },
+                              {
+                                "mark": "удовл.",
+                                "percent": 0.2,
+                                "avg_total_points": 63
+                              },
+                              {
+                                "mark": "хор.",
+                                "percent": 0.53,
+                                "avg_total_points": 77
+                              }
+                            ]
                       """)
 async def total_marks_for_team(id_team: int, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
@@ -259,27 +259,28 @@ async def total_marks_for_team(id_team: int, db: AsyncSession = Depends(connect_
                       """
                               \nПолучает id_team: int\n
                               Returns:\n
-                                  массив словарей\n
-          
-          
-          
+                                  массив словарей ("name", "id", "Посещаемость")\n
                               [
                                 {
-                                  "name": "Основные принципы организации Языка Python. Базовые элементы программирования и типы данных",
-                                  "arrival": 23
-                                },
-                                {
-                                  "name": "Основные принципы организации Языка Python. Базовые элементы программирования и типы данных1",
-                                  "arrival": 28
-                                },
-                                {
-                                  "name": "Основные принципы организации Языка Python. Базовые элементы программирования и типы данных2",
-                                  "arrival": 28
-                                },
-                                {
-                                  "name": "Управляющие конструкции",
-                                  "arrival": 24
-                                },
+                                    "name": "Основные принципы организации Языка Python. Базовые элементы программирования и типы данных00",
+                                    "id": 7,
+                                    "Посещаемость": 23
+                                  },
+                                  {
+                                    "name": "Основные принципы организации Языка Python. Базовые элементы программирования и типы данных10",
+                                    "id": 8,
+                                    "Посещаемость": 28
+                                  },
+                                  {
+                                    "name": "Основные принципы организации Языка Python. Базовые элементы программирования и типы данных20",
+                                    "id": 9,
+                                    "Посещаемость": 28
+                                  },
+                                  {
+                                    "name": "Управляющие конструкции00",
+                                    "id": 10,
+                                    "Посещаемость": 24
+                                  },
                       """)
 async def attendance_num_for_stud_for_team(id_team: int, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
@@ -314,21 +315,45 @@ async def attendance_num_for_stud_for_team(id_team: int, db: AsyncSession = Depe
                       """
                               \nПолучает id_team: int, name_of_lesson: str\n
                               Returns:\n
-                                  массив словарей\n
-          
-          
-          
-                              [
-                                {
-                                  "id": 1,
-                                  "Успеваемость": 50,
-                                  "Посещаемость": 93.33333333333333
-                                },
-                                {
-                                  "id": 30,
-                                  "Успеваемость": 9.5,
-                                  "Посещаемость": 26.666666666666668
-                                },
+                                  массив словарей "stud_name", "id", "Посещаемость", "Успеваемость"\n
+                                [
+                                  {
+                                    "stud_name": "9c62c954dd8e44297cfc1e537eaf1c8bb82ae21fa3b6b0b56530759943771e51",
+                                    "id": 30,
+                                    "Посещаемость": 1,
+                                    "Успеваемость": 2
+                                  },
+                                  {
+                                    "stud_name": "275ae623ccbfa5b1749c13398b8b580d9aed00833a6572e96aeb3afbb733ea23",
+                                    "id": 144,
+                                    "Посещаемость": 3,
+                                    "Успеваемость": 8
+                                  },
+                                  {
+                                    "stud_name": "5c7bc1785529427017234aa2cfc9da6ce6f09f59fec4f486b82b44b4067b1bb3",
+                                    "id": 165,
+                                    "Посещаемость": 2,
+                                    "Успеваемость": 8
+                                  },
+                                  {
+                                    "stud_name": "5b4ee33933c8eae279e6142a374b77350dd5dac1494b523b5f10a6f7b53ef4fe",
+                                    "id": 442,
+                                    "Посещаемость": 2,
+                                    "Успеваемость": 2
+                                  },
+                                  {
+                                    "stud_name": "e09244f5531362498e842225a652e717543be0a198894356798572eae7b78fa3",
+                                    "id": 688,
+                                    "Посещаемость": 2,
+                                    "Успеваемость": 8
+                                  },
+                                  {
+                                    "stud_name": "4c9fe52d7d80a8fc7173f862cc7d6bfd7107c4e9ba5ebec2470628d085f25729",
+                                    "id": 880,
+                                    "Посещаемость": 0,
+                                    "Успеваемость": 0
+                                  }
+                                ]
                       """)
 async def attendance_num_for_stud_for_team_stat_table(id_team: int, name_of_lesson: str,
                                                       db: AsyncSession = Depends(connect_db_data)):

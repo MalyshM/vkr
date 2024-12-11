@@ -24,10 +24,10 @@ group_comparison_page_router = APIRouter(tags=["Group comparison page"])
                                           \n
                                           [
                                             {
-                                              "name": "7e69e519d8b8a86e5c1346ca6fc49a63bdd52c902978b7d67748f77d74979476",
-                                              "id": 859,
+                                              "name": "3c2e83fffbb983d214eb3a55ad18dafd12e4b5b8c993480c0a0b7453b786c2f9",
+                                              "id": 899,
                                               "team_name": "ПиОА П-08.02",
-                                              "arrival": 0.9545454545454546,
+                                              "arrival": 0.95,
                                               "team_id": 2
                                             },
                                             {
@@ -38,10 +38,10 @@ group_comparison_page_router = APIRouter(tags=["Group comparison page"])
                                               "team_id": 4
                                             },
                                             {
-                                              "name": "3c2e83fffbb983d214eb3a55ad18dafd12e4b5b8c993480c0a0b7453b786c2f9",
-                                              "id": 899,
+                                              "name": "e521ef0975ec9f2db552d28e8a99e226363b02740a6e1dc8239c2da99a40fb24",
+                                              "id": 299,
                                               "team_name": "ПиОА П-08.02",
-                                              "arrival": 0.9545454545454546,
+                                              "arrival": 0.91,
                                               "team_id": 2
                                             },
                                             {
@@ -239,11 +239,11 @@ async def attendance_static_stud_for_all_teams(token: str, db: AsyncSession = De
                                           \n
                                           [
                                             {
-                                              "team_name": "ПиОА Л-08",
-                                              "avg_total_points": 0,
-                                              "team_id": 1,
-                                              "teacher_id": 1,
-                                              "teacher_name": "Плотоненко Юрий Анатольевич"
+                                              "team_name": "ПиОА Л-08", название команды
+                                              "avg_total_points": 0, среднее количество баллов у группы
+                                              "team_id": 1, айди группы
+                                              "teacher_id": 1, айди преподавателя
+                                              "teacher_name": "Плотоненко Юрий Анатольевич", имя преподавателя
                                             },
                                             {
                                               "team_name": "ПиОА П-08.02",
@@ -297,7 +297,7 @@ async def total_points_studs_for_all_teams(token: str, db: AsyncSession = Depend
                                               "team_name": "ПиОА П-01.01 Спорт Прогрм", название команды
                                               "team_id": 35, айди команды
                                               "teacher_id": 4, айди преподавателя
-                                              "teacher_name": "Павлова Елена Александровна", название преподавателя
+                                              "teacher_name": "Павлова Елена Александровна", имя преподавателя
                                               "Успеваемость_средняя": 31.77, средняя успеваемость команды на определенном майлстоуне
                                               "Посещаемость_средняя": 0.94 средняя посещаемость команды на определенном майлстоуне
                                             },
@@ -455,7 +455,7 @@ async def team_kr_total_points_attendance_dynamic(token: str, group_by_teacher: 
                                               "team_name": "ПиОА П-01.01 Спорт Прогрм", название команды
                                               "team_id": 35, айди команды
                                               "teacher_id": 4, айди преподавателя
-                                              "teacher_name": "Павлова Елена Александровна", название преподавателя
+                                              "teacher_name": "Павлова Елена Александровна", имя преподавателя
                                               "Успеваемость_средняя": 31.77 средняя успеваемость команды на определенном майлстоуне
                                             },
                                             {

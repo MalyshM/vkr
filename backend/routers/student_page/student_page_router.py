@@ -17,20 +17,20 @@ student_page_router = APIRouter(tags=["Student page"])
                                  Получает id_team: int, id_stud: int
                                  Returns:
                                      response_list = []
-                                     response_list.append({'name': row['name'], 'cum_sum': cum_sum[-1], 'counter': row['counter'], 'isTest': temp})
+                                     response_list.append({'name': row['name'], 'cum_sum': cum_sum[-1], 'counter': row['counter'], 'test': temp})
                                  \n
                                  [
                                    {
                                      "name": "Основные принципы организации Языка Python. Базовые элементы программирования и типы данных",
                                      "cum_sum": 2,
                                      "counter": 1,
-                                     "isTest": false
+                                     "test": false
                                    },
                                    {
                                      "name": "Основные принципы организации Языка Python. Базовые элементы программирования и типы данных1",
                                      "cum_sum": 4,
                                      "counter": 2,
-                                     "isTest": false
+                                     "test": false
                                    },
                          """)
 async def cum_sum_points_for_stud_for_team(id_team: int, id_stud: int, db: AsyncSession = Depends(connect_db_data)):
@@ -162,21 +162,34 @@ async def attendance_static_for_stud_for_team(id_team: int, id_stud: int, db: As
                                  Получает id_team: int, id_stud: int
                                  Returns:
                                      response_list = []
-                                     response_list.append({'name': row['name'], 'static_arrival': static_arrival[-1] * 100})
+                                     response_list.append({'name': row['name'], 'dynamical_arrival': dynamical_arrival[-1] * 100}, 'static_arrival': static_arrival[-1] * 100}
+                                     'cum_sum': cum_sum[-1] 'counter': row['counter'], 'test': temp)
                                  \n
-                                 [
-                                   {
-                                     "name": "Основные принципы организации Языка Python. Базовые элементы программирования и типы данных",
-                                     "static_arrival": 4.545454545454546
-                                   },
-                                   {
-                                     "name": "Основные принципы организации Языка Python. Базовые элементы программирования и типы данных1",
-                                     "static_arrival": 9.090909090909092
-                                   },
-                                   {
-                                     "name": "Основные принципы организации Языка Python. Базовые элементы программирования и типы данных2",
-                                     "static_arrival": 13.636363636363635
-                                   },
+                                [
+                                  {
+                                    "name": "Основные принципы организации Языка Python. Базовые элементы программирования и типы данных00",
+                                    "dynamical_arrival": 100,
+                                    "static_arrival": 4.55,
+                                    "cum_sum": 2,
+                                    "counter": 1,
+                                    "test": false
+                                  },
+                                  {
+                                    "name": "Основные принципы организации Языка Python. Базовые элементы программирования и типы данных10",
+                                    "dynamical_arrival": 100,
+                                    "static_arrival": 9.09,
+                                    "cum_sum": 4,
+                                    "counter": 2,
+                                    "test": false
+                                  },
+                                  {
+                                    "name": "Основные принципы организации Языка Python. Базовые элементы программирования и типы данных20",
+                                    "dynamical_arrival": 100,
+                                    "static_arrival": 13.64,
+                                    "cum_sum": 6,
+                                    "counter": 3,
+                                    "test": false
+                                  },
                          """)
 async def all_in_one_for_stud_for_team(id_team: int, id_stud: int, db: AsyncSession = Depends(connect_db_data)):
     start_time = time.time()
